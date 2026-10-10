@@ -4,10 +4,43 @@
   "lottery": [],
   "total_stake": 0,
   "expected_roi": 0.0,
-  "bankroll": 3870.7891,
-  "breaker_multiplier": 1.0,
+  "bankroll": 3889.5596,
+  "breaker_multiplier": 0.1,
   "parlay": [],
   "score_parlay": [
+    {
+      "type": "比分2串1",
+      "legs": [
+        {
+          "match": "2026-10-11_周日009",
+          "home": "兹沃勒",
+          "away": "坎布尔",
+          "league": "荷甲",
+          "score": "1-0",
+          "prob": 0.169,
+          "cal_prob": 0.0952,
+          "odds": 12.0
+        },
+        {
+          "match": "2026-10-11_周日028",
+          "home": "圣路易斯城",
+          "away": "洛城银河",
+          "league": "美职",
+          "score": "1-0",
+          "prob": 0.324,
+          "cal_prob": 0.0952,
+          "odds": 12.5
+        }
+      ],
+      "total_odds": 150.0,
+      "hit_prob": 0.0091,
+      "stake": 2.0,
+      "potential": 300.0,
+      "worst_win": 0.0,
+      "n_bets": 1,
+      "odds_source": "official",
+      "note": "两场比分都中才赢（校准命中 0.9% × 赔率 150 倍 = EV +36%）"
+    },
     {
       "type": "比分2串1",
       "legs": [
@@ -17,8 +50,8 @@
           "away": "洛城银河",
           "league": "美职",
           "score": "1-0",
-          "prob": 0.316,
-          "cal_prob": 0.0948,
+          "prob": 0.324,
+          "cal_prob": 0.0952,
           "odds": 12.5
         },
         {
@@ -27,33 +60,155 @@
           "away": "朴茨茅斯",
           "league": "英冠",
           "score": "0-1",
-          "prob": 0.169,
-          "cal_prob": 0.067,
+          "prob": 0.167,
+          "cal_prob": 0.0669,
           "odds": 17.0
         }
       ],
       "total_odds": 212.5,
-      "hit_prob": 0.0063,
+      "hit_prob": 0.0064,
       "stake": 2.0,
       "potential": 425.0,
       "worst_win": 0.0,
       "n_bets": 1,
       "odds_source": "official",
       "note": "两场比分都中才赢（校准命中 0.6% × 赔率 212 倍 = EV +35%）"
+    },
+    {
+      "type": "比分2串1",
+      "legs": [
+        {
+          "match": "2026-10-11_周日009",
+          "home": "兹沃勒",
+          "away": "坎布尔",
+          "league": "荷甲",
+          "score": "1-0",
+          "prob": 0.169,
+          "cal_prob": 0.0952,
+          "odds": 12.0
+        },
+        {
+          "match": "2026-10-11_周日006",
+          "home": "南安普敦",
+          "away": "朴茨茅斯",
+          "league": "英冠",
+          "score": "0-1",
+          "prob": 0.167,
+          "cal_prob": 0.0669,
+          "odds": 17.0
+        }
+      ],
+      "total_odds": 204.0,
+      "hit_prob": 0.0064,
+      "stake": 2.0,
+      "potential": 408.0,
+      "worst_win": 0.0,
+      "n_bets": 1,
+      "odds_source": "official",
+      "note": "两场比分都中才赢（校准命中 0.6% × 赔率 204 倍 = EV +30%）"
+    },
+    {
+      "type": "比分3串1",
+      "legs": [
+        {
+          "match": "2026-10-11_周日009",
+          "home": "兹沃勒",
+          "away": "坎布尔",
+          "league": "荷甲",
+          "score": "1-0",
+          "prob": 0.169,
+          "cal_prob": 0.0952,
+          "odds": 12.0
+        },
+        {
+          "match": "2026-10-11_周日028",
+          "home": "圣路易斯城",
+          "away": "洛城银河",
+          "league": "美职",
+          "score": "1-0",
+          "prob": 0.324,
+          "cal_prob": 0.0952,
+          "odds": 12.5
+        },
+        {
+          "match": "2026-10-11_周日006",
+          "home": "南安普敦",
+          "away": "朴茨茅斯",
+          "league": "英冠",
+          "score": "0-1",
+          "prob": 0.167,
+          "cal_prob": 0.0669,
+          "odds": 17.0
+        }
+      ],
+      "total_odds": 2550.0,
+      "hit_prob": 0.0006,
+      "stake": 2.0,
+      "potential": 5100.0,
+      "worst_win": 0.0,
+      "n_bets": 1,
+      "odds_source": "official",
+      "note": "三场比分全中才赢（赔率 2550 倍，校准命中 0.06%）"
+    },
+    {
+      "type": "比分3串4(容错)",
+      "legs": [
+        {
+          "match": "2026-10-11_周日009",
+          "home": "兹沃勒",
+          "away": "坎布尔",
+          "league": "荷甲",
+          "score": "1-0",
+          "prob": 0.169,
+          "cal_prob": 0.0952,
+          "odds": 12.0
+        },
+        {
+          "match": "2026-10-11_周日028",
+          "home": "圣路易斯城",
+          "away": "洛城银河",
+          "league": "美职",
+          "score": "1-0",
+          "prob": 0.324,
+          "cal_prob": 0.0952,
+          "odds": 12.5
+        },
+        {
+          "match": "2026-10-11_周日006",
+          "home": "南安普敦",
+          "away": "朴茨茅斯",
+          "league": "英冠",
+          "score": "0-1",
+          "prob": 0.167,
+          "cal_prob": 0.0669,
+          "odds": 17.0
+        }
+      ],
+      "total_odds": 2550.0,
+      "hit_prob": 0.0006,
+      "stake": 8.0,
+      "potential": 6233.0,
+      "worst_win": 425.0,
+      "n_bets": 4,
+      "odds_source": "official",
+      "note": "3场出4注（3×2串1+1×3串1）错1场仍中1注2串1≈¥425，全中≈¥6233"
     }
   ],
+  "parlay_stake": 16.0,
+  "total_exposure": 16.0,
+  "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
-    "overall": 0.5388,
-    "n": 980,
+    "overall": 0.5392,
+    "n": 983,
     "table": {
       "0.35": 0.4203,
       "0.4": 0.4925,
       "0.45": 0.4857,
       "0.5": 0.507,
       "0.55": 0.4845,
-      "0.6": 0.6849,
-      "0.65": 0.7344,
-      "0.7": 0.8068
+      "0.6": 0.6757,
+      "0.65": 0.7385,
+      "0.7": 0.809
     },
     "note": "串关 EV 用账本校准命中率（模型概率高估，0.55-0.60 段仅 31.6% 命中）；推荐=校准EV>0"
   }
