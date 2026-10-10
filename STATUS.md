@@ -1,12 +1,12 @@
 # 足球引擎 · 状态文档（新对话开场先读这个）
 
-> 最后更新: 2026-09-26 | 项目: 《王者万象棋》无关，这是竞彩足球预测引擎
+> 最后更新: 2026-10-11 | 项目: 《王者万象棋》无关，这是竞彩足球预测引擎
 
 ## 一句话现状
 
 竞彩足球概率预测 + 虚拟投注系统，GitHub Actions 全自动运行。
-经过 4 轮升级后，洁净样本 428 场上 **IMPROVED 判定成立（z=2.11）**：
-Brier 0.6172→0.5741，命中率 51.6%→54.2%，**持续小幅跑赢纯市场**。
+洁净样本 **550 场**（2026-10-10 tracker: n=529 上 **IMPROVED 判定成立，z=3.14**）：
+Brier 0.6172→0.5573，命中率 51.6%→55.95%，**持续小幅跑赢纯市场**（同期市场 0.5631/55.7%）。
 
 ## 关键路径
 
@@ -37,10 +37,18 @@ Brier 0.6172→0.5741，命中率 51.6%→54.2%，**持续小幅跑赢纯市场*
 - DJYY 断供两周三层根因（2026-10-09 全修）: ①限流(2400+调用/天→按天缓存)
   ②队名匹配(竞彩缩写/译名→前缀规则+别名) ③API schema迁移(referee→referees.main、
   injuries→home.sidelined)
+- push 卡死 detached HEAD（2026-10-11 修）: monitor/auto_run 的 pull --rebase 停在
+  空提交上残留 rebase-merge → HEAD 游离、push 全挂、本地拉不回远端（2小时数据没同步）。
+  两脚本已加自愈: rebase --quit + checkout -B main + reset --hard origin/main（远端为准，
+  数据每小时重生成不怕丢）
+- stakes 字段（动机/情境）DJYY 上游恒 null（2026-10-11 抽样证实）: comparison API 有 key
+  不填值，store-only 不进模型，周检覆盖率别拿它当健康指标
 - CI 侧 djyylive 屏蔽 Azure IP 段 → 字段保全方案(本地富化+CI不覆盖, 双端各取所长)
 - 本地调度: cron :00 盘口监控 + :25 完整管线(auto_run.sh, 含 DJYY 富化)
 - 两个本地 cron 均带代理自愈(Clash 关闭自动拉起)
 - 国庆停售三层修复(优雅跳过/非竞彩过滤/残留清理)
+- CI schedule 实际延迟 2~4 小时（GitHub 调度延迟，非故障）→ 当日结算滞后属正常，
+  可本地补: fetch_sina_results.py --date X && python -m engine.main --settle --date X（幂等）
 
 - isotonic platt 分支 shrink 未定义（30≤n<100 触发）→ 已默认值+try/except
 - selfcheck 小样本日（<5场）全缺误阻断 → 已加门槛
@@ -49,7 +57,7 @@ Brier 0.6172→0.5741，命中率 51.6%→54.2%，**持续小幅跑赢纯市场*
 
 ## 下一步/开放事项
 
-- [ ] 洁净样本继续累积（428→更大），跟踪 upgrade_tracker 判定
-- [ ] LGBM 每次结算自动重训，盯 ready=true（需双基线显著）
+- [ ] 洁净样本继续累积（550→更大），跟踪 upgrade_tracker 判定
+- [ ] LGBM 每次结算自动重训（本地缺 lightgbm，训练在 CI 侧），盯 ready=true（需双基线显著）
 - [ ] 可选：Qwen 新闻→情境层管道（等用户定新闻源）
 - [ ] 用户侧遗留：GitHub token 撤销重发（旧 token 曾明文存在 git config）
