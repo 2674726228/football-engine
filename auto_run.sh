@@ -69,9 +69,12 @@ for i in $(seq 1 $MAX_RETRIES); do
     log "  推送尝试 $i/$MAX_RETRIES..."
     heal_proxy || log "  ⚠ 代理仍未恢复，尝试直连推送"
     if ! git pull --rebase --autostash origin main 2>&1 | tee -a "$LOG_FILE"; then
-        git rebase --abort 2>/dev/null
+        # pull --rebase 停在空提交时处于"编辑中"状态，abort 未必能清干净，
+        # 残留 rebase-merge 会让 HEAD 游离、push 永远报 not on a branch（2026-10-11 卡死根因）。
+        git rebase --quit 2>/dev/null || git rebase --abort 2>/dev/null
         log "  ↻ rebase 冲突，对齐远端后重试（监控数据每小时重生成，远端为准）"
         git fetch origin main 2>&1 | tee -a "$LOG_FILE"
+        git checkout -B main 2>/dev/null
         git reset --hard origin/main 2>&1 | tee -a "$LOG_FILE"
     fi
     git push 2>&1 | tee -a "$LOG_FILE"
