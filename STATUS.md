@@ -22,8 +22,11 @@ Brier 0.6172→0.5573，命中率 51.6%→55.95%，**持续小幅跑赢纯市场
 
 - **每周一 03:30 周度体检**（升级效果+EV校准+情境覆盖）——确认它是否还挂在旧对话的工作区；
   若失效，在新对话用 CronCreate 重建，提示词要点在 docs/UPGRADE2 的路线图段落
-- GitHub Actions 每半小时跑 daily-forecast（预测+结算+自检+部署 Pages）
+- GitHub Actions 每半小时跑 daily-forecast（预测+结算+自检+部署 Pages；schedule 实际延迟 2~4h）
 - 本地 `auto_run.sh` 每小时实时监控（含代理自愈：7897 不通自动拉起 Clash Verge）
+- **推送走 SSH deploy key（2026-10-11 起）**：远端 = `git@github-football-engine:...`，
+  密钥 `~/.ssh/football-engine_deploy`（只授权本仓库，经 ssh.github.com:443 + Clash 代理）。
+  cron 后台会话拿不到 keychain 凭据，别把推送改回 HTTPS+osxkeychain
 
 ## 自进化机制现状（数据纪律，勿手动干预）
 
@@ -41,6 +44,10 @@ Brier 0.6172→0.5573，命中率 51.6%→55.95%，**持续小幅跑赢纯市场
   空提交上残留 rebase-merge → HEAD 游离、push 全挂、本地拉不回远端（2小时数据没同步）。
   两脚本已加自愈: rebase --quit + checkout -B main + reset --hard origin/main（远端为准，
   数据每小时重生成不怕丢）
+- cron 推送拿不到凭据（2026-10-11 修）: keychain 条目和设置都正常、GUI 会话能推，
+  但 launchd 后台会话 osxkeychain 静默返回空 → "could not read Username: Device not
+  configured"。凌晨起挂了数小时，根因未完全定位（疑似 keychain 授权弹窗未被应答后拒绝）。
+  终解: 注册 deploy key 走 SSH（见"自动化"），与 keychain/登录状态彻底解耦
 - stakes 字段（动机/情境）DJYY 上游恒 null（2026-10-11 抽样证实）: comparison API 有 key
   不填值，store-only 不进模型，周检覆盖率别拿它当健康指标
 - CI 侧 djyylive 屏蔽 Azure IP 段 → 字段保全方案(本地富化+CI不覆盖, 双端各取所长)
@@ -60,4 +67,5 @@ Brier 0.6172→0.5573，命中率 51.6%→55.95%，**持续小幅跑赢纯市场
 - [ ] 洁净样本继续累积（550→更大），跟踪 upgrade_tracker 判定
 - [ ] LGBM 每次结算自动重训（本地缺 lightgbm，训练在 CI 侧），盯 ready=true（需双基线显著）
 - [ ] 可选：Qwen 新闻→情境层管道（等用户定新闻源）
-- [ ] 用户侧遗留：GitHub token 撤销重发（旧 token 曾明文存在 git config）
+- [x] 用户侧遗留→已解锁：本地推送已不依赖旧 PAT（deploy key 接管），keychain 里的
+      GitHub token 现在可以随时撤销重发，不影响自动化
