@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T19:42:24.949572+00:00",
+  "generated_at": "2026-10-10T20:04:37.933839+00:00",
   "parlay": {
     "n_tickets": 119,
     "n_pending": 5,
@@ -32,19 +32,19 @@
   },
   "score_parlay": {
     "n_tickets": 195,
-    "n_pending": 8,
-    "n_settled": 187,
+    "n_pending": 6,
+    "n_settled": 189,
     "n_won": 0,
     "hit_rate": 0.0,
-    "stake": 584.0,
+    "stake": 588.0,
     "stake_committed": 606.0,
-    "stake_pending": 22.0,
+    "stake_pending": 18.0,
     "return": 0.0,
     "roi": -1.0,
-    "avg_odds": 828.59,
+    "avg_odds": 823.97,
     "by_type": {
       "比分2串1": {
-        "n": 117,
+        "n": 119,
         "won": 0,
         "roi": -1.0
       },
@@ -59,8 +59,8 @@
         "roi": -1.0
       }
     },
-    "leg_hit_rate": 0.0964,
-    "n_legs_settled": 446
+    "leg_hit_rate": 0.0958,
+    "n_legs_settled": 449
   },
   "tickets": {
     "parlay": [
@@ -12102,7 +12102,7 @@
         "pending": true,
         "leg_results": [
           null,
-          null
+          false
         ],
         "return": 0.0,
         "legs": [
@@ -12122,7 +12122,7 @@
             "sel": null,
             "score": "0-1",
             "odds": 32.0,
-            "hit": null
+            "hit": false
           }
         ]
       },
@@ -12133,12 +12133,12 @@
         "potential": 832.0,
         "total_odds": 416.0,
         "odds_source": "official",
-        "note": "待赛",
+        "note": "两场比分都中才赢（校准命中 0.6% × 赔率 416 倍 = EV +166%）",
         "won": false,
-        "pending": true,
+        "pending": false,
         "leg_results": [
           false,
-          null
+          false
         ],
         "return": 0.0,
         "legs": [
@@ -12158,7 +12158,7 @@
             "sel": null,
             "score": "0-1",
             "odds": 32.0,
-            "hit": null
+            "hit": false
           }
         ]
       },
@@ -12169,12 +12169,12 @@
         "potential": 736.0,
         "total_odds": 368.0,
         "odds_source": "official",
-        "note": "待赛",
+        "note": "两场比分都中才赢（校准命中 0.7% × 赔率 368 倍 = EV +157%）",
         "won": false,
-        "pending": true,
+        "pending": false,
         "leg_results": [
           false,
-          null
+          false
         ],
         "return": 0.0,
         "legs": [
@@ -12194,7 +12194,7 @@
             "sel": null,
             "score": "0-1",
             "odds": 32.0,
-            "hit": null
+            "hit": false
           }
         ]
       },
@@ -12330,42 +12330,6 @@
         "date": "2026-10-11",
         "type": "比分2串1",
         "stake": 2.0,
-        "potential": 312.0,
-        "total_odds": 156.0,
-        "odds_source": "official",
-        "note": "待赛",
-        "won": false,
-        "pending": true,
-        "leg_results": [
-          null,
-          null
-        ],
-        "return": 0.0,
-        "legs": [
-          {
-            "match": "2026-10-11_周日009",
-            "home": "兹沃勒",
-            "away": "坎布尔",
-            "sel": null,
-            "score": "1-0",
-            "odds": 12.0,
-            "hit": null
-          },
-          {
-            "match": "2026-10-11_周日016",
-            "home": "科隆",
-            "away": "门兴",
-            "sel": null,
-            "score": "1-0",
-            "odds": 13.0,
-            "hit": null
-          }
-        ]
-      },
-      {
-        "date": "2026-10-11",
-        "type": "比分2串1",
-        "stake": 2.0,
         "potential": 442.0,
         "total_odds": 221.0,
         "odds_source": "official",
@@ -12394,6 +12358,42 @@
             "sel": null,
             "score": "0-1",
             "odds": 17.0,
+            "hit": null
+          }
+        ]
+      },
+      {
+        "date": "2026-10-11",
+        "type": "比分2串1",
+        "stake": 2.0,
+        "potential": 312.0,
+        "total_odds": 156.0,
+        "odds_source": "official",
+        "note": "待赛",
+        "won": false,
+        "pending": true,
+        "leg_results": [
+          null,
+          null
+        ],
+        "return": 0.0,
+        "legs": [
+          {
+            "match": "2026-10-11_周日009",
+            "home": "兹沃勒",
+            "away": "坎布尔",
+            "sel": null,
+            "score": "1-0",
+            "odds": 12.0,
+            "hit": null
+          },
+          {
+            "match": "2026-10-11_周日016",
+            "home": "科隆",
+            "away": "门兴",
+            "sel": null,
+            "score": "1-0",
+            "odds": 13.0,
             "hit": null
           }
         ]
@@ -27233,17 +27233,22 @@
       "score_parlay": {
         "stats": {
           "n_tickets": 5,
-          "n_pending": 3,
-          "n_settled": 2,
+          "n_pending": 1,
+          "n_settled": 4,
           "n_won": 0,
           "hit_rate": 0.0,
-          "stake": 10.0,
+          "stake": 14.0,
           "stake_committed": 16.0,
-          "stake_pending": 6.0,
+          "stake_pending": 2.0,
           "return": 0.0,
           "roi": -1.0,
-          "avg_odds": 1587.0,
+          "avg_odds": 989.5,
           "by_type": {
+            "比分2串1": {
+              "n": 2,
+              "won": 0,
+              "roi": -1.0
+            },
             "比分3串1": {
               "n": 1,
               "won": 0,
@@ -27256,7 +27261,7 @@
             }
           },
           "leg_hit_rate": 0.0,
-          "n_legs_settled": 8
+          "n_legs_settled": 11
         },
         "tickets": [
           {
@@ -27271,7 +27276,7 @@
             "pending": true,
             "leg_results": [
               null,
-              null
+              false
             ],
             "return": 0.0,
             "legs": [
@@ -27291,7 +27296,7 @@
                 "sel": null,
                 "score": "0-1",
                 "odds": 32.0,
-                "hit": null
+                "hit": false
               }
             ]
           },
@@ -27302,12 +27307,12 @@
             "potential": 832.0,
             "total_odds": 416.0,
             "odds_source": "official",
-            "note": "待赛",
+            "note": "两场比分都中才赢（校准命中 0.6% × 赔率 416 倍 = EV +166%）",
             "won": false,
-            "pending": true,
+            "pending": false,
             "leg_results": [
               false,
-              null
+              false
             ],
             "return": 0.0,
             "legs": [
@@ -27327,7 +27332,7 @@
                 "sel": null,
                 "score": "0-1",
                 "odds": 32.0,
-                "hit": null
+                "hit": false
               }
             ]
           },
@@ -27338,12 +27343,12 @@
             "potential": 736.0,
             "total_odds": 368.0,
             "odds_source": "official",
-            "note": "待赛",
+            "note": "两场比分都中才赢（校准命中 0.7% × 赔率 368 倍 = EV +157%）",
             "won": false,
-            "pending": true,
+            "pending": false,
             "leg_results": [
               false,
-              null
+              false
             ],
             "return": 0.0,
             "legs": [
@@ -27363,7 +27368,7 @@
                 "sel": null,
                 "score": "0-1",
                 "odds": 32.0,
-                "hit": null
+                "hit": false
               }
             ]
           },
@@ -27739,42 +27744,6 @@
             "date": "2026-10-11",
             "type": "比分2串1",
             "stake": 2.0,
-            "potential": 312.0,
-            "total_odds": 156.0,
-            "odds_source": "official",
-            "note": "待赛",
-            "won": false,
-            "pending": true,
-            "leg_results": [
-              null,
-              null
-            ],
-            "return": 0.0,
-            "legs": [
-              {
-                "match": "2026-10-11_周日009",
-                "home": "兹沃勒",
-                "away": "坎布尔",
-                "sel": null,
-                "score": "1-0",
-                "odds": 12.0,
-                "hit": null
-              },
-              {
-                "match": "2026-10-11_周日016",
-                "home": "科隆",
-                "away": "门兴",
-                "sel": null,
-                "score": "1-0",
-                "odds": 13.0,
-                "hit": null
-              }
-            ]
-          },
-          {
-            "date": "2026-10-11",
-            "type": "比分2串1",
-            "stake": 2.0,
             "potential": 442.0,
             "total_odds": 221.0,
             "odds_source": "official",
@@ -27803,6 +27772,42 @@
                 "sel": null,
                 "score": "0-1",
                 "odds": 17.0,
+                "hit": null
+              }
+            ]
+          },
+          {
+            "date": "2026-10-11",
+            "type": "比分2串1",
+            "stake": 2.0,
+            "potential": 312.0,
+            "total_odds": 156.0,
+            "odds_source": "official",
+            "note": "待赛",
+            "won": false,
+            "pending": true,
+            "leg_results": [
+              null,
+              null
+            ],
+            "return": 0.0,
+            "legs": [
+              {
+                "match": "2026-10-11_周日009",
+                "home": "兹沃勒",
+                "away": "坎布尔",
+                "sel": null,
+                "score": "1-0",
+                "odds": 12.0,
+                "hit": null
+              },
+              {
+                "match": "2026-10-11_周日016",
+                "home": "科隆",
+                "away": "门兴",
+                "sel": null,
+                "score": "1-0",
+                "odds": 13.0,
                 "hit": null
               }
             ]
