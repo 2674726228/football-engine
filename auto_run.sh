@@ -49,6 +49,13 @@ for _cand in ".venv/bin/python3" "venv/bin/python3" "$HOME/.hermes/hermes-agent/
 done
 log "使用解释器: $PY"
 
+# 系统医生（2026-10-11）：统一体检 + 安全自愈（git 清场/补推、补抓赛果、补结算、
+# 代理拉起、refspec 修复）。报告落 data/state/system_health.json，critical 不阻断本脚本。
+run_doctor() {
+    log "---------- 系统医生体检 ----------"
+    "$PY" -m engine.doctor --quiet >> "$LOG_FILE" 2>&1 || true
+}
+
 # Step 1: 运行预测
 log "Step 1/3: 运行预测..."
 "$PY" -m engine.main --date "$(TZ=Asia/Shanghai date +%Y-%m-%d)" 2>&1 | tee -a "$LOG_FILE"
@@ -66,6 +73,7 @@ log "Step 3/3: Git 提交推送..."
 git add data/ web/
 if git diff --cached --quiet; then
     log "✅ 无变更，无需提交"
+    run_doctor
     exit 0
 fi
 git commit -m "Auto update: $(date '+%Y-%m-%d %H:%M') 预测数据更新" 2>&1 | tee -a "$LOG_FILE"
@@ -93,6 +101,7 @@ for i in $(seq 1 $MAX_RETRIES); do
     git push 2>&1 | tee -a "$LOG_FILE"
     if [ ${PIPESTATUS[0]} -eq 0 ]; then
         log "✅ 推送成功！"
+        run_doctor
         exit 0
     fi
     log "  ⏳ 推送失败，等待 $RETRY_DELAY 秒后重试..."
@@ -100,4 +109,5 @@ for i in $(seq 1 $MAX_RETRIES); do
 done
 
 log "❌ 所有重试均失败，请检查网络"
+run_doctor
 exit 1
