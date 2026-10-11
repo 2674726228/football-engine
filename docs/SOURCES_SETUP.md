@@ -41,6 +41,20 @@ import json; print(json.dumps(SportMonksClient().verify_access(), ensure_ascii=F
 - **djyy_id == SportMonks fixture_id**（33/33 恒等实测，DJYY 透传上游 ID）——
   我们预测记录的 `_djyy_id` 可直接查 SportMonks，无需映射表
 
+### ⚠ 免费档实测权益矩阵（2026-10-11 深夜探针，token 已存）
+| 模块 | 免费档 | 说明 |
+|---|---|---|
+| fixtures/联赛/积分 | ✓ | 4 个联赛可见（丹麦超/苏超+ playoffs） |
+| 阵容 lineups.player | ✓ | include 可用 |
+| 伤停 sidelined | ✓ | include 可用 |
+| xG (xgfixture) | ✗ 403 | 明确 "no access"，付费附加项 |
+| Odds（含 Pinnacle） | ✗ 模块未订阅 | 附加项 €14~69/月 |
+| Predictions | ✗ 404 | 附加项 €9~99/月 |
+
+- **SportMonks 是模块化计费**：Growth €99 只是底座（fixtures/阵容/伤停），odds/predictions/
+  xG 全是独立附加包。全栈 ≈ €99+€24(odds+preds)+€15(xG) ≈ **€138/月（~¥1070）**
+- 明天激活 Growth 试用后重跑探针：odds/predictions 若仍 404 → 看后台附加包实价再裁决
+
 ## 2. NJStats（竞彩原生信号：凯利/风控/指数异动/中文概率）
 
 ### 注册后做（3 天试用从注册时点起算）

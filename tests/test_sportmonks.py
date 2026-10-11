@@ -53,12 +53,12 @@ def test_client_requires_token(monkeypatch):
 
 def test_pinnacle_1x2_filters_by_bookmaker_and_label(client, monkeypatch):
     _patch_get(monkeypatch, client, {
-        "/odds/bookmakers": {"data": [
+        "/bookmakers": {"data": [
             {"id": 1, "name": "Bet365"},
             {"id": 694, "name": "Pinnacle"},
             {"id": 700, "name": "Pinnacle Sports"},
         ]},
-        "/odds/fixtures/": {"data": [
+        "/odds/pre-match/fixtures/": {"data": [
             {"bookmaker_id": 1, "label": "1X2", "value": "1.85", "updated_at": "2026-10-11 10:00:00"},
             {"bookmaker_id": 694, "label": "1X2", "value": "1.95", "updated_at": "2026-10-11 09:00:00"},
             {"bookmaker_id": 694, "label": "1X2", "value": "1.97", "updated_at": "2026-10-11 11:00:00"},
@@ -72,8 +72,8 @@ def test_pinnacle_1x2_filters_by_bookmaker_and_label(client, monkeypatch):
 
 def test_pinnacle_1x2_reports_missing_entitlement(client, monkeypatch):
     _patch_get(monkeypatch, client, {
-        "/odds/bookmakers": {"data": [{"id": 694, "name": "Pinnacle"}]},
-        "/odds/fixtures/": {"_status": 403, "_error": "odds not in plan"},
+        "/bookmakers": {"data": [{"id": 694, "name": "Pinnacle"}]},
+        "/odds/pre-match/fixtures/": {"_status": 403, "_error": "odds not in plan"},
     })
     out = client.pinnacle_1x2(123)
     assert out["error"] == "odds_not_entitled"
@@ -81,8 +81,8 @@ def test_pinnacle_1x2_reports_missing_entitlement(client, monkeypatch):
 
 def test_pinnacle_1x2_reports_no_pinnacle(client, monkeypatch):
     _patch_get(monkeypatch, client, {
-        "/odds/bookmakers": {"data": [{"id": 1, "name": "Bet365"}]},
-        "/odds/fixtures/": {"data": [{"bookmaker_id": 1, "label": "1X2", "value": "1.85"}]},
+        "/bookmakers": {"data": [{"id": 1, "name": "Bet365"}]},
+        "/odds/pre-match/fixtures/": {"data": [{"bookmaker_id": 1, "label": "1X2", "value": "1.85"}]},
     })
     assert client.pinnacle_1x2(123)["error"] == "pinnacle_bookmaker_not_found"
 
@@ -101,8 +101,8 @@ def test_xg_handles_list_and_dict_shapes(client, monkeypatch):
 def test_verify_access_marks_entitlements(client, monkeypatch):
     _patch_get(monkeypatch, client, {
         "/leagues": {"data": [{"id": i} for i in range(50)]},
-        "/odds/bookmakers": {"data": [{"id": 694, "name": "Pinnacle"}]},
-        "/odds/fixtures/": {"data": [{"bookmaker_id": 694, "label": "1X2",
+        "/bookmakers": {"data": [{"id": 694, "name": "Pinnacle"}]},
+        "/odds/pre-match/fixtures/": {"data": [{"bookmaker_id": 694, "label": "1X2",
                                       "value": "1.9", "updated_at": "x"}]},
         "/predictions/": {"data": [{"id": 1}]},
         "/fixtures/": {"data": {"id": 1, "xgfixture": [{"home": 1.0, "away": 1.0}]}},
@@ -122,7 +122,7 @@ def test_verify_access_marks_entitlements(client, monkeypatch):
 def test_verify_access_reports_forbidden(client, monkeypatch):
     _patch_get(monkeypatch, client, {
         "/leagues": {"data": [{"id": 1}]},
-        "/odds/bookmakers": {"data": []},
+        "/bookmakers": {"data": []},
         "/odds/fixtures/": {"_status": 403, "_error": "no odds"},
         "/predictions/": {"data": []},
         "/fixtures/": {"data": {"id": 1}},

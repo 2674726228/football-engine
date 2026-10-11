@@ -116,9 +116,12 @@ class SportMonksClient:
     # ---------------------------------------------------------- 元数据
 
     def bookmakers(self) -> list[dict]:
-        """/odds/bookmakers：用于动态定位 Pinnacle 的 bookmaker_id（不硬编码）。"""
+        """/bookmakers：用于动态定位 Pinnacle 的 bookmaker_id（不硬编码）。
+
+        注意：odds 模块未订阅时该端点同样 404（模块化授权，404 ≠ 路径错误）。
+        """
         if self._bookmakers is None:
-            d = self._get("/odds/bookmakers", {"per_page": "200"})
+            d = self._get("/bookmakers", {"per_page": "200"})
             self._bookmakers = (d or {}).get("data") or []
         return self._bookmakers
 
@@ -144,8 +147,8 @@ class SportMonksClient:
         return (d or {}).get("data") or []
 
     def fixture_odds(self, fixture_id: int) -> list[dict]:
-        """/odds/fixtures/{id}：逐条 {bookmaker_id, market_id, label, value, probability}。"""
-        d = self._get(f"/odds/fixtures/{fixture_id}", {"per_page": "500"},
+        """v3 pre-match odds：/odds/pre-match/fixtures/{id}（odds 模块需订阅）。"""
+        d = self._get(f"/odds/pre-match/fixtures/{fixture_id}", {"per_page": "500"},
                       include="bookmaker;market")
         return (d or {}).get("data") or []
 
@@ -156,7 +159,7 @@ class SportMonksClient:
         （'1X2'/'Fulltime Result' 等变体在此防御性匹配）；找不到 Pinnacle/1X2
         时返回带 error 的 dict，供权益核验判读。
         """
-        d = self._get(f"/odds/fixtures/{fixture_id}", {"per_page": "500"},
+        d = self._get(f"/odds/pre-match/fixtures/{fixture_id}", {"per_page": "500"},
                       include="bookmaker;market")
         if d is None:
             return {"error": "fetch_failed", "detail": dict(LAST_ERROR)}
@@ -196,8 +199,11 @@ class SportMonksClient:
         return (d or {}).get("data") or []
 
     def injuries(self, fixture_id: int) -> list[dict]:
-        d = self._get(f"/injuries/fixtures/{fixture_id}", {"per_page": "100"})
-        return (d or {}).get("data") or []
+        """伤停走 fixture 的 sidelined include（v3 无独立 injuries 端点）。"""
+        d = self._get(f"/fixtures/{fixture_id}", include="sidelined")
+        data = (d or {}).get("data") or {}
+        sl = data.get("sidelined")
+        return sl if isinstance(sl, list) else ([] if not sl else [sl])
 
     # ---------------------------------------------------------- 权益探针
 
@@ -224,15 +230,16 @@ class SportMonksClient:
             probes["odds"] = self.pinnacle_1x2(probe_fixture_id)
             probes["predictions"] = self._get(f"/predictions/fixtures/{probe_fixture_id}")
             probes["xg"] = self._get(f"/fixtures/{probe_fixture_id}", include="xgfixture")
-            probes["lineups"] = self._get(f"/lineups/fixtures/{probe_fixture_id}",
-                                          {"per_page": "5"})
-            probes["injuries"] = self._get(f"/injuries/fixtures/{probe_fixture_id}",
-                                           {"per_page": "5"})
+            probes["lineups"] = self._get(f"/fixtures/{probe_fixture_id}",
+                                          include="lineups.player")
+            probes["injuries"] = self._get(f"/fixtures/{probe_fixture_id}",
+                                           include="sidelined")
         for k, v in probes.items():
-            # 判定语义：403/401 哨兵=权益不含（UNAVAILABLE）；None=请求失败（unknown）；
-            # 200 且空数据=有权限但该场无数据（ok）——三者不可混淆。
+            # 判定语义：403/401 哨兵=权益不含（UNAVAILABLE）；None=大概率 404（模块未
+            # 订阅——SportMonks 按模块计费）或网络失败，见 last_error；200 且空=有权限
+            # 但该场无数据（ok）。三者不可混淆。
             if v is None:
-                out["checks"][k] = "unknown（请求失败，见 last_error）"
+                out["checks"][k] = "unknown（404=模块未订阅 / 网络失败，见 last_error）"
             elif isinstance(v, dict) and v.get("_status"):
                 out["checks"][k] = f"UNAVAILABLE: {str(v.get('_error'))[:120]}"
             elif k == "odds" and isinstance(v, dict) and v.get("error"):
