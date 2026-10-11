@@ -60,6 +60,15 @@ run_doctor() {
     "$PY" scripts/sportmonks_capture.py --date "$(TZ=Asia/Shanghai date +%Y-%m-%d)" --quiet >> "$LOG_FILE" 2>&1 || true
     # NJStats 试用收割（key 门控；试用期至 2026-10-15）
     "$PY" scripts/njstats_capture.py --quiet >> "$LOG_FILE" 2>&1 || true
+    # 每日一次（date 门控）: fdc 历史刷新 → AUT 平局纸面跟踪 → DJYY live 审计
+    DAILY_MARKER="./logs/fdc_daily_$(TZ=Asia/Shanghai date +%Y-%m-%d).done"
+    if [ ! -f "$DAILY_MARKER" ]; then
+        log "---------- 每日免费数据刷新 ----------"
+        "$PY" scripts/fetch_football_data.py >> "$LOG_FILE" 2>&1 || true
+        "$PY" scripts/paper_track_draw.py >> "$LOG_FILE" 2>&1 || true
+        "$PY" scripts/djyy_audit.py >> "$LOG_FILE" 2>&1 || true
+        touch "$DAILY_MARKER"
+    fi
 }
 
 # Step 1: 运行预测
