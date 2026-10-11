@@ -5,7 +5,7 @@
   "total_stake": 0,
   "expected_roi": 0.0,
   "bankroll": 3945.8711000000003,
-  "breaker_multiplier": 0.5,
+  "breaker_multiplier": 1.0,
   "parlay": [
     {
       "type": "2串1",
@@ -18,10 +18,10 @@
           "sel": "home",
           "odds": 2.15,
           "prob": 0.407,
-          "cal_prob": 0.492,
+          "cal_prob": 0.495,
           "market_prob": 0.412,
           "source": "fusion",
-          "hit_prob": 0.492
+          "hit_prob": 0.495
         },
         {
           "match": "2026-10-12_周一006",
@@ -31,19 +31,19 @@
           "sel": "away",
           "odds": 2.2,
           "prob": 0.403,
-          "cal_prob": 0.492,
+          "cal_prob": 0.495,
           "market_prob": 0.403,
           "source": "fusion",
-          "hit_prob": 0.492
+          "hit_prob": 0.495
         }
       ],
       "total_odds": 4.73,
       "model_ev": -0.45,
-      "cal_ev": 2.09,
-      "cal_roi": 0.1473,
+      "cal_ev": 2.26,
+      "cal_roi": 0.159,
       "market_ev": -0.43,
       "market_roi": -0.2144,
-      "hit_prob_cal": 0.243,
+      "hit_prob_cal": 0.245,
       "recommended": true,
       "stake": 14.21,
       "n_bets": 1,
@@ -58,15 +58,15 @@
   "total_exposure": 14.21,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
-    "overall": 0.5386,
-    "n": 984,
+    "overall": 0.5395,
+    "n": 1001,
     "table": {
-      "0.35": 0.4203,
-      "0.4": 0.4925,
-      "0.45": 0.4857,
-      "0.5": 0.5035,
-      "0.55": 0.4845,
-      "0.6": 0.6757,
+      "0.35": 0.4225,
+      "0.4": 0.495,
+      "0.45": 0.486,
+      "0.5": 0.5,
+      "0.55": 0.4898,
+      "0.6": 0.6795,
       "0.65": 0.7385,
       "0.7": 0.809
     },
