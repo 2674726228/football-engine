@@ -57,12 +57,11 @@ import json; print(json.dumps(SportMonksClient().verify_access(), ensure_ascii=F
 
 ## 2. NJStats（竞彩原生信号：凯利/风控/指数异动/中文概率）
 
+> ⚠ 2026-10-12 起站点侦察细节一律进 `_vault/`（本地 only）。本文件只保留结论与决策。
+
 ### 前端接口逆向结论（2026-10-12 凌晨，匿名实测）
-- `GET /api/client/match/leagues` ✓ 匿名可用（联赛清单，含中文名）
-- `POST /api/client/match/ALL/list` ✓ 匿名可用但**数据全抹**：345 场/152 字段的骨架，
-  队名 None、xG/potentials/odds_list 全 0——字段名暴露了他们的数据模型
-  （team_axg_pre_match、o25/btts/u35_potential、pre_match_ppg），确认试用接口会带这些值
-- 竞彩指数走 `POST /njserver/openApi/` **protobuf 私有协议**；`/api/sportApi/realtime` 401
+- 匿名层是日程骨架，数据值全部抹零；具体端点与数据模型细节见本地 `_vault/recon_njstats.md`
+  （端点细节不入公开仓库，避免被站点方封堵）
 - **结论：匿名层无可用增量（竞彩指数我们已有 sina 直连），一切价值在登录后的试用窗口**
 
 ### 注册后做（3 天试用从注册时点起算）
@@ -72,11 +71,10 @@ import json; print(json.dumps(SportMonksClient().verify_access(), ensure_ascii=F
 4. 把 key 给我 → 建njstats source（按 djyy 模式）→ 试用窗口内跑 A/B 测量
 
 ### 试用窗口收割清单（3 天，别浪费）
-- **/prob**：每日竞彩场次的概率信号（o25/u25/btts/主客龙/平局）→ 与 DJYY model_probs
-  同场对照（独立 Brier）
-- **/odds/list**：36*/平* 初盘+赛前+凯利+风控系数 → Pinnacle 基准 CLV 的第二来源
-- **/team/recent/list**：近 3-10 场 vs 赛季差异% → LGBM 候选特征
-- 每次 capture 落 data/state/njstats/，窗口结束后统一裁决
+- 概率信号（大小球/BTTS/主客龙/平局）→ 与 DJYY model_probs 同场对照（独立 Brier）
+- 指数数据（多机构初盘+赛前+凯利+风控）→ Pinnacle 基准 CLV 的第二来源
+- 近期状态差异% → LGBM 候选特征
+- 接口名与调用细节见 `_vault/recon_njstats.md`；业务数据落 data/state/njstats/
 
 ## 3. 验证裁决标准（试用窗口内完成）
 

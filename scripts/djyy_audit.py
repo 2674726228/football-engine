@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DJYY Value Model 审计（2026-10-12）：用 football-data 的 Pinnacle 收盘
 审计 djyydata.com 公开战绩（1,667 注）。数据源 data/state/djyy_value_model.json
-（= /en/api/dj/model-data/odds-lab-curve.json?full=1，免费公开）。
+（= （端点见 _vault/recon_djyy.md，已从公开文档移除））。
 
 结论（2026-10-12 跑）: 底价口径 ROI +13.57%（复现其回测），按市场收盘 +7.21%
 （历史真实存在过价差）；但其自 2026-07-17 实盘 222 注 -8.7% ROI——edge 已衰减。
@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FDC = ROOT / "data" / "state" / "fdc" / "parsed.jsonl"
-SRC = ROOT / "data" / "state" / "djyy_value_model.json"
+SRC = ROOT / "_vault" / "djyy_value_model.json"
 
 def toks(s):
     s = re.sub(r"\b(fc|sc|if|ac|as|afc|bk|sk|fk|cf)\b", " ", s.lower())
