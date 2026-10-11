@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-10-12",
-  "total_matches": 1001,
+  "generated_at": "2026-10-11",
+  "total_matches": 1007,
   "date_range": [
     "2026-07-19",
     "2026-10-11"
   ],
   "overall": {
-    "hit_rate": 0.5395,
-    "brier_final": 0.5819,
-    "brier_model": 0.6157,
-    "brier_market": 0.57,
-    "brier_djyy": 0.6393
+    "hit_rate": 0.5402,
+    "brier_final": 0.5811,
+    "brier_model": 0.6148,
+    "brier_market": 0.5697,
+    "brier_djyy": 0.6347
   },
   "daily": [
     {
@@ -975,21 +975,21 @@
     },
     {
       "date": "2026-10-11",
-      "n": 17,
-      "hits": 10,
-      "hit_rate": 0.5882,
-      "cum_hit_rate": 0.5395,
-      "brier_final": 0.5809,
-      "brier_model": 0.6076,
-      "brier_market": 0.5805,
-      "brier_djyy": 0.6471,
+      "n": 23,
+      "hits": 14,
+      "hit_rate": 0.6087,
+      "cum_hit_rate": 0.5402,
+      "brier_final": 0.5458,
+      "brier_model": 0.5704,
+      "brier_market": 0.5661,
+      "brier_djyy": 0.6079,
       "pnl": 0.0
     }
   ],
   "rolling7": {
-    "n": 89,
-    "hit_rate": 0.5506,
-    "brier_final": 0.5568,
+    "n": 95,
+    "hit_rate": 0.5579,
+    "brier_final": 0.5518,
     "pnl": 0.0
   },
   "prev7": {
@@ -998,25 +998,25 @@
     "brier_final": 0.5053,
     "pnl": 0.0
   },
-  "verdict": "命中率下降 -15pt",
+  "verdict": "命中率下降 -14pt",
   "by_league": [
     {
       "layer": "西甲",
-      "n": 75,
-      "hit_rate": 0.56,
-      "brier_final": 0.5586
+      "n": 76,
+      "hit_rate": 0.5658,
+      "brier_final": 0.5533
     },
     {
       "layer": "意甲",
-      "n": 56,
-      "hit_rate": 0.5714,
-      "brier_final": 0.5438
+      "n": 57,
+      "hit_rate": 0.5614,
+      "brier_final": 0.5499
     },
     {
       "layer": "英超",
-      "n": 52,
-      "hit_rate": 0.4231,
-      "brier_final": 0.6519
+      "n": 53,
+      "hit_rate": 0.434,
+      "brier_final": 0.6476
     },
     {
       "layer": "欧国联",
@@ -1043,34 +1043,34 @@
       "brier_final": 0.5472
     },
     {
+      "layer": "德甲",
+      "n": 45,
+      "hit_rate": 0.5333,
+      "brier_final": 0.5882
+    },
+    {
+      "layer": "挪超",
+      "n": 44,
+      "hit_rate": 0.5909,
+      "brier_final": 0.5099
+    },
+    {
       "layer": "欧罗巴",
       "n": 44,
       "hit_rate": 0.5,
       "brier_final": 0.6113
     },
     {
-      "layer": "德甲",
-      "n": 44,
-      "hit_rate": 0.5227,
-      "brier_final": 0.5968
-    },
-    {
-      "layer": "挪超",
-      "n": 43,
-      "hit_rate": 0.6047,
-      "brier_final": 0.5009
+      "layer": "葡超",
+      "n": 42,
+      "hit_rate": 0.5952,
+      "brier_final": 0.513
     },
     {
       "layer": "瑞典超",
       "n": 41,
       "hit_rate": 0.3902,
       "brier_final": 0.6919
-    },
-    {
-      "layer": "葡超",
-      "n": 41,
-      "hit_rate": 0.5854,
-      "brier_final": 0.5232
     },
     {
       "layer": "巴甲",
@@ -1262,21 +1262,21 @@
   "by_odds_band": [
     {
       "layer": "1.5-2.0",
-      "n": 358,
+      "n": 360,
       "hit_rate": 0.5056,
-      "brier_final": 0.6243
+      "brier_final": 0.6245
     },
     {
       "layer": "1.0-1.5",
-      "n": 302,
-      "hit_rate": 0.7318,
-      "brier_final": 0.4464
+      "n": 305,
+      "hit_rate": 0.7344,
+      "brier_final": 0.4435
     },
     {
       "layer": "2.0-3.0",
-      "n": 300,
-      "hit_rate": 0.4233,
-      "brier_final": 0.6606
+      "n": 301,
+      "hit_rate": 0.4219,
+      "brier_final": 0.6614
     },
     {
       "layer": "3.0+",
@@ -1288,15 +1288,15 @@
   "by_conf_tier": [
     {
       "layer": "mid",
-      "n": 528,
-      "hit_rate": 0.4886,
-      "brier_final": 0.6227
+      "n": 531,
+      "hit_rate": 0.4878,
+      "brier_final": 0.6233
     },
     {
       "layer": "high",
-      "n": 330,
-      "hit_rate": 0.6697,
-      "brier_final": 0.4825
+      "n": 333,
+      "hit_rate": 0.6727,
+      "brier_final": 0.4796
     },
     {
       "layer": "low",
