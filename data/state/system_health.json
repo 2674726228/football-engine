@@ -1,0 +1,98 @@
+{
+  "generated_at": "2026-10-11T21:58:10",
+  "summary": {
+    "total": 11,
+    "critical": 1,
+    "healed": 0
+  },
+  "findings": [
+    {
+      "id": "git/state",
+      "layer": "git",
+      "severity": "ok",
+      "detail": "分支状态正常",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "git/backlog",
+      "layer": "git",
+      "severity": "ok",
+      "detail": "无未推送积压",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "git/refspec",
+      "layer": "git",
+      "severity": "ok",
+      "detail": "fetch refspec 全量",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "data/results",
+      "layer": "data",
+      "severity": "ok",
+      "detail": "昨日赛果文件在",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "data/yesterday",
+      "layer": "data",
+      "severity": "ok",
+      "detail": "昨日(2026-10-10)已结算",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "source/djyy",
+      "layer": "source",
+      "severity": "critical",
+      "detail": "DJYY 存活率 2026-10-11:75%、2026-10-10:13%、2026-10-09:0% ——2 天 <50%，第三通道将再次断链",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "model/draw",
+      "layer": "model",
+      "severity": "ok",
+      "detail": "平局均值 24.6% 在先验带内",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "model/weights",
+      "layer": "model",
+      "severity": "ok",
+      "detail": "融合权重归一",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "env/cron",
+      "layer": "env",
+      "severity": "ok",
+      "detail": "crontab 关键任务在",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "env/proxy",
+      "layer": "env",
+      "severity": "ok",
+      "detail": "代理 7897 通",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "env/repo",
+      "layer": "env",
+      "severity": "ok",
+      "detail": ".git 体积 133MB",
+      "healable": false,
+      "healed": false
+    }
+  ]
+}
