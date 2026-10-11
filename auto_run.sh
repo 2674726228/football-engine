@@ -15,6 +15,15 @@ log() {
 
 log "========== 开始执行预测流水线 =========="
 
+# 兜底清场：上一轮若中断在 pull --rebase 半途（空提交/冲突 stop），残留的
+# rebase-merge 会让本轮在 detached HEAD 上提交、推送全灭。数据每小时重生成，远端为准。
+if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
+    git rebase --quit 2>/dev/null || git rebase --abort 2>/dev/null
+    git fetch origin main -q
+    git checkout -B main && git reset --hard origin/main
+    log "⚠ 检测到上次残留的 rebase 状态，已清场并对齐远端"
+fi
+
 # 代理自愈（2026-08-31，09-18 升级为可复用函数）：git 推送走 127.0.0.1:7897（Clash Verge）。
 # 代理挂掉时自动拉起 Clash Verge 并等待端口恢复，避免整轮推送静默失败。
 heal_proxy() {
@@ -68,13 +77,17 @@ git config http.postBuffer 524288000
 for i in $(seq 1 $MAX_RETRIES); do
     log "  推送尝试 $i/$MAX_RETRIES..."
     heal_proxy || log "  ⚠ 代理仍未恢复，尝试直连推送"
-    if ! git pull --rebase --autostash origin main 2>&1 | tee -a "$LOG_FILE"; then
-        # pull --rebase 停在空提交时处于"编辑中"状态，abort 未必能清干净，
-        # 残留 rebase-merge 会让 HEAD 游离、push 永远报 not on a branch（2026-10-11 卡死根因）。
+    # 必须用 PIPESTATUS 判断 git 的退出码：`if ! git pull | tee` 测的是 tee 的，
+    # bash 管道默认取末位命令退出码——自愈分支会成为永远不执行的死代码
+    # （2026-10-11 两次卡死复发的真根因）。
+    git pull --rebase --autostash origin main 2>&1 | tee -a "$LOG_FILE"
+    if [ ${PIPESTATUS[0]} -ne 0 ]; then
+        # pull --rebase 停在空提交时处于"编辑中"状态，残留 rebase-merge 会让
+        # HEAD 游离、push 永远报 not on a branch。quit 清状态后强制回 main 对齐远端。
         git rebase --quit 2>/dev/null || git rebase --abort 2>/dev/null
         log "  ↻ rebase 冲突，对齐远端后重试（监控数据每小时重生成，远端为准）"
         git fetch origin main 2>&1 | tee -a "$LOG_FILE"
-        git checkout -B main 2>/dev/null
+        git checkout -B main 2>&1 | tee -a "$LOG_FILE"
         git reset --hard origin/main 2>&1 | tee -a "$LOG_FILE"
     fi
     git push 2>&1 | tee -a "$LOG_FILE"
