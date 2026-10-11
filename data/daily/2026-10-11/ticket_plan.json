@@ -6,7 +6,53 @@
   "expected_roi": 0.0,
   "bankroll": 3945.8711000000003,
   "breaker_multiplier": 0.5,
-  "parlay": [],
+  "parlay": [
+    {
+      "type": "2串1",
+      "legs": [
+        {
+          "match": "2026-10-11_周日002",
+          "home": "磐城FC",
+          "away": "秋田闪电",
+          "league": "日乙",
+          "sel": "home",
+          "odds": 2.18,
+          "prob": 0.4,
+          "cal_prob": 0.492,
+          "market_prob": 0.406,
+          "source": "fusion",
+          "hit_prob": 0.492
+        },
+        {
+          "match": "2026-10-11_周日010",
+          "home": "腓特烈斯塔",
+          "away": "特罗姆瑟",
+          "league": "挪超",
+          "sel": "away",
+          "odds": 2.2,
+          "prob": 0.4,
+          "cal_prob": 0.492,
+          "market_prob": 0.402,
+          "source": "fusion",
+          "hit_prob": 0.492
+        }
+      ],
+      "total_odds": 4.8,
+      "model_ev": -0.46,
+      "cal_ev": 2.32,
+      "cal_roi": 0.1633,
+      "market_ev": -0.43,
+      "market_roi": -0.2159,
+      "hit_prob_cal": 0.243,
+      "recommended": true,
+      "stake": 14.21,
+      "n_bets": 1,
+      "potential": 68.15,
+      "worst_win": 0.0,
+      "note": "两场全中才赢",
+      "source": "calibrated"
+    }
+  ],
   "score_parlay": [
     {
       "type": "比分2串1",
@@ -17,7 +63,7 @@
           "away": "坎布尔",
           "league": "荷甲",
           "score": "1-0",
-          "prob": 0.162,
+          "prob": 0.168,
           "cal_prob": 0.0951,
           "odds": 12.0
         },
@@ -27,7 +73,7 @@
           "away": "洛城银河",
           "league": "美职",
           "score": "1-0",
-          "prob": 0.323,
+          "prob": 0.321,
           "cal_prob": 0.0951,
           "odds": 12.5
         }
@@ -50,7 +96,7 @@
           "away": "洛城银河",
           "league": "美职",
           "score": "1-0",
-          "prob": 0.323,
+          "prob": 0.321,
           "cal_prob": 0.0951,
           "odds": 12.5
         },
@@ -60,7 +106,7 @@
           "away": "朴茨茅斯",
           "league": "英冠",
           "score": "0-1",
-          "prob": 0.168,
+          "prob": 0.171,
           "cal_prob": 0.0668,
           "odds": 17.0
         }
@@ -83,7 +129,7 @@
           "away": "坎布尔",
           "league": "荷甲",
           "score": "1-0",
-          "prob": 0.162,
+          "prob": 0.168,
           "cal_prob": 0.0951,
           "odds": 12.0
         },
@@ -93,7 +139,7 @@
           "away": "朴茨茅斯",
           "league": "英冠",
           "score": "0-1",
-          "prob": 0.168,
+          "prob": 0.171,
           "cal_prob": 0.0668,
           "odds": 17.0
         }
@@ -116,7 +162,7 @@
           "away": "坎布尔",
           "league": "荷甲",
           "score": "1-0",
-          "prob": 0.162,
+          "prob": 0.168,
           "cal_prob": 0.0951,
           "odds": 12.0
         },
@@ -126,7 +172,7 @@
           "away": "洛城银河",
           "league": "美职",
           "score": "1-0",
-          "prob": 0.323,
+          "prob": 0.321,
           "cal_prob": 0.0951,
           "odds": 12.5
         },
@@ -136,7 +182,7 @@
           "away": "朴茨茅斯",
           "league": "英冠",
           "score": "0-1",
-          "prob": 0.168,
+          "prob": 0.171,
           "cal_prob": 0.0668,
           "odds": 17.0
         }
@@ -159,7 +205,7 @@
           "away": "坎布尔",
           "league": "荷甲",
           "score": "1-0",
-          "prob": 0.162,
+          "prob": 0.168,
           "cal_prob": 0.0951,
           "odds": 12.0
         },
@@ -169,7 +215,7 @@
           "away": "洛城银河",
           "league": "美职",
           "score": "1-0",
-          "prob": 0.323,
+          "prob": 0.321,
           "cal_prob": 0.0951,
           "odds": 12.5
         },
@@ -179,7 +225,7 @@
           "away": "朴茨茅斯",
           "league": "英冠",
           "score": "0-1",
-          "prob": 0.168,
+          "prob": 0.171,
           "cal_prob": 0.0668,
           "odds": 17.0
         }
@@ -194,8 +240,8 @@
       "note": "3场出4注（3×2串1+1×3串1）错1场仍中1注2串1≈¥425，全中≈¥6233"
     }
   ],
-  "parlay_stake": 16.0,
-  "total_exposure": 16.0,
+  "parlay_stake": 30.21,
+  "total_exposure": 30.21,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5386,
