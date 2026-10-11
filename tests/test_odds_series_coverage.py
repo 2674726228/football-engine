@@ -114,3 +114,35 @@ def test_output_file_written(tmp_path, monkeypatch):
     assert disk["total_matches"] == rep["total_matches"]
     assert disk["healthy"] == rep["healthy"]
     assert set(disk) == set(rep)
+
+
+# ---------- workflow 接线（PR#11 修正：health-check 无 checkout） ----------
+
+def test_health_check_does_not_need_checkout():
+    """health-check 的覆盖率步**不得**依赖本地代码。
+
+    回归动机：PR #9 在这个 job 里加了 `python -m engine.odds_series_coverage`，
+    但该 job 刻意不 checkout（原注释"用 gh api 触发，不需要 git checkout"），
+    于是以 ModuleNotFoundError 失败（2026-10-11 01:33 实测）。
+    修正为：由 daily-forecast（有 checkout）计算并提交，本 job 只用 gh api 读结果。
+
+    刻意不 import yaml —— CI 环境未安装 PyYAML，且这里的断言用文本匹配足够。
+    """
+    yml = (ROOT / ".github" / "workflows" / "health-check.yml").read_text(encoding="utf-8")
+    # 只看非注释行 —— 注释里引用被删掉的旧命令是正常的说明，不算回归。
+    # （这个坑本会话已踩过两次，见 upgrade_tracker / parlay 测试）
+    code = "\n".join(ln for ln in yml.splitlines() if not ln.strip().startswith("#"))
+    assert "actions/checkout" not in code, \
+        "health-check 不得新增 checkout（会破坏其无依赖设计）"
+    assert "python -m engine.odds_series_coverage" not in code, \
+        "health-check 不得直接调用本地模块（没有 checkout）"
+    assert "gh api" in code, "应改为用 gh api 读已提交的覆盖率结果"
+
+
+def test_daily_forecast_computes_coverage():
+    """daily-forecast 有 checkout 且会提交 data/，覆盖率必须在那里算。"""
+    yml = (ROOT / ".github" / "workflows" / "daily-forecast.yml").read_text(encoding="utf-8")
+    assert "actions/checkout" in yml, "daily-forecast 必须有 checkout"
+    assert "python -m engine.odds_series_coverage" in yml, \
+        "daily-forecast 必须计算覆盖率"
+    assert "git add data/" in yml, "必须提交 data/，否则 health-check 读不到结果"
