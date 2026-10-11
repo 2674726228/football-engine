@@ -5,8 +5,9 @@
 ## 一句话现状
 
 竞彩足球概率预测 + 虚拟投注系统，GitHub Actions 全自动运行。
-洁净样本 **550 场**（2026-10-10 tracker: n=529 上 **IMPROVED 判定成立，z=3.14**）：
-Brier 0.6172→0.5573，命中率 51.6%→55.95%，**持续小幅跑赢纯市场**（同期市场 0.5631/55.7%）。
+**vs 自身旧版 IMPROVED**（配对 ΔBrier 0.062, t=3.3, n=558，2026-10-11 修正口径后重算）；
+**vs 去水市场 TIED**（Δ=+0.0045, t=1.23，无证据 edge）——有效融合权重 market 93.75%，
+DJYY 第三通道曾静默死亡 6 周（10-11 已修复回填+报警），待真实样本重新定价。
 
 ## 关键路径
 
@@ -49,6 +50,10 @@ Brier 0.6172→0.5573，命中率 51.6%→55.95%，**持续小幅跑赢纯市场
   但 launchd 后台会话 osxkeychain 静默返回空 → "could not read Username: Device not
   configured"。凌晨起挂了数小时，根因未完全定位（疑似 keychain 授权弹窗未被应答后拒绝）。
   终解: 注册 deploy key 走 SSH（见"自动化"），与 keychain/登录状态彻底解耦
+- DJYY 第三通道数据断链（2026-10-11 修）: 8/16~10/9 账本 djyy_prob 全 null——CI 屏蔽期
+  生成的预测无 DJYY→结算写 null→融合优化器把 DJYY 权重压到 0（有效 0%，模型仅 6.25%）。
+  修: post_match 结算按 _djyy_id/match_id 双键从 context_cache 回填（djyy_backfilled
+  溯源标记）+ selfcheck 存活率报警（近3天中2天<50%）。历史缓存无 model_probs 不可救
 - stakes 字段（动机/情境）DJYY 上游恒 null（2026-10-11 抽样证实）: comparison API 有 key
   不填值，store-only 不进模型，周检覆盖率别拿它当健康指标
 - CI 侧 djyylive 屏蔽 Azure IP 段 → 字段保全方案(本地富化+CI不覆盖, 双端各取所长)
@@ -63,10 +68,20 @@ Brier 0.6172→0.5573，命中率 51.6%→55.95%，**持续小幅跑赢纯市场
 - LGBM save() API 不对称（LGBMClassifier 无 save_model）→ 已修
 - CI 挂了别慌：先看失败步骤（守门员拦截=设计行为），再查日志
 
-## 下一步/开放事项
+## 下一步/开放事项（2026-10-11 深挖后重排）
 
-- [ ] 洁净样本继续累积（550→更大），跟踪 upgrade_tracker 判定
-- [ ] LGBM 每次结算自动重训（本地缺 lightgbm，训练在 CI 侧），盯 ready=true（需双基线显著）
+- [ ] DJYY 通道复活验证：10-11 起结算行应出现 djyy_prob（含回填），优化器用真实样本重定价
+- [ ] CLV 评估体系：#6/#9 的 7 万场收盘价就位，用收盘线价值替代 ROI 代理做技能度量
+      （edge 分桶当前全负：edge>0.10 桶 ROI -19.8%，EV 口径需在收盘价基础上重估）
+- [ ] 环境/决策权对齐：本地 hermes venv 缺 sklearn/lightgbm/pandas——校准启用决策
+      曾在无拟合器环境做出；要么本地补依赖，要么进化决策权只归 CI
+- [ ] 结算归属本地化：CI schedule 延迟 2~4h 是账本滞后根因，本地 :25 加幂等 settle
+- [ ] PR #4（进化闭环）rebase 到最新 main 再合（直接合并会回退 #6~#9 的 5500 行测试）
+- [ ] 分支清理：7 个远端空壳分支 + 4 个本地分支可删（内容零残留，已实测）；
+      fetch refspec 恢复全量 + --prune
+- [ ] 仓库瘦身：.git pack 165MB（30分钟提交数据+odds_series 873文件），考虑 LFS/瘦身
+- [ ] 洁净样本继续累积，跟踪 upgrade_tracker 判定
+- [ ] LGBM 每次结算自动重训（训练在 CI 侧），盯 ready=true（需双基线显著）
 - [ ] 可选：Qwen 新闻→情境层管道（等用户定新闻源）
 - [x] 用户侧遗留→已解锁：本地推送已不依赖旧 PAT（deploy key 接管），keychain 里的
       GitHub token 现在可以随时撤销重发，不影响自动化
