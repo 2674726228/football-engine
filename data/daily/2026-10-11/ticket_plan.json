@@ -7,43 +7,9 @@
   "bankroll": 3945.8711000000003,
   "breaker_multiplier": 0.5,
   "parlay": [],
-  "score_parlay": [
-    {
-      "type": "比分2串1",
-      "legs": [
-        {
-          "match": "2026-10-11_周日009",
-          "home": "兹沃勒",
-          "away": "坎布尔",
-          "league": "荷甲",
-          "score": "1-0",
-          "prob": 0.164,
-          "cal_prob": 0.0951,
-          "odds": 12.5
-        },
-        {
-          "match": "2026-10-11_周日028",
-          "home": "圣路易斯城",
-          "away": "洛城银河",
-          "league": "美职",
-          "score": "1-0",
-          "prob": 0.323,
-          "cal_prob": 0.0951,
-          "odds": 12.5
-        }
-      ],
-      "total_odds": 156.25,
-      "hit_prob": 0.009,
-      "stake": 2.0,
-      "potential": 312.5,
-      "worst_win": 0.0,
-      "n_bets": 1,
-      "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 0.9% × 赔率 156 倍 = EV +41%）"
-    }
-  ],
-  "parlay_stake": 2.0,
-  "total_exposure": 2.0,
+  "score_parlay": [],
+  "parlay_stake": 0,
+  "total_exposure": 0.0,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5386,

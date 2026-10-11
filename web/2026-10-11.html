@@ -921,7 +921,7 @@ a { color:var(--blue); }
     
   <div class="battle-board">
     <div class="bb-head">🎯 今日作战板</div>
-    <div class="bb-empty">今日无价值注 <span style="color:var(--dim);font-size:.72rem">（28 场已扫描 · 拦截: 联赛禁投 2 · 方向置信不足 3 · 合成赔率 1 · 无正EV 5）</span></div>
+    <div class="bb-empty">今日无价值注 <span style="color:var(--dim);font-size:.72rem">（28 场已扫描 · 拦截: 联赛禁投 2 · 方向置信不足 4 · 合成赔率 1 · 无正EV 6）</span></div>
     <div style="font-size:.66rem;color:var(--dim);margin-top:2px">空仓也是决策——负 EV 不出手（edge 封顶 max_edge 生效中）</div>
   </div>
 
@@ -4259,17 +4259,17 @@ a { color:var(--blue); }
         <span class="team away">曼城</span>
       </div>
       <div class="prob-row">
-        <div class="prob-seg h" style="width:30.2%">H 30%</div>
+        <div class="prob-seg h" style="width:29.7%">H 30%</div>
         <div class="prob-seg d" style="width:24.3%">D 24%</div>
-        <div class="prob-seg a" style="width:45.5%">A 45%</div>
+        <div class="prob-seg a" style="width:46.0%">A 46%</div>
       </div>
-      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val away">客胜 45%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">0-0 / 0-1 / 1-0 / 1-1 / 0-2</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让1球后的胜平负概率，与上方模型预测不同源">让球盘 +1</span> <span class="pick-val home" style="border-color:var(--green)">主胜 57%</span></div>
+      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val away">客胜 46%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">0-0 / 0-1 / 1-0 / 1-1 / 0-2</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让1球后的胜平负概率，与上方模型预测不同源">让球盘 +1</span> <span class="pick-val home" style="border-color:var(--green)">主胜 57%</span></div>
       
       
       <div class="match-info-row">
-        <span class="conf-meter"><span class="conf-dot low"></span><b>9%</b></span>
+        <span class="conf-meter"><span class="conf-dot low"></span><b>11%</b></span>
         <span class="info-chip">xG <b>0.60 - 0.88</b></span>
-        <span class="info-chip">Odds <b>2.9/3.75/1.93</b></span>
+        <span class="info-chip">Odds <b>2.95/3.75/1.91</b></span>
         <span class="info-chip" style="color:var(--purple)">赔率变动 主2.35→2.77↑ 客2.35→2.06↓</span>
         <span class="info-chip" style="color:var(--teal, #14b8a6)">水位监控 3次 · 主↑6.5% · 客↓4.6% · 跨733min</span>
         <span class="info-chip" style="color:var(--amber)">分歧 <b>12%</b></span>
@@ -4282,7 +4282,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m17-odds">赔率</button>
         <button class="tab-btn" data-tab="m17-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m17-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.302 D0.243 A0.455</span></div>
+      <div class="tab-content active" id="m17-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.297 D0.243 A0.460</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -4290,9 +4290,9 @@ a { color:var(--blue); }
           <td class="src-label">DC+MC 原始</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:24.7%">25</div>
-              <div class="mini-bar d" style="width:35.5%">35</div>
-              <div class="mini-bar a" style="width:39.8%">40</div>
+              <div class="mini-bar h" style="width:24.6%">25</div>
+              <div class="mini-bar d" style="width:35.3%">35</div>
+              <div class="mini-bar a" style="width:40.0%">40</div>
             </div>
           </td>
         </tr>
@@ -4300,9 +4300,9 @@ a { color:var(--blue); }
           <td class="src-label">Shin公平</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:30.5%">31</div>
+              <div class="mini-bar h" style="width:30.0%">30</div>
               <div class="mini-bar d" style="width:23.6%">24</div>
-              <div class="mini-bar a" style="width:45.9%">46</div>
+              <div class="mini-bar a" style="width:46.4%">46</div>
             </div>
           </td>
         </tr>
@@ -4314,9 +4314,9 @@ a { color:var(--blue); }
           <td class="src-label">最终融合</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:30.2%">30</div>
+              <div class="mini-bar h" style="width:29.7%">30</div>
               <div class="mini-bar d" style="width:24.3%">24</div>
-              <div class="mini-bar a" style="width:45.5%">45</div>
+              <div class="mini-bar a" style="width:46.0%">46</div>
             </div>
           </td>
         </tr>
@@ -4333,43 +4333,43 @@ a { color:var(--blue); }
       
       <div class="wilson-meter">
         <div class="wilson-label">Wilson信任分</div>
-        <div class="wilson-track"><div class="wilson-fill" style="width:22%"></div></div>
-        <div class="wilson-val">22.5% 置信权重</div>
+        <div class="wilson-track"><div class="wilson-fill" style="width:27%"></div></div>
+        <div class="wilson-val">27.4% 置信权重</div>
       </div></div>
       <div class="tab-content" id="m17-odds">
       <div class="odds-grid">
-        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">2.90</div></div>
+        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">2.95</div></div>
         <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">3.75</div></div>
-        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">1.93</div></div>
+        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">1.91</div></div>
         <div class="odds-box"><div class="ob-label">让球</div><div class="ob-val">1.0</div></div>
       </div>
       <h5 style="margin: 16px 0 8px 0; color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">四庄家赔率对比</h5>
       
       <table class="edge-table" style="margin-top: 16px;">
         <tr><th>庄家</th><th>主胜</th><th>平局</th><th>客胜</th></tr>
-        <tr><td class="src-label">体彩官方</td><td>2.90</td><td>3.75</td><td>1.93</td></tr>
-        <tr><td class="src-label">Bet365</td><td>2.90</td><td>3.75</td><td>1.93</td></tr>
-        <tr><td class="src-label">Pinnacle</td><td>2.90</td><td>3.75</td><td>1.93</td></tr>
+        <tr><td class="src-label">体彩官方</td><td>2.95</td><td>3.75</td><td>1.91</td></tr>
+        <tr><td class="src-label">Bet365</td><td>2.95</td><td>3.75</td><td>1.91</td></tr>
+        <tr><td class="src-label">Pinnacle</td><td>2.95</td><td>3.75</td><td>1.91</td></tr>
         <tr><td class="src-label" style="color:var(--purple);">DJYY模型</td><td>-</td><td>-</td><td>-</td></tr>
       </table>
       <table class="edge-table">
         <tr><th>结果</th><th>隐含概率</th><th>Shin公平</th><th>模型</th><th>边际</th></tr>
         <tr>
-          <td>主胜</td><td>34.5%</td><td>30.5%</td><td>30.2%</td>
-          <td class="edge-neg">-4.3%</td>
+          <td>主胜</td><td>33.9%</td><td>30.0%</td><td>29.7%</td>
+          <td class="edge-neg">-4.2%</td>
         </tr>
         <tr>
           <td>平局</td><td>26.7%</td><td>23.6%</td><td>24.3%</td>
           <td class="edge-neg">-2.3%</td>
         </tr>
         <tr>
-          <td>客胜</td><td>51.8%</td><td>45.9%</td><td>45.5%</td>
-          <td class="edge-neg">-6.3%</td>
+          <td>客胜</td><td>52.4%</td><td>46.4%</td><td>46.0%</td>
+          <td class="edge-neg">-6.4%</td>
         </tr>
       </table>
       <div class="reverse-box">
         <h5>逆向赔率分析</h5>
-        <div class="reverse-row"><span class="rk">冷门风险</span><span style="color:var(--red); font-weight:700;">55%</span></div>
+        <div class="reverse-row"><span class="rk">冷门风险</span><span style="color:var(--red); font-weight:700;">54%</span></div>
         <div class="reverse-row"><span class="rk">方向</span><span>暂无</span></div>
         <div class="reverse-row"><span class="rk">压缩比</span><span>0.00</span></div>
       </div>
@@ -4380,7 +4380,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.05</span></div>
       </div></div>
-      <div class="tab-content" id="m17-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">30.9%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">20.2%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">15.9%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">10.5%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">8.8%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">5.6%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">4.5%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">3.6%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m17-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">30.2%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">20.6%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">15.6%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">10.5%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">8.9%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">5.7%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">4.6%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">3.7%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:67%">22.6%</div></div>
@@ -4449,21 +4449,21 @@ a { color:var(--blue); }
         <span class="team away">沙尔克04</span>
       </div>
       <div class="prob-row">
-        <div class="prob-seg h" style="width:62.3%">H 62%</div>
-        <div class="prob-seg d" style="width:21.1%">D 21%</div>
-        <div class="prob-seg a" style="width:16.6%">A 17%</div>
+        <div class="prob-seg h" style="width:61.1%">H 61%</div>
+        <div class="prob-seg d" style="width:21.4%">D 21%</div>
+        <div class="prob-seg a" style="width:17.5%">A 18%</div>
       </div>
-      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val home">主胜 62%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">3-0 / 2-0 / 4-0 / 5-0 / 1-0</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让-1球后的胜平负概率，与上方模型预测不同源">让球盘 -1</span> <span class="pick-val home" style="border-color:var(--green)">主胜 60%</span></div>
+      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val home">主胜 61%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">3-0 / 2-0 / 4-0 / 1-0 / 5-0</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让-1球后的胜平负概率，与上方模型预测不同源">让球盘 -1</span> <span class="pick-val home" style="border-color:var(--green)">主胜 60%</span></div>
       
       
       <div class="match-info-row">
         <span class="conf-meter"><span class="conf-dot low"></span><b>33%</b></span>
         <span class="info-chip">xG <b>3.33 - 1.28</b></span>
-        <span class="info-chip">Odds <b>1.44/4.1/5.25</b></span>
+        <span class="info-chip">Odds <b>1.47/4.05/4.95</b></span>
         
         <span class="info-chip" style="color:var(--teal, #14b8a6)">水位监控 3次 · 主↑1.3% · 客↓5.3% · 跨574min</span>
-        <span class="info-chip" style="color:var(--amber)">分歧 <b>12%</b></span>
-        
+        <span class="info-chip" style="color:var(--amber)">分歧 <b>13%</b></span>
+        <span class="info-chip" style="color:var(--dim)">裁判 马丁·彼得森</span>
       </div>
     </div>
     <div class="match-detail">
@@ -4472,7 +4472,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m18-odds">赔率</button>
         <button class="tab-btn" data-tab="m18-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m18-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.623 D0.211 A0.166</span></div>
+      <div class="tab-content active" id="m18-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_three_way<span style="margin-left:8px">末态 H0.611 D0.214 A0.175</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -4480,9 +4480,9 @@ a { color:var(--blue); }
           <td class="src-label">DC+MC 原始</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:74.0%">74</div>
+              <div class="mini-bar h" style="width:73.7%">74</div>
               <div class="mini-bar d" style="width:13.9%">14</div>
-              <div class="mini-bar a" style="width:12.2%">12</div>
+              <div class="mini-bar a" style="width:12.4%">12</div>
             </div>
           </td>
         </tr>
@@ -4490,9 +4490,9 @@ a { color:var(--blue); }
           <td class="src-label">Shin公平</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:61.5%">62</div>
-              <div class="mini-bar d" style="width:21.6%">22</div>
-              <div class="mini-bar a" style="width:16.9%">17</div>
+              <div class="mini-bar h" style="width:60.2%">60</div>
+              <div class="mini-bar d" style="width:21.9%">22</div>
+              <div class="mini-bar a" style="width:17.9%">18</div>
             </div>
           </td>
         </tr>
@@ -4510,9 +4510,9 @@ a { color:var(--blue); }
           <td class="src-label">最终融合</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:62.3%">62</div>
-              <div class="mini-bar d" style="width:21.1%">21</div>
-              <div class="mini-bar a" style="width:16.6%">17</div>
+              <div class="mini-bar h" style="width:61.1%">61</div>
+              <div class="mini-bar d" style="width:21.4%">21</div>
+              <div class="mini-bar a" style="width:17.5%">18</div>
             </div>
           </td>
         </tr>
@@ -4534,38 +4534,38 @@ a { color:var(--blue); }
       </div></div>
       <div class="tab-content" id="m18-odds">
       <div class="odds-grid">
-        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">1.44</div></div>
-        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">4.10</div></div>
-        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">5.25</div></div>
+        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">1.47</div></div>
+        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">4.05</div></div>
+        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">4.95</div></div>
         <div class="odds-box"><div class="ob-label">让球</div><div class="ob-val">-1.0</div></div>
       </div>
       <h5 style="margin: 16px 0 8px 0; color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">四庄家赔率对比</h5>
       
       <table class="edge-table" style="margin-top: 16px;">
         <tr><th>庄家</th><th>主胜</th><th>平局</th><th>客胜</th></tr>
-        <tr><td class="src-label">体彩官方</td><td>1.44</td><td>4.10</td><td>5.25</td></tr>
-        <tr><td class="src-label">Bet365</td><td>1.44</td><td>4.10</td><td>5.25</td></tr>
-        <tr><td class="src-label">Pinnacle</td><td>1.44</td><td>4.10</td><td>5.25</td></tr>
+        <tr><td class="src-label">体彩官方</td><td>1.47</td><td>4.05</td><td>4.95</td></tr>
+        <tr><td class="src-label">Bet365</td><td>1.47</td><td>4.05</td><td>4.95</td></tr>
+        <tr><td class="src-label">Pinnacle</td><td>1.47</td><td>4.05</td><td>4.95</td></tr>
         <tr><td class="src-label" style="color:var(--purple);">DJYY模型</td><td>2.26</td><td>4.18</td><td>3.14</td></tr>
       </table>
       <table class="edge-table">
         <tr><th>结果</th><th>隐含概率</th><th>Shin公平</th><th>模型</th><th>边际</th></tr>
         <tr>
-          <td>主胜</td><td>69.4%</td><td>61.5%</td><td>62.3%</td>
-          <td class="edge-neg">-7.1%</td>
+          <td>主胜</td><td>68.0%</td><td>60.2%</td><td>61.1%</td>
+          <td class="edge-neg">-6.9%</td>
         </tr>
         <tr>
-          <td>平局</td><td>24.4%</td><td>21.6%</td><td>21.1%</td>
+          <td>平局</td><td>24.7%</td><td>21.9%</td><td>21.4%</td>
           <td class="edge-neg">-3.3%</td>
         </tr>
         <tr>
-          <td>客胜</td><td>19.0%</td><td>16.9%</td><td>16.6%</td>
-          <td class="edge-neg">-2.5%</td>
+          <td>客胜</td><td>20.2%</td><td>17.9%</td><td>17.5%</td>
+          <td class="edge-neg">-2.7%</td>
         </tr>
       </table>
       <div class="reverse-box">
         <h5>逆向赔率分析</h5>
-        <div class="reverse-row"><span class="rk">冷门风险</span><span style="color:var(--text); font-weight:700;">36%</span></div>
+        <div class="reverse-row"><span class="rk">冷门风险</span><span style="color:var(--text); font-weight:700;">37%</span></div>
         <div class="reverse-row"><span class="rk">方向</span><span>暂无</span></div>
         <div class="reverse-row"><span class="rk">压缩比</span><span>0.00</span></div>
       </div>
@@ -4576,7 +4576,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.27</span></div>
       </div></div>
-      <div class="tab-content" id="m18-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">18.3%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">17.3%</div></div><div class="score-cell"><div class="sc-score">4-0</div><div class="sc-prob">15.6%</div></div><div class="score-cell"><div class="sc-score">5-0</div><div class="sc-prob">11.7%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">11.4%</div></div><div class="score-cell"><div class="sc-score">3-1</div><div class="sc-prob">9.4%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">8.7%</div></div><div class="score-cell"><div class="sc-score">4-1</div><div class="sc-prob">7.5%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m18-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">18.4%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">17.4%</div></div><div class="score-cell"><div class="sc-score">4-0</div><div class="sc-prob">15.4%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">11.6%</div></div><div class="score-cell"><div class="sc-score">5-0</div><div class="sc-prob">11.3%</div></div><div class="score-cell"><div class="sc-score">3-1</div><div class="sc-prob">9.2%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">8.8%</div></div><div class="score-cell"><div class="sc-score">4-1</div><div class="sc-prob">7.9%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:5%">1.0%</div></div>
@@ -4645,8 +4645,8 @@ a { color:var(--blue); }
         <span class="team away">AC米兰</span>
       </div>
       <div class="prob-row">
-        <div class="prob-seg h" style="width:21.8%">H 22%</div>
-        <div class="prob-seg d" style="width:24.7%">D 25%</div>
+        <div class="prob-seg h" style="width:21.4%">H 21%</div>
+        <div class="prob-seg d" style="width:25.2%">D 25%</div>
         <div class="prob-seg a" style="width:53.4%">A 53%</div>
       </div>
       <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val away">客胜 53%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">0-0 / 0-1 / 1-0 / 0-2 / 1-1</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让1球后的胜平负概率，与上方模型预测不同源">让球盘 +1</span> <span class="pick-val home" style="border-color:var(--green)">主胜 47%</span></div>
@@ -4655,11 +4655,11 @@ a { color:var(--blue); }
       <div class="match-info-row">
         <span class="conf-meter"><span class="conf-dot low"></span><b>14%</b></span>
         <span class="info-chip">xG <b>0.56 - 1.16</b></span>
-        <span class="info-chip">Odds <b>4.02/3.65/1.65</b></span>
+        <span class="info-chip">Odds <b>4.1/3.58/1.65</b></span>
         <span class="info-chip" style="color:var(--purple)">赔率变动 主4.05→3.52↓ 平3.88→3.62↓ 客1.65→1.80↑</span>
         <span class="info-chip" style="color:var(--teal, #14b8a6)">水位监控 2次 · 主↓0.8% · 跨574min</span>
         
-        
+        <span class="info-chip" style="color:var(--dim)">裁判 弗朗切斯科·福尔</span>
       </div>
     </div>
     <div class="match-detail">
@@ -4668,7 +4668,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m19-odds">赔率</button>
         <button class="tab-btn" data-tab="m19-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m19-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.218 D0.247 A0.534</span></div>
+      <div class="tab-content active" id="m19-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_three_way<span style="margin-left:8px">末态 H0.214 D0.252 A0.534</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -4676,9 +4676,9 @@ a { color:var(--blue); }
           <td class="src-label">DC+MC 原始</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:18.8%">19</div>
-              <div class="mini-bar d" style="width:31.5%">32</div>
-              <div class="mini-bar a" style="width:49.7%">50</div>
+              <div class="mini-bar h" style="width:18.6%">19</div>
+              <div class="mini-bar d" style="width:31.5%">31</div>
+              <div class="mini-bar a" style="width:49.9%">50</div>
             </div>
           </td>
         </tr>
@@ -4686,8 +4686,8 @@ a { color:var(--blue); }
           <td class="src-label">Shin公平</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:22.0%">22</div>
-              <div class="mini-bar d" style="width:24.3%">24</div>
+              <div class="mini-bar h" style="width:21.6%">22</div>
+              <div class="mini-bar d" style="width:24.7%">25</div>
               <div class="mini-bar a" style="width:53.7%">54</div>
             </div>
           </td>
@@ -4706,8 +4706,8 @@ a { color:var(--blue); }
           <td class="src-label">最终融合</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:21.8%">22</div>
-              <div class="mini-bar d" style="width:24.7%">25</div>
+              <div class="mini-bar h" style="width:21.4%">21</div>
+              <div class="mini-bar d" style="width:25.2%">25</div>
               <div class="mini-bar a" style="width:53.4%">53</div>
             </div>
           </td>
@@ -4730,8 +4730,8 @@ a { color:var(--blue); }
       </div></div>
       <div class="tab-content" id="m19-odds">
       <div class="odds-grid">
-        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">4.02</div></div>
-        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">3.65</div></div>
+        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">4.10</div></div>
+        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">3.58</div></div>
         <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">1.65</div></div>
         <div class="odds-box"><div class="ob-label">让球</div><div class="ob-val">1.0</div></div>
       </div>
@@ -4739,20 +4739,20 @@ a { color:var(--blue); }
       
       <table class="edge-table" style="margin-top: 16px;">
         <tr><th>庄家</th><th>主胜</th><th>平局</th><th>客胜</th></tr>
-        <tr><td class="src-label">体彩官方</td><td>4.02</td><td>3.65</td><td>1.65</td></tr>
-        <tr><td class="src-label">Bet365</td><td>4.02</td><td>3.65</td><td>1.65</td></tr>
-        <tr><td class="src-label">Pinnacle</td><td>4.02</td><td>3.65</td><td>1.65</td></tr>
+        <tr><td class="src-label">体彩官方</td><td>4.10</td><td>3.58</td><td>1.65</td></tr>
+        <tr><td class="src-label">Bet365</td><td>4.10</td><td>3.58</td><td>1.65</td></tr>
+        <tr><td class="src-label">Pinnacle</td><td>4.10</td><td>3.58</td><td>1.65</td></tr>
         <tr><td class="src-label" style="color:var(--purple);">DJYY模型</td><td>3.62</td><td>3.69</td><td>2.21</td></tr>
       </table>
       <table class="edge-table">
         <tr><th>结果</th><th>隐含概率</th><th>Shin公平</th><th>模型</th><th>边际</th></tr>
         <tr>
-          <td>主胜</td><td>24.9%</td><td>22.0%</td><td>21.8%</td>
+          <td>主胜</td><td>24.4%</td><td>21.6%</td><td>21.4%</td>
           <td class="edge-neg">-3.0%</td>
         </tr>
         <tr>
-          <td>平局</td><td>27.4%</td><td>24.3%</td><td>24.7%</td>
-          <td class="edge-neg">-2.7%</td>
+          <td>平局</td><td>27.9%</td><td>24.7%</td><td>25.2%</td>
+          <td class="edge-neg">-2.8%</td>
         </tr>
         <tr>
           <td>客胜</td><td>60.6%</td><td>53.7%</td><td>53.4%</td>
@@ -4772,7 +4772,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.13</span></div>
       </div></div>
-      <div class="tab-content" id="m19-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">26.1%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">22.5%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">13.1%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">11.9%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">11.2%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">5.9%</div></div><div class="score-cell"><div class="sc-score">0-3</div><div class="sc-prob">5.0%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">4.4%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m19-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">26.1%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">22.8%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">12.9%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">12.0%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">10.9%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">5.8%</div></div><div class="score-cell"><div class="sc-score">0-3</div><div class="sc-prob">5.1%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">4.3%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:58%">18.1%</div></div>
@@ -4841,21 +4841,21 @@ a { color:var(--blue); }
         <span class="team away">奥萨苏纳</span>
       </div>
       <div class="prob-row">
-        <div class="prob-seg h" style="width:67.0%">H 67%</div>
-        <div class="prob-seg d" style="width:20.0%">D 20%</div>
-        <div class="prob-seg a" style="width:13.0%">A 13%</div>
+        <div class="prob-seg h" style="width:65.5%">H 66%</div>
+        <div class="prob-seg d" style="width:20.7%">D 21%</div>
+        <div class="prob-seg a" style="width:13.8%">A 14%</div>
       </div>
-      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val home">主胜 67%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">1-0 / 0-0 / 2-0 / 1-1 / 0-1</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让-1球后的胜平负概率，与上方模型预测不同源">让球盘 -1</span> <span class="pick-val home" style="border-color:var(--green)">主胜 43%</span></div>
+      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val home">主胜 66%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">1-0 / 0-0 / 2-0 / 1-1 / 0-1</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让-1球后的胜平负概率，与上方模型预测不同源">让球盘 -1</span> <span class="pick-val home" style="border-color:var(--green)">主胜 43%</span></div>
       
       
       <div class="match-info-row">
-        <span class="conf-meter"><span class="conf-dot low"></span><b>25%</b></span>
+        <span class="conf-meter"><span class="conf-dot low"></span><b>26%</b></span>
         <span class="info-chip">xG <b>1.67 - 0.41</b></span>
         <span class="info-chip">Odds <b>1.32/4.5/6.7</b></span>
         <span class="info-chip" style="color:var(--purple)">赔率变动 主1.58→1.38↓ 平3.80→4.55↑ 客4.60→5.70↑</span>
         <span class="info-chip" style="color:var(--teal, #14b8a6)">水位监控 3次 · 主↓2.8% · 客↑3.6% · 跨574min</span>
         
-        
+        <span class="info-chip" style="color:var(--dim)">裁判 卡洛斯·穆尼斯·</span>
       </div>
     </div>
     <div class="match-detail">
@@ -4864,7 +4864,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m20-odds">赔率</button>
         <button class="tab-btn" data-tab="m20-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m20-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.670 D0.200 A0.130</span></div>
+      <div class="tab-content active" id="m20-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_three_way<span style="margin-left:8px">末态 H0.655 D0.207 A0.138</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -4872,8 +4872,8 @@ a { color:var(--blue); }
           <td class="src-label">DC+MC 原始</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:65.6%">66</div>
-              <div class="mini-bar d" style="width:24.4%">24</div>
+              <div class="mini-bar h" style="width:65.8%">66</div>
+              <div class="mini-bar d" style="width:24.2%">24</div>
               <div class="mini-bar a" style="width:10.0%">10</div>
             </div>
           </td>
@@ -4902,9 +4902,9 @@ a { color:var(--blue); }
           <td class="src-label">最终融合</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:67.0%">67</div>
-              <div class="mini-bar d" style="width:20.0%">20</div>
-              <div class="mini-bar a" style="width:13.0%">13</div>
+              <div class="mini-bar h" style="width:65.5%">66</div>
+              <div class="mini-bar d" style="width:20.7%">21</div>
+              <div class="mini-bar a" style="width:13.8%">14</div>
             </div>
           </td>
         </tr>
@@ -4943,16 +4943,16 @@ a { color:var(--blue); }
       <table class="edge-table">
         <tr><th>结果</th><th>隐含概率</th><th>Shin公平</th><th>模型</th><th>边际</th></tr>
         <tr>
-          <td>主胜</td><td>75.8%</td><td>67.1%</td><td>67.0%</td>
-          <td class="edge-neg">-8.7%</td>
+          <td>主胜</td><td>75.8%</td><td>67.1%</td><td>65.5%</td>
+          <td class="edge-neg">-10.2%</td>
         </tr>
         <tr>
-          <td>平局</td><td>22.2%</td><td>19.7%</td><td>20.0%</td>
-          <td class="edge-neg">-2.2%</td>
+          <td>平局</td><td>22.2%</td><td>19.7%</td><td>20.7%</td>
+          <td class="">-1.6%</td>
         </tr>
         <tr>
-          <td>客胜</td><td>14.9%</td><td>13.2%</td><td>13.0%</td>
-          <td class="">-1.9%</td>
+          <td>客胜</td><td>14.9%</td><td>13.2%</td><td>13.8%</td>
+          <td class="">-1.1%</td>
         </tr>
       </table>
       <div class="reverse-box">
@@ -4968,7 +4968,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.36</span></div>
       </div></div>
-      <div class="tab-content" id="m20-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">26.0%</div></div><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">25.0%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">15.8%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">8.7%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">8.1%</div></div><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">7.9%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">5.3%</div></div><div class="score-cell"><div class="sc-score">4-0</div><div class="sc-prob">3.1%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m20-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">25.9%</div></div><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">24.6%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">16.3%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">8.7%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">8.0%</div></div><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">7.8%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">5.5%</div></div><div class="score-cell"><div class="sc-score">4-0</div><div class="sc-prob">3.2%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:47%">12.6%</div></div>
@@ -5037,9 +5037,9 @@ a { color:var(--blue); }
         <span class="team away">吉马良斯</span>
       </div>
       <div class="prob-row">
-        <div class="prob-seg h" style="width:74.8%">H 75%</div>
-        <div class="prob-seg d" style="width:16.3%">D 16%</div>
-        <div class="prob-seg a" style="width:9.0%">A 9%</div>
+        <div class="prob-seg h" style="width:75.1%">H 75%</div>
+        <div class="prob-seg d" style="width:16.2%">D 16%</div>
+        <div class="prob-seg a" style="width:8.7%">A 9%</div>
       </div>
       <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val home">主胜 75%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">2-0 / 1-0 / 3-0 / 0-0 / 4-0</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让-2球后的胜平负概率，与上方模型预测不同源">让球盘 -2</span> <span class="pick-val away" style="border-color:var(--red)">客胜 43%</span></div>
       
@@ -5047,11 +5047,11 @@ a { color:var(--blue); }
       <div class="match-info-row">
         <span class="conf-meter"><span class="conf-dot low"></span><b>34%</b></span>
         <span class="info-chip">xG <b>2.49 - 0.72</b></span>
-        <span class="info-chip">Odds <b>1.27/5.85/10.63</b></span>
+        <span class="info-chip">Odds <b>1.27/5.89/10.94</b></span>
         
         <span class="info-chip" style="color:var(--teal, #14b8a6)">水位监控 2次 · 主↑3.6% · 客↓15.4% · 跨173min</span>
         
-        
+        <span class="info-chip" style="color:var(--dim)">裁判 路易斯·米格尔·</span>
       </div>
     </div>
     <div class="match-detail">
@@ -5060,7 +5060,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m21-odds">赔率</button>
         <button class="tab-btn" data-tab="m21-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m21-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model<span style="margin-left:8px">末态 H0.747 D0.163 A0.090</span></div>
+      <div class="tab-content active" id="m21-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_djyy_only<span style="margin-left:8px">末态 H0.751 D0.162 A0.087</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -5068,9 +5068,9 @@ a { color:var(--blue); }
           <td class="src-label">DC+MC 原始</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:74.7%">75</div>
-              <div class="mini-bar d" style="width:16.3%">16</div>
-              <div class="mini-bar a" style="width:9.0%">9</div>
+              <div class="mini-bar h" style="width:74.8%">75</div>
+              <div class="mini-bar d" style="width:16.2%">16</div>
+              <div class="mini-bar a" style="width:8.9%">9</div>
             </div>
           </td>
         </tr>
@@ -5092,9 +5092,9 @@ a { color:var(--blue); }
           <td class="src-label">最终融合</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:74.8%">75</div>
-              <div class="mini-bar d" style="width:16.3%">16</div>
-              <div class="mini-bar a" style="width:9.0%">9</div>
+              <div class="mini-bar h" style="width:75.1%">75</div>
+              <div class="mini-bar d" style="width:16.2%">16</div>
+              <div class="mini-bar a" style="width:8.7%">9</div>
             </div>
           </td>
         </tr>
@@ -5117,31 +5117,31 @@ a { color:var(--blue); }
       <div class="tab-content" id="m21-odds">
       <div class="odds-grid">
         <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">1.27</div></div>
-        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">5.85</div></div>
-        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">10.63</div></div>
+        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">5.89</div></div>
+        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">10.94</div></div>
         <div class="odds-box"><div class="ob-label">让球</div><div class="ob-val">-2.0</div></div>
       </div>
       <h5 style="margin: 16px 0 8px 0; color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">四庄家赔率对比</h5>
       
       <table class="edge-table" style="margin-top: 16px;">
         <tr><th>庄家</th><th>主胜</th><th>平局</th><th>客胜</th></tr>
-        <tr><td class="src-label">模型合成</td><td>1.27</td><td>5.85</td><td>10.63</td></tr>
-        <tr><td class="src-label">Bet365</td><td>1.27</td><td>5.85</td><td>10.63</td></tr>
-        <tr><td class="src-label">Pinnacle</td><td>1.27</td><td>5.85</td><td>10.63</td></tr>
+        <tr><td class="src-label">模型合成</td><td>1.27</td><td>5.89</td><td>10.94</td></tr>
+        <tr><td class="src-label">Bet365</td><td>1.27</td><td>5.89</td><td>10.94</td></tr>
+        <tr><td class="src-label">Pinnacle</td><td>1.27</td><td>5.89</td><td>10.94</td></tr>
         <tr><td class="src-label" style="color:var(--purple);">DJYY模型</td><td>1.31</td><td>6.27</td><td>12.90</td></tr>
       </table>
       <table class="edge-table">
         <tr><th>结果</th><th>隐含概率</th><th>Shin公平</th><th>模型</th><th>边际</th></tr>
         <tr>
-          <td>主胜</td><td>78.7%</td><td>0.0%</td><td>74.8%</td>
-          <td class="edge-neg">-4.0%</td>
+          <td>主胜</td><td>78.7%</td><td>0.0%</td><td>75.1%</td>
+          <td class="edge-neg">-3.6%</td>
         </tr>
         <tr>
-          <td>平局</td><td>17.1%</td><td>0.0%</td><td>16.3%</td>
+          <td>平局</td><td>17.0%</td><td>0.0%</td><td>16.2%</td>
           <td class="">-0.8%</td>
         </tr>
         <tr>
-          <td>客胜</td><td>9.4%</td><td>0.0%</td><td>9.0%</td>
+          <td>客胜</td><td>9.1%</td><td>0.0%</td><td>8.7%</td>
           <td class="">-0.4%</td>
         </tr>
       </table>
@@ -5158,7 +5158,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>中性</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.21</span></div>
       </div></div>
-      <div class="tab-content" id="m21-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">23.6%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">22.5%</div></div><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">17.9%</div></div><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">12.1%</div></div><div class="score-cell"><div class="sc-score">4-0</div><div class="sc-prob">11.2%</div></div><div class="score-cell"><div class="sc-score">5-0</div><div class="sc-prob">5.8%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">3.5%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">3.4%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m21-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">23.6%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">22.5%</div></div><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">18.0%</div></div><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">12.1%</div></div><div class="score-cell"><div class="sc-score">4-0</div><div class="sc-prob">11.0%</div></div><div class="score-cell"><div class="sc-score">5-0</div><div class="sc-prob">5.9%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">3.6%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">3.4%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:18%">4.0%</div></div>
@@ -5227,21 +5227,21 @@ a { color:var(--blue); }
         <span class="team away">莫尔德</span>
       </div>
       <div class="prob-row">
-        <div class="prob-seg h" style="width:31.4%">H 31%</div>
-        <div class="prob-seg d" style="width:22.7%">D 23%</div>
-        <div class="prob-seg a" style="width:45.8%">A 46%</div>
+        <div class="prob-seg h" style="width:35.7%">H 36%</div>
+        <div class="prob-seg d" style="width:22.8%">D 23%</div>
+        <div class="prob-seg a" style="width:41.5%">A 42%</div>
       </div>
-      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val away">客胜 46%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">0-1 / 0-2 / 0-3 / 0-0 / 1-1</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让1球后的胜平负概率，与上方模型预测不同源">让球盘 +1</span> <span class="pick-val away" style="border-color:var(--red)">客胜 51%</span></div>
+      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val away">客胜 42%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">0-1 / 0-2 / 0-3 / 0-0 / 1-1</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让1球后的胜平负概率，与上方模型预测不同源">让球盘 +1</span> <span class="pick-val away" style="border-color:var(--red)">客胜 51%</span> <span class="pick-val away" style="font-size:.78em;border-color:var(--red);background:rgba(147,51,234,0.08)" title="模型概率×市场赔率-1。edge>30% 超出可信区间，系统不据此出注">让球客 +EV +1%</span></div>
       
       
       <div class="match-info-row">
-        <span class="conf-meter"><span class="conf-dot low"></span><b>26%</b></span>
+        <span class="conf-meter"><span class="conf-dot low"></span><b>25%</b></span>
         <span class="info-chip">xG <b>0.86 - 2.41</b></span>
-        <span class="info-chip">Odds <b>2.72/3.85/1.99</b></span>
+        <span class="info-chip">Odds <b>2.39/3.85/2.22</b></span>
         <span class="info-chip" style="color:var(--purple)">赔率变动 主2.58→2.38↓ 平3.95→3.73↓ 客2.05→2.30↑</span>
         <span class="info-chip" style="color:var(--teal, #14b8a6)">水位监控 4次 · 客↑0.9% · 跨942min</span>
-        <span class="info-chip" style="color:var(--red)">模型vs市场分歧 <b>22%</b></span>
-        
+        <span class="info-chip" style="color:var(--red)">模型vs市场分歧 <b>25%</b></span>
+        <span class="info-chip" style="color:var(--dim)">裁判 埃斯彭·埃斯卡斯</span>
       </div>
     </div>
     <div class="match-detail">
@@ -5250,7 +5250,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m22-odds">赔率</button>
         <button class="tab-btn" data-tab="m22-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m22-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.314 D0.227 A0.458</span></div>
+      <div class="tab-content active" id="m22-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_three_way<span style="margin-left:8px">末态 H0.357 D0.228 A0.415</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -5258,9 +5258,9 @@ a { color:var(--blue); }
           <td class="src-label">DC+MC 原始</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:15.0%">15</div>
+              <div class="mini-bar h" style="width:15.7%">16</div>
               <div class="mini-bar d" style="width:18.9%">19</div>
-              <div class="mini-bar a" style="width:66.1%">66</div>
+              <div class="mini-bar a" style="width:65.4%">65</div>
             </div>
           </td>
         </tr>
@@ -5268,9 +5268,9 @@ a { color:var(--blue); }
           <td class="src-label">Shin公平</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:32.5%">33</div>
+              <div class="mini-bar h" style="width:37.1%">37</div>
               <div class="mini-bar d" style="width:23.0%">23</div>
-              <div class="mini-bar a" style="width:44.5%">44</div>
+              <div class="mini-bar a" style="width:39.9%">40</div>
             </div>
           </td>
         </tr>
@@ -5288,9 +5288,9 @@ a { color:var(--blue); }
           <td class="src-label">最终融合</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:31.4%">31</div>
-              <div class="mini-bar d" style="width:22.7%">23</div>
-              <div class="mini-bar a" style="width:45.8%">46</div>
+              <div class="mini-bar h" style="width:35.7%">36</div>
+              <div class="mini-bar d" style="width:22.8%">23</div>
+              <div class="mini-bar a" style="width:41.5%">42</div>
             </div>
           </td>
         </tr>
@@ -5312,38 +5312,38 @@ a { color:var(--blue); }
       </div></div>
       <div class="tab-content" id="m22-odds">
       <div class="odds-grid">
-        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">2.72</div></div>
+        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">2.39</div></div>
         <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">3.85</div></div>
-        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">1.99</div></div>
+        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">2.22</div></div>
         <div class="odds-box"><div class="ob-label">让球</div><div class="ob-val">1.0</div></div>
       </div>
       <h5 style="margin: 16px 0 8px 0; color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">四庄家赔率对比</h5>
       
       <table class="edge-table" style="margin-top: 16px;">
         <tr><th>庄家</th><th>主胜</th><th>平局</th><th>客胜</th></tr>
-        <tr><td class="src-label">体彩官方</td><td>2.72</td><td>3.85</td><td>1.99</td></tr>
-        <tr><td class="src-label">Bet365</td><td>2.72</td><td>3.85</td><td>1.99</td></tr>
-        <tr><td class="src-label">Pinnacle</td><td>2.72</td><td>3.85</td><td>1.99</td></tr>
+        <tr><td class="src-label">体彩官方</td><td>2.39</td><td>3.85</td><td>2.22</td></tr>
+        <tr><td class="src-label">Bet365</td><td>2.39</td><td>3.85</td><td>2.22</td></tr>
+        <tr><td class="src-label">Pinnacle</td><td>2.39</td><td>3.85</td><td>2.22</td></tr>
         <tr><td class="src-label" style="color:var(--purple);">DJYY模型</td><td>3.04</td><td>4.50</td><td>2.23</td></tr>
       </table>
       <table class="edge-table">
         <tr><th>结果</th><th>隐含概率</th><th>Shin公平</th><th>模型</th><th>边际</th></tr>
         <tr>
-          <td>主胜</td><td>36.8%</td><td>32.5%</td><td>31.4%</td>
-          <td class="edge-neg">-5.3%</td>
+          <td>主胜</td><td>41.8%</td><td>37.1%</td><td>35.7%</td>
+          <td class="edge-neg">-6.1%</td>
         </tr>
         <tr>
-          <td>平局</td><td>26.0%</td><td>23.0%</td><td>22.7%</td>
+          <td>平局</td><td>26.0%</td><td>23.0%</td><td>22.8%</td>
           <td class="edge-neg">-3.2%</td>
         </tr>
         <tr>
-          <td>客胜</td><td>50.3%</td><td>44.5%</td><td>45.8%</td>
-          <td class="edge-neg">-4.4%</td>
+          <td>客胜</td><td>45.0%</td><td>39.9%</td><td>41.5%</td>
+          <td class="edge-neg">-3.5%</td>
         </tr>
       </table>
       <div class="reverse-box">
         <h5>逆向赔率分析</h5>
-        <div class="reverse-row"><span class="rk">冷门风险</span><span style="color:var(--red); font-weight:700;">56%</span></div>
+        <div class="reverse-row"><span class="rk">冷门风险</span><span style="color:var(--red); font-weight:700;">58%</span></div>
         <div class="reverse-row"><span class="rk">方向</span><span>暂无</span></div>
         <div class="reverse-row"><span class="rk">压缩比</span><span>0.00</span></div>
       </div>
@@ -5354,7 +5354,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.55</span></div>
       </div></div>
-      <div class="tab-content" id="m22-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">21.0%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">19.3%</div></div><div class="score-cell"><div class="sc-score">0-3</div><div class="sc-prob">14.4%</div></div><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">12.0%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">9.6%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">8.9%</div></div><div class="score-cell"><div class="sc-score">0-4</div><div class="sc-prob">8.4%</div></div><div class="score-cell"><div class="sc-score">1-3</div><div class="sc-prob">6.4%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m22-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">20.8%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">19.9%</div></div><div class="score-cell"><div class="sc-score">0-3</div><div class="sc-prob">14.4%</div></div><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">12.2%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">9.4%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">8.9%</div></div><div class="score-cell"><div class="sc-score">0-4</div><div class="sc-prob">8.3%</div></div><div class="score-cell"><div class="sc-score">1-3</div><div class="sc-prob">6.3%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:17%">3.8%</div></div>
@@ -5424,7 +5424,7 @@ a { color:var(--blue); }
       </div>
       <div class="prob-row">
         <div class="prob-seg h" style="width:14.8%">H 15%</div>
-        <div class="prob-seg d" style="width:22.4%">D 22%</div>
+        <div class="prob-seg d" style="width:22.5%">D 22%</div>
         <div class="prob-seg a" style="width:62.8%">A 63%</div>
       </div>
       <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val away">客胜 63%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">0-0 / 0-1 / 1-0 / 1-1 / 0-2</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让1球后的胜平负概率，与上方模型预测不同源">让球盘 +1</span> <span class="pick-val home" style="border-color:var(--green)">主胜 60%</span></div>
@@ -5437,7 +5437,7 @@ a { color:var(--blue); }
         <span class="info-chip" style="color:var(--purple)">赔率变动 主5.80→6.20↑ 平3.73→4.05↑ 客1.48→1.42↓</span>
         <span class="info-chip" style="color:var(--teal, #14b8a6)">水位监控 2次 · 主↑6.9% · 客↓2.1% · 跨574min</span>
         <span class="info-chip" style="color:var(--red)">模型vs市场分歧 <b>22%</b></span>
-        
+        <span class="info-chip" style="color:var(--dim)">裁判 马泰奥·马尔切纳</span>
       </div>
     </div>
     <div class="match-detail">
@@ -5446,7 +5446,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m23-odds">赔率</button>
         <button class="tab-btn" data-tab="m23-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m23-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.148 D0.225 A0.628</span></div>
+      <div class="tab-content active" id="m23-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_three_way<span style="margin-left:8px">末态 H0.148 D0.225 A0.628</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -5455,7 +5455,7 @@ a { color:var(--blue); }
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
               <div class="mini-bar h" style="width:27.0%">27</div>
-              <div class="mini-bar d" style="width:31.1%">31</div>
+              <div class="mini-bar d" style="width:31.3%">31</div>
               <div class="mini-bar a" style="width:41.8%">42</div>
             </div>
           </td>
@@ -5485,7 +5485,7 @@ a { color:var(--blue); }
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
               <div class="mini-bar h" style="width:14.8%">15</div>
-              <div class="mini-bar d" style="width:22.4%">22</div>
+              <div class="mini-bar d" style="width:22.5%">22</div>
               <div class="mini-bar a" style="width:62.8%">63</div>
             </div>
           </td>
@@ -5529,7 +5529,7 @@ a { color:var(--blue); }
           <td class="">-1.0%</td>
         </tr>
         <tr>
-          <td>平局</td><td>24.7%</td><td>21.9%</td><td>22.4%</td>
+          <td>平局</td><td>24.7%</td><td>21.9%</td><td>22.5%</td>
           <td class="edge-neg">-2.2%</td>
         </tr>
         <tr>
@@ -5550,7 +5550,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.12</span></div>
       </div></div>
-      <div class="tab-content" id="m23-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">23.4%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">21.2%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">13.4%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">12.3%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">12.2%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">7.0%</div></div><div class="score-cell"><div class="sc-score">0-3</div><div class="sc-prob">5.4%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">5.1%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m23-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">23.4%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">21.5%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">13.2%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">12.6%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">11.9%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">6.9%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">5.3%</div></div><div class="score-cell"><div class="sc-score">0-3</div><div class="sc-prob">5.2%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:54%">15.6%</div></div>
@@ -5633,7 +5633,7 @@ a { color:var(--blue); }
         <span class="info-chip" style="color:var(--purple)">赔率变动 主3.28→2.88↓ 客1.86→2.04↑</span>
         <span class="info-chip" style="color:var(--teal, #14b8a6)">水位监控 2次 · 主↓12.2% · 客↑9.7% · 跨574min</span>
         
-        
+        <span class="info-chip" style="color:var(--dim)">裁判 吉约姆·帕拉迪斯</span>
       </div>
     </div>
     <div class="match-detail">
@@ -5642,7 +5642,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m24-odds">赔率</button>
         <button class="tab-btn" data-tab="m24-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m24-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.242 D0.242 A0.516</span></div>
+      <div class="tab-content active" id="m24-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_three_way<span style="margin-left:8px">末态 H0.242 D0.242 A0.516</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -5652,7 +5652,7 @@ a { color:var(--blue); }
             <div class="mini-bar-wrap">
               <div class="mini-bar h" style="width:18.4%">18</div>
               <div class="mini-bar d" style="width:24.1%">24</div>
-              <div class="mini-bar a" style="width:57.5%">58</div>
+              <div class="mini-bar a" style="width:57.6%">58</div>
             </div>
           </td>
         </tr>
@@ -5746,7 +5746,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.14</span></div>
       </div></div>
-      <div class="tab-content" id="m24-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">20.2%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">16.4%</div></div><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">14.2%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">13.0%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">10.4%</div></div><div class="score-cell"><div class="sc-score">0-3</div><div class="sc-prob">10.2%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">9.2%</div></div><div class="score-cell"><div class="sc-score">1-3</div><div class="sc-prob">6.5%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m24-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">20.3%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">16.3%</div></div><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">14.3%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">12.9%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">10.6%</div></div><div class="score-cell"><div class="sc-score">0-3</div><div class="sc-prob">10.0%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">9.1%</div></div><div class="score-cell"><div class="sc-score">1-3</div><div class="sc-prob">6.5%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:30%">7.6%</div></div>
@@ -5815,21 +5815,21 @@ a { color:var(--blue); }
         <span class="team away">巴伦西亚</span>
       </div>
       <div class="prob-row">
-        <div class="prob-seg h" style="width:43.5%">H 43%</div>
-        <div class="prob-seg d" style="width:26.5%">D 26%</div>
-        <div class="prob-seg a" style="width:30.1%">A 30%</div>
+        <div class="prob-seg h" style="width:43.4%">H 43%</div>
+        <div class="prob-seg d" style="width:27.3%">D 27%</div>
+        <div class="prob-seg a" style="width:29.3%">A 29%</div>
       </div>
-      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val home">主胜 43%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">1-0 / 0-0 / 1-1 / 0-1 / 2-0</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让-1球后的胜平负概率，与上方模型预测不同源">让球盘 -1</span> <span class="pick-val away" style="border-color:var(--red)">客胜 44%</span></div>
+      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val home">主胜 43%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">0-0 / 1-0 / 0-1 / 1-1 / 2-0</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让-1球后的胜平负概率，与上方模型预测不同源">让球盘 -1</span> <span class="pick-val away" style="border-color:var(--red)">客胜 45%</span></div>
       
       <div class="draw-alert-info" style="background:rgba(147,51,234,0.1);border:1px solid var(--purple);border-radius:6px;padding:8px 12px;margin:8px 0;font-size:0.72rem"><b>⚠ 平局预警</b> — 均势平局：双方接近，平局被低估</div>
       <div class="match-info-row">
-        <span class="conf-meter"><span class="conf-dot low"></span><b>17%</b></span>
-        <span class="info-chip">xG <b>1.52 - 0.82</b></span>
-        <span class="info-chip">Odds <b>2.06/3.35/2.9</b></span>
+        <span class="conf-meter"><span class="conf-dot low"></span><b>14%</b></span>
+        <span class="info-chip">xG <b>1.37 - 0.71</b></span>
+        <span class="info-chip">Odds <b>2.06/3.25/2.97</b></span>
         <span class="info-chip" style="color:var(--purple)">赔率变动 主2.10→2.18↑ 平3.28→3.71↑ 客3.00→2.61↓</span>
         
-        
-        
+        <span class="info-chip" style="color:var(--amber)">分歧 <b>8%</b></span>
+        <span class="info-chip" style="color:var(--dim)">裁判 路易斯·贝斯塔德</span>
       </div>
     </div>
     <div class="match-detail">
@@ -5838,7 +5838,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m25-odds">赔率</button>
         <button class="tab-btn" data-tab="m25-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m25-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.435 D0.265 A0.301</span></div>
+      <div class="tab-content active" id="m25-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_three_way<span style="margin-left:8px">末态 H0.434 D0.273 A0.293</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -5846,9 +5846,9 @@ a { color:var(--blue); }
           <td class="src-label">DC+MC 原始</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:50.2%">50</div>
-              <div class="mini-bar d" style="width:26.6%">27</div>
-              <div class="mini-bar a" style="width:23.2%">23</div>
+              <div class="mini-bar h" style="width:49.4%">49</div>
+              <div class="mini-bar d" style="width:28.9%">29</div>
+              <div class="mini-bar a" style="width:21.7%">22</div>
             </div>
           </td>
         </tr>
@@ -5857,8 +5857,8 @@ a { color:var(--blue); }
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
               <div class="mini-bar h" style="width:43.0%">43</div>
-              <div class="mini-bar d" style="width:26.5%">26</div>
-              <div class="mini-bar a" style="width:30.6%">31</div>
+              <div class="mini-bar d" style="width:27.2%">27</div>
+              <div class="mini-bar a" style="width:29.8%">30</div>
             </div>
           </td>
         </tr>
@@ -5876,9 +5876,9 @@ a { color:var(--blue); }
           <td class="src-label">最终融合</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:43.5%">43</div>
-              <div class="mini-bar d" style="width:26.5%">26</div>
-              <div class="mini-bar a" style="width:30.1%">30</div>
+              <div class="mini-bar h" style="width:43.4%">43</div>
+              <div class="mini-bar d" style="width:27.3%">27</div>
+              <div class="mini-bar a" style="width:29.3%">29</div>
             </div>
           </td>
         </tr>
@@ -5895,37 +5895,37 @@ a { color:var(--blue); }
       
       <div class="wilson-meter">
         <div class="wilson-label">Wilson信任分</div>
-        <div class="wilson-track"><div class="wilson-fill" style="width:33%"></div></div>
-        <div class="wilson-val">32.9% 置信权重</div>
+        <div class="wilson-track"><div class="wilson-fill" style="width:27%"></div></div>
+        <div class="wilson-val">27.4% 置信权重</div>
       </div></div>
       <div class="tab-content" id="m25-odds">
       <div class="odds-grid">
         <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">2.06</div></div>
-        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">3.35</div></div>
-        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">2.90</div></div>
+        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">3.25</div></div>
+        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">2.97</div></div>
         <div class="odds-box"><div class="ob-label">让球</div><div class="ob-val">-1.0</div></div>
       </div>
       <h5 style="margin: 16px 0 8px 0; color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">四庄家赔率对比</h5>
       
       <table class="edge-table" style="margin-top: 16px;">
         <tr><th>庄家</th><th>主胜</th><th>平局</th><th>客胜</th></tr>
-        <tr><td class="src-label">体彩官方</td><td>2.06</td><td>3.35</td><td>2.90</td></tr>
-        <tr><td class="src-label">Bet365</td><td>2.06</td><td>3.35</td><td>2.90</td></tr>
-        <tr><td class="src-label">Pinnacle</td><td>2.06</td><td>3.35</td><td>2.90</td></tr>
+        <tr><td class="src-label">体彩官方</td><td>2.06</td><td>3.25</td><td>2.97</td></tr>
+        <tr><td class="src-label">Bet365</td><td>2.06</td><td>3.25</td><td>2.97</td></tr>
+        <tr><td class="src-label">Pinnacle</td><td>2.06</td><td>3.25</td><td>2.97</td></tr>
         <tr><td class="src-label" style="color:var(--purple);">DJYY模型</td><td>2.21</td><td>3.74</td><td>3.57</td></tr>
       </table>
       <table class="edge-table">
         <tr><th>结果</th><th>隐含概率</th><th>Shin公平</th><th>模型</th><th>边际</th></tr>
         <tr>
-          <td>主胜</td><td>48.5%</td><td>43.0%</td><td>43.5%</td>
-          <td class="edge-neg">-5.1%</td>
+          <td>主胜</td><td>48.5%</td><td>43.0%</td><td>43.4%</td>
+          <td class="edge-neg">-5.2%</td>
         </tr>
         <tr>
-          <td>平局</td><td>29.9%</td><td>26.5%</td><td>26.5%</td>
+          <td>平局</td><td>30.8%</td><td>27.2%</td><td>27.3%</td>
           <td class="edge-neg">-3.4%</td>
         </tr>
         <tr>
-          <td>客胜</td><td>34.5%</td><td>30.6%</td><td>30.1%</td>
+          <td>客胜</td><td>33.7%</td><td>29.8%</td><td>29.3%</td>
           <td class="edge-neg">-4.4%</td>
         </tr>
       </table>
@@ -5942,48 +5942,48 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.11</span></div>
       </div></div>
-      <div class="tab-content" id="m25-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">17.8%</div></div><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">17.0%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">15.2%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">14.0%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">11.2%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">9.6%</div></div><div class="score-cell"><div class="sc-score">1-2</div><div class="sc-prob">7.8%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">7.4%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m25-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">21.4%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">20.8%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">13.5%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">13.2%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">12.1%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">7.6%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">5.8%</div></div><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">5.7%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
-            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:37%">9.7%</div></div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:46%">12.5%</div></div>
           </div>
           <div class="goal-bar-row">
             <span class="goal-bar-label">1</span>
-            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:86%">22.6%</div></div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:96%">26.0%</div></div>
           </div>
           <div class="goal-bar-row">
             <span class="goal-bar-label">2</span>
-            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:100%">26.4%</div></div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:100%">27.0%</div></div>
           </div>
           <div class="goal-bar-row">
             <span class="goal-bar-label">3</span>
-            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:78%">20.5%</div></div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:69%">18.7%</div></div>
           </div>
           <div class="goal-bar-row">
             <span class="goal-bar-label">4</span>
-            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:45%">12.0%</div></div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:36%">9.7%</div></div>
           </div>
           <div class="goal-bar-row">
             <span class="goal-bar-label">5</span>
-            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:21%">5.6%</div></div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:15%">4.0%</div></div>
           </div>
           <div class="goal-bar-row">
             <span class="goal-bar-label">6</span>
-            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:8%">2.2%</div></div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:5%">1.4%</div></div>
           </div>
           <div class="goal-bar-row">
             <span class="goal-bar-label">7</span>
-            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:4%">1.0%</div></div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" style="width:2%">0.5%</div></div>
           </div></div>
       <div class="xg-compare">
         <h5>预期进球 (xG)</h5>
         <div class="xg-bar-row">
           <span class="xg-bar-label">桑坦德</span>
-          <div class="xg-bar-track"><div class="xg-bar-fill home" style="width:77%">1.52</div></div>
+          <div class="xg-bar-track"><div class="xg-bar-fill home" style="width:77%">1.37</div></div>
         </div>
         <div class="xg-bar-row">
           <span class="xg-bar-label">巴伦西亚</span>
-          <div class="xg-bar-track"><div class="xg-bar-fill away" style="width:41%">0.82</div></div>
+          <div class="xg-bar-track"><div class="xg-bar-fill away" style="width:40%">0.71</div></div>
         </div>
       </div></div>
     </div>
@@ -6042,9 +6042,9 @@ a { color:var(--blue); }
           <td class="src-label">DC+MC 原始</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:48.7%">49</div>
+              <div class="mini-bar h" style="width:48.9%">49</div>
               <div class="mini-bar d" style="width:36.0%">36</div>
-              <div class="mini-bar a" style="width:15.3%">15</div>
+              <div class="mini-bar a" style="width:15.2%">15</div>
             </div>
           </td>
         </tr>
@@ -6132,7 +6132,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.07</span></div>
       </div></div>
-      <div class="tab-content" id="m26-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">35.1%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">24.5%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">11.3%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">10.9%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">7.9%</div></div><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">4.0%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">3.5%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">2.8%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m26-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">35.4%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">24.6%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">11.1%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">11.0%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">7.5%</div></div><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">4.0%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">3.6%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">2.7%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:74%">25.9%</div></div>
@@ -6201,20 +6201,20 @@ a { color:var(--blue); }
         <span class="team away">洛城银河</span>
       </div>
       <div class="prob-row">
-        <div class="prob-seg h" style="width:62.6%">H 63%</div>
-        <div class="prob-seg d" style="width:20.2%">D 20%</div>
-        <div class="prob-seg a" style="width:17.2%">A 17%</div>
+        <div class="prob-seg h" style="width:64.3%">H 64%</div>
+        <div class="prob-seg d" style="width:19.8%">D 20%</div>
+        <div class="prob-seg a" style="width:15.8%">A 16%</div>
       </div>
-      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val home">主胜 63%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">0-0 / 1-0 / 2-0 / 0-1 / 1-1</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让-1球后的胜平负概率，与上方模型预测不同源">让球盘 -1</span> <span class="pick-val away" style="border-color:var(--red)">客胜 44%</span></div>
+      <div class="pred-pick"><span class="pick-label">预测</span> <span class="pick-val home">主胜 64%</span> <span class="pick-label" title="模型预测的最可能比分（非赛果）">预测比分</span> <span class="pred-score">0-0 / 1-0 / 2-0 / 0-1 / 1-1</span><span class="pick-label hcap-label" title="让球玩法（市场盘口观点）：主队让-1球后的胜平负概率，与上方模型预测不同源">让球盘 -1</span> <span class="pick-val away" style="border-color:var(--red)">客胜 44%</span></div>
       
       
       <div class="match-info-row">
-        <span class="conf-meter"><span class="conf-dot low"></span><b>17%</b></span>
+        <span class="conf-meter"><span class="conf-dot low"></span><b>18%</b></span>
         <span class="info-chip">xG <b>1.02 - 0.31</b></span>
-        <span class="info-chip">Odds <b>1.4/4.6/5.05</b></span>
+        <span class="info-chip">Odds <b>1.36/4.7/5.5</b></span>
         <span class="info-chip" style="color:var(--purple)">赔率变动 主1.48→1.40↓ 平4.55→4.75↑ 客4.30→5.00↑</span>
         <span class="info-chip" style="color:var(--teal, #14b8a6)">水位监控 4次 · 主↓1.4% · 客↑2.0% · 跨769min</span>
-        <span class="info-chip" style="color:var(--red)">模型vs市场分歧 <b>15%</b></span>
+        <span class="info-chip" style="color:var(--red)">模型vs市场分歧 <b>16%</b></span>
         
       </div>
     </div>
@@ -6224,7 +6224,7 @@ a { color:var(--blue); }
         <button class="tab-btn" data-tab="m27-odds">赔率</button>
         <button class="tab-btn" data-tab="m27-dist">分布</button>
       </div>
-      <div class="tab-content active" id="m27-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.626 D0.202 A0.172</span></div>
+      <div class="tab-content active" id="m27-model"><div style="font-size:0.68rem;color:var(--dim);margin:0 0 6px;padding:6px 8px;background:var(--surface2);border-radius:6px"><b style="color:var(--text-secondary)">融合归因链</b> base_model &rarr; fuse_two_way<span style="margin-left:8px">末态 H0.643 D0.198 A0.159</span></div>
       <table class="model-table">
         <tr><th>信号源</th><th class="prob-bar-cell">主 / 平 / 客 概率分布</th></tr>
         
@@ -6232,9 +6232,9 @@ a { color:var(--blue); }
           <td class="src-label">DC+MC 原始</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:53.2%">53</div>
-              <div class="mini-bar d" style="width:34.3%">34</div>
-              <div class="mini-bar a" style="width:12.6%">13</div>
+              <div class="mini-bar h" style="width:53.3%">53</div>
+              <div class="mini-bar d" style="width:34.4%">34</div>
+              <div class="mini-bar a" style="width:12.3%">12</div>
             </div>
           </td>
         </tr>
@@ -6242,9 +6242,9 @@ a { color:var(--blue); }
           <td class="src-label">Shin公平</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:63.2%">63</div>
-              <div class="mini-bar d" style="width:19.2%">19</div>
-              <div class="mini-bar a" style="width:17.5%">18</div>
+              <div class="mini-bar h" style="width:65.1%">65</div>
+              <div class="mini-bar d" style="width:18.8%">19</div>
+              <div class="mini-bar a" style="width:16.1%">16</div>
             </div>
           </td>
         </tr>
@@ -6256,9 +6256,9 @@ a { color:var(--blue); }
           <td class="src-label">最终融合</td>
           <td class="prob-bar-cell">
             <div class="mini-bar-wrap">
-              <div class="mini-bar h" style="width:62.6%">63</div>
-              <div class="mini-bar d" style="width:20.2%">20</div>
-              <div class="mini-bar a" style="width:17.2%">17</div>
+              <div class="mini-bar h" style="width:64.3%">64</div>
+              <div class="mini-bar d" style="width:19.8%">20</div>
+              <div class="mini-bar a" style="width:15.8%">16</div>
             </div>
           </td>
         </tr>
@@ -6280,38 +6280,38 @@ a { color:var(--blue); }
       </div></div>
       <div class="tab-content" id="m27-odds">
       <div class="odds-grid">
-        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">1.40</div></div>
-        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">4.60</div></div>
-        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">5.05</div></div>
+        <div class="odds-box"><div class="ob-label">主胜</div><div class="ob-val">1.36</div></div>
+        <div class="odds-box"><div class="ob-label">平局</div><div class="ob-val">4.70</div></div>
+        <div class="odds-box"><div class="ob-label">客胜</div><div class="ob-val">5.50</div></div>
         <div class="odds-box"><div class="ob-label">让球</div><div class="ob-val">-1.0</div></div>
       </div>
       <h5 style="margin: 16px 0 8px 0; color: var(--text-secondary); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">四庄家赔率对比</h5>
       
       <table class="edge-table" style="margin-top: 16px;">
         <tr><th>庄家</th><th>主胜</th><th>平局</th><th>客胜</th></tr>
-        <tr><td class="src-label">体彩官方</td><td>1.40</td><td>4.60</td><td>5.05</td></tr>
-        <tr><td class="src-label">Bet365</td><td>1.40</td><td>4.60</td><td>5.05</td></tr>
-        <tr><td class="src-label">Pinnacle</td><td>1.40</td><td>4.60</td><td>5.05</td></tr>
+        <tr><td class="src-label">体彩官方</td><td>1.36</td><td>4.70</td><td>5.50</td></tr>
+        <tr><td class="src-label">Bet365</td><td>1.36</td><td>4.70</td><td>5.50</td></tr>
+        <tr><td class="src-label">Pinnacle</td><td>1.36</td><td>4.70</td><td>5.50</td></tr>
         <tr><td class="src-label" style="color:var(--purple);">DJYY模型</td><td>-</td><td>-</td><td>-</td></tr>
       </table>
       <table class="edge-table">
         <tr><th>结果</th><th>隐含概率</th><th>Shin公平</th><th>模型</th><th>边际</th></tr>
         <tr>
-          <td>主胜</td><td>71.4%</td><td>63.2%</td><td>62.6%</td>
-          <td class="edge-neg">-8.8%</td>
+          <td>主胜</td><td>73.5%</td><td>65.1%</td><td>64.3%</td>
+          <td class="edge-neg">-9.2%</td>
         </tr>
         <tr>
-          <td>平局</td><td>21.7%</td><td>19.2%</td><td>20.2%</td>
-          <td class="">-1.6%</td>
+          <td>平局</td><td>21.3%</td><td>18.8%</td><td>19.8%</td>
+          <td class="">-1.5%</td>
         </tr>
         <tr>
-          <td>客胜</td><td>19.8%</td><td>17.5%</td><td>17.2%</td>
-          <td class="edge-neg">-2.6%</td>
+          <td>客胜</td><td>18.2%</td><td>16.1%</td><td>15.8%</td>
+          <td class="edge-neg">-2.3%</td>
         </tr>
       </table>
       <div class="reverse-box">
         <h5>逆向赔率分析</h5>
-        <div class="reverse-row"><span class="rk">冷门风险</span><span style="color:var(--text); font-weight:700;">33%</span></div>
+        <div class="reverse-row"><span class="rk">冷门风险</span><span style="color:var(--text); font-weight:700;">32%</span></div>
         <div class="reverse-row"><span class="rk">方向</span><span>暂无</span></div>
         <div class="reverse-row"><span class="rk">压缩比</span><span>0.00</span></div>
       </div>
@@ -6322,7 +6322,7 @@ a { color:var(--blue); }
         <div class="reverse-row"><span class="rk">偏差</span><span>[0.0, 0.0, 0.0]</span></div>
         <div class="reverse-row"><span class="rk">组合加成</span><span style="color:var(--green)">+0.27</span></div>
       </div></div>
-      <div class="tab-content" id="m27-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">35.5%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">25.7%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">11.7%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">10.1%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">7.1%</div></div><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">4.2%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">3.2%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">2.5%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
+      <div class="tab-content" id="m27-dist"><div style="margin-bottom:6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">最可能比分</div><div class="scores-grid"><div class="score-cell"><div class="sc-score">0-0</div><div class="sc-prob">36.0%</div></div><div class="score-cell"><div class="sc-score">1-0</div><div class="sc-prob">25.2%</div></div><div class="score-cell"><div class="sc-score">2-0</div><div class="sc-prob">11.5%</div></div><div class="score-cell"><div class="sc-score">0-1</div><div class="sc-prob">10.0%</div></div><div class="score-cell"><div class="sc-score">1-1</div><div class="sc-prob">7.2%</div></div><div class="score-cell"><div class="sc-score">3-0</div><div class="sc-prob">4.3%</div></div><div class="score-cell"><div class="sc-score">2-1</div><div class="sc-prob">3.3%</div></div><div class="score-cell"><div class="sc-score">0-2</div><div class="sc-prob">2.5%</div></div></div><div style="margin:14px 0 6px;font-size:0.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;">总进球分布</div><div class="goals-bars">
           <div class="goal-bar-row">
             <span class="goal-bar-label">0</span>
             <div class="goal-bar-track"><div class="goal-bar-fill" style="width:75%">26.5%</div></div>
@@ -6408,20 +6408,6 @@ a { color:var(--blue); }
 
     <!-- SCORE PARLAY (2026-08-08) -->
     
-  <div class="section-title">🎯 比分串（波胆过关）
-    <span style="float:right;font-weight:500;text-transform:none;letter-spacing:0;color:var(--dim)">1张 · 投入¥2 · 最高¥312</span>
-  </div>
-  <div style="overflow-x:auto">
-  <table class="edge-table">
-    <tr><th>玩法</th><th>比分组合（单腿 @官方赔率）</th><th style="text-align:right">校准概率</th><th style="text-align:right">投入</th><th style="text-align:right">最高奖金</th><th>容错</th></tr>
-    <tr><td><b>比分2串1</b><span style="font-size:.68em;font-weight:700;color:var(--text-secondary);margin-left:6px">⏳ 待开赛</span><br><span style="font-size:.62rem;color:var(--dim)">1注 · 官方赔率</span></td><td><span class="sp-leg"><span class="jc-no" style="font-size:.6rem;padding:1px 4px;margin-right:3px">周日009</span>兹沃勒<b>1-0</b>@12.5</span> + <span class="sp-leg"><span class="jc-no" style="font-size:.6rem;padding:1px 4px;margin-right:3px">周日028</span>圣路易斯城<b>1-0</b>@12.5</span></td><td style="text-align:right;color:var(--dim)">0.90%</td><td style="text-align:right">¥2</td><td style="text-align:right;color:var(--green);font-weight:700">¥312</td><td><span style="color:var(--dim)">—</span></td></tr>
-  </table>
-  </div>
-  <div style="font-size:.68rem;color:var(--dim);padding:4px 2px">
-    2026-08-13 科学性改造：仅出<b>官方真实波胆赔率</b>且<b>校准概率×赔率&gt;1 的正 EV</b>组合
-    （DJYY 概率系统性高估已压校准，模拟赔率不再使用——84 张 0 中的教训）。
-    <details style="display:inline"><summary style="cursor:pointer;display:inline;color:var(--blue)"> 腿明细</summary><details class="sp-detail"><summary>比分2串1 · 两场比分都中才赢（校准命中 0.9% × 赔率 156 倍 = EV +41%）</summary><div class="ts-row"><span>兹沃勒 vs 坎布尔 <span style="opacity:.6">[荷甲]</span></span><span>比分 1-0 · 校准 9.5% · @12.5</span></div><div class="ts-row"><span>圣路易斯城 vs 洛城银河 <span style="opacity:.6">[美职]</span></span><span>比分 1-0 · 校准 9.5% · @12.5</span></div></details></details>
-  </div>
   </div>
 
   <!-- TAB: 复盘与数据 -->
@@ -6459,10 +6445,10 @@ a { color:var(--blue); }
     </div>
     <div class="sys-card">
       <h4>决策完整性</h4>
-      <div class="sys-row"><span class="k">创建时间</span><span class="v">2026-10-11T11:46:45</span></div>
+      <div class="sys-row"><span class="k">创建时间</span><span class="v">2026-10-11T22:25:20</span></div>
       <div class="sys-row"><span class="k">版本</span><span class="v">1</span></div>
       <div class="sys-row"><span class="k">算法</span><span class="v">SHA-256</span></div>
-      <div class="hash">d44f80ed06695bc7b000a62cdf36cbedf1a1df79f0d3f60e943f00753e3a03c9</div>
+      <div class="hash">06846bb506856d874457cf7f5c8aa079a3cbdba36b475e56c7bb6afaeba48d62</div>
     </div>
     <div class="sys-card">
       <h4>模型配置</h4>
@@ -6490,7 +6476,7 @@ a { color:var(--blue); }
   <div style="overflow-x:auto">
   <table class="edge-table">
     <tr><th>联赛</th><th>场数</th><th>命中率</th><th>均赔</th><th>ROI</th><th>判断</th><th>近5场</th><th>近10场</th><th>判平(命中/次数·强度)</th></tr>
-    <tr><td>西甲</td><td>73</td><td>56%</td><td>1.79</td><td style="color:var(--red);font-weight:700">-4.7%</td><td style="color:var(--amber)">⚠️ 谨慎</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +32%</span></td><td style="color:var(--green)">近10场 7中 (70%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +13%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>意甲</td><td>53</td><td>57%</td><td>1.77</td><td style="color:var(--red);font-weight:700">-8.6%</td><td style="color:#b45309;font-weight:700" title="累计口径送钱区，但近5场命中≥60% 且近10场≥50%，已自动解除禁投（双窗口判定，2026-08-13）">✅ 回暖解禁·观察</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +5%</span></td><td style="color:var(--amber)">近10场 5中 (50%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -30%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>挪超</td><td>52</td><td>63%</td><td>1.77</td><td style="color:var(--green);font-weight:700">+7.1%</td><td style="color:var(--green);font-weight:700">✅ 价值区</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +11%</span></td><td style="color:var(--green)">近10场 8中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +9%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>欧国联</td><td>52</td><td>62%</td><td>1.67</td><td style="color:var(--red);font-weight:700">-5.7%</td><td style="color:var(--red);font-weight:700">🚫 送钱区·禁投</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +1%</span></td><td style="color:var(--amber)">近10场 4中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -50%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>欧冠</td><td>51</td><td>61%</td><td>1.89</td><td style="color:var(--green);font-weight:700">+5.0%</td><td style="color:var(--green);font-weight:700">✅ 价值区</td><td style="color:var(--green)">近5场 3中 (60%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +14%</span></td><td style="color:var(--green)">近10场 8中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +37%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>英超</td><td>50</td><td>42%</td><td>1.75</td><td style="color:var(--red);font-weight:700">-31.7%</td><td style="color:var(--red);font-weight:700">🚫 送钱区·禁投</td><td style="color:var(--amber)">近5场 2中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -43%</span></td><td style="color:var(--amber)">近10场 4中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -40%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>K1联赛</td><td>47</td><td>49%</td><td>2.02</td><td style="color:var(--green);font-weight:700">+3.3%</td><td style="color:var(--dim)">👀 观望</td><td style="color:var(--amber)">近5场 2中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -24%</span></td><td style="color:var(--amber)">近10场 4中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -21%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>瑞典超</td><td>47</td><td>36%</td><td>1.87</td><td style="color:var(--red);font-weight:700">-37.4%</td><td style="color:var(--amber)">⚠️ 谨慎</td><td style="color:var(--green)">近5场 3中 (60%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +6%</span></td><td style="color:var(--amber)">近10场 5中 (50%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -17%</span></td><td style="color:var(--red)">0/2 (0%)<br><span style="font-size:0.62rem;color:var(--dim)">强度 0.35</span></td></tr><tr><td>荷甲</td><td>44</td><td>64%</td><td>1.52</td><td style="color:var(--red);font-weight:700">-5.1%</td><td style="color:var(--amber)">⚠️ 谨慎</td><td style="color:var(--amber)">近5场 2中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -41%</span></td><td style="color:var(--green)">近10场 6中 (60%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -18%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>欧罗巴</td><td>44</td><td>50%</td><td>1.76</td><td style="color:var(--red);font-weight:700">-21.6%</td><td style="color:var(--amber)">⚠️ 谨慎</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +21%</span></td><td style="color:var(--green)">近10场 7中 (70%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +10%</span></td><td style="color:var(--dim)">—</td></tr>
+    <tr><td>西甲</td><td>73</td><td>56%</td><td>1.79</td><td style="color:var(--red);font-weight:700">-4.7%</td><td style="color:var(--amber)">⚠️ 谨慎</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +32%</span></td><td style="color:var(--green)">近10场 7中 (70%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +13%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>意甲</td><td>53</td><td>57%</td><td>1.77</td><td style="color:var(--red);font-weight:700">-8.6%</td><td style="color:#b45309;font-weight:700" title="累计口径送钱区，但近5场命中≥60% 且近10场≥50%，已自动解除禁投（双窗口判定，2026-08-13）">✅ 回暖解禁·观察</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +5%</span></td><td style="color:var(--amber)">近10场 5中 (50%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -30%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>欧国联</td><td>52</td><td>62%</td><td>1.67</td><td style="color:var(--red);font-weight:700">-5.7%</td><td style="color:var(--red);font-weight:700">🚫 送钱区·禁投</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +1%</span></td><td style="color:var(--amber)">近10场 4中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -50%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>欧冠</td><td>51</td><td>61%</td><td>1.89</td><td style="color:var(--green);font-weight:700">+5.0%</td><td style="color:var(--green);font-weight:700">✅ 价值区</td><td style="color:var(--green)">近5场 3中 (60%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +14%</span></td><td style="color:var(--green)">近10场 8中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +37%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>英超</td><td>50</td><td>42%</td><td>1.75</td><td style="color:var(--red);font-weight:700">-31.7%</td><td style="color:var(--red);font-weight:700">🚫 送钱区·禁投</td><td style="color:var(--amber)">近5场 2中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -43%</span></td><td style="color:var(--amber)">近10场 4中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -40%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>K1联赛</td><td>45</td><td>51%</td><td>2.02</td><td style="color:var(--green);font-weight:700">+7.9%</td><td style="color:var(--dim)">👀 观望</td><td style="color:var(--amber)">近5场 2中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -24%</span></td><td style="color:var(--amber)">近10场 4中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -21%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>荷甲</td><td>44</td><td>64%</td><td>1.52</td><td style="color:var(--red);font-weight:700">-5.1%</td><td style="color:var(--amber)">⚠️ 谨慎</td><td style="color:var(--amber)">近5场 2中 (40%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -41%</span></td><td style="color:var(--green)">近10场 6中 (60%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -18%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>欧罗巴</td><td>44</td><td>50%</td><td>1.76</td><td style="color:var(--red);font-weight:700">-21.6%</td><td style="color:var(--amber)">⚠️ 谨慎</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +21%</span></td><td style="color:var(--green)">近10场 7中 (70%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +10%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>德甲</td><td>43</td><td>51%</td><td>1.70</td><td style="color:var(--red);font-weight:700">-17.2%</td><td style="color:var(--amber)">⚠️ 谨慎</td><td style="color:var(--green)">近5场 3中 (60%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -5%</span></td><td style="color:var(--amber)">近10场 5中 (50%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI -13%</span></td><td style="color:var(--dim)">—</td></tr><tr><td>挪超</td><td>42</td><td>62%</td><td>1.71</td><td style="color:var(--red);font-weight:700">-0.8%</td><td style="color:var(--amber)">⚠️ 谨慎</td><td style="color:var(--green)">近5场 4中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +11%</span></td><td style="color:var(--green)">近10场 8中 (80%)<br><span style="font-size:0.62rem;color:var(--dim)">近ROI +9%</span></td><td style="color:var(--dim)">—</td></tr>
   </table>
   <div style="padding:6px 2px;font-size:0.62rem;color:var(--dim)">三窗口对照：全部=累计兜底 · 近10场=中期趋势 · 近5场=短期灵敏度。回暖解禁 = 累计口径送钱区，但近5场命中≥60% <b>且</b> 近10场≥50% → 解除禁投观察；再拉胯自动打回送钱区。</div>
   </div>
