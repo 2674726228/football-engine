@@ -26,9 +26,13 @@ DJYY 第三通道曾静默死亡 6 周（10-11 已修复回填+报警），待�
 - GitHub Actions 每半小时跑 daily-forecast（预测+结算+自检+部署 Pages；schedule 实际延迟 2~4h）
 - 本地 `auto_run.sh` 每小时实时监控（含代理自愈：7897 不通自动拉起 Clash Verge）
 - **系统医生 `engine/doctor.py`（2026-10-11 起）**：auto_run 每轮末尾自动体检+安全自愈——
-  git 卡死清场/积压补推/refspec 修复、补抓赛果、补结算、DJYY 存活率、CI 停摆、
-  概率分布先验带、权重归一、cron 存在性、代理、仓库体积。报告: data/state/system_health.json。
+  git 卡死清场/积压补推/refspec 修复、补抓赛果、**补结算**（结算本地化由此覆盖）、
+  DJYY 存活率、CI 停摆、概率分布先验带、权重归一、cron 存在性、代理、仓库体积。
+  报告: data/state/system_health.json。
   设计: 幂等自愈 + critical 返回 2（供 CI 门禁）+ 每条检查对应一次真实事故
+- **仓库专属 .venv（2026-10-11 起）**：py3.12 + requirements 全量（sklearn/lightgbm 可用，
+  lightgbm 需 brew libomp）。auto_run 探测顺序 .venv 优先——本地进化决策不再依赖
+  hermes venv 的残缺环境；本地现在也能跑 LGBM 训练/校准拟合（与 CI 同基线）
 - **推送走 SSH deploy key（2026-10-11 起）**：远端 = `git@github-football-engine:...`，
   密钥 `~/.ssh/football-engine_deploy`（只授权本仓库，经 ssh.github.com:443 + Clash 代理）。
   cron 后台会话拿不到 keychain 凭据，别把推送改回 HTTPS+osxkeychain
@@ -77,15 +81,15 @@ DJYY 第三通道曾静默死亡 6 周（10-11 已修复回填+报警），待�
 - [ ] DJYY 通道复活验证：10-11 起结算行应出现 djyy_prob（含回填），优化器用真实样本重定价
 - [ ] CLV 评估体系：#6/#9 的 7 万场收盘价就位，用收盘线价值替代 ROI 代理做技能度量
       （edge 分桶当前全负：edge>0.10 桶 ROI -19.8%，EV 口径需在收盘价基础上重估）
-- [ ] 环境/决策权对齐：本地 hermes venv 缺 sklearn/lightgbm/pandas——校准启用决策
-      曾在无拟合器环境做出；要么本地补依赖，要么进化决策权只归 CI
-- [ ] 结算归属本地化：CI schedule 延迟 2~4h 是账本滞后根因，本地 :25 加幂等 settle
-- [ ] PR #4（进化闭环）rebase 到最新 main 再合（直接合并会回退 #6~#9 的 5500 行测试）
-- [ ] 分支清理：7 个远端空壳分支 + 4 个本地分支可删（内容零残留，已实测）
-- [ ] 仓库瘦身：.git pack 186MB（30分钟提交数据+odds_series 873文件），考虑 LFS/瘦身
-      （doctor 已加体积告警阈值 400MB）
+- [ ] PR #4 合并：main 已 merge 进分支（2026-10-11，255 测试全过、不再回退 #6~#9 测试），
+      **等用户在 GitHub 上点合并**
+- [x] 环境/决策权对齐：仓库专属 .venv（py3.12）建成，auto_run 自动优先使用；
+      本地具备完整进化能力（sklearn+lightgbm），与 CI 同基线
+- [x] 结算归属本地化：doctor 每小时检查昨日未结算并自动补（幂等）
+- [x] 分支清理：14 个远端 + 4 个本地已删（内容零残留逐支实测；SHA 可从各 PR refs 找回）
+- [x] 仓库瘦身：git gc 179→133MB；doctor 挂 400MB 告警阈值，LFS 迁移另议
 - [ ] 洁净样本继续累积，跟踪 upgrade_tracker 判定
-- [ ] LGBM 每次结算自动重训（训练在 CI 侧），盯 ready=true（需双基线显著）
+- [ ] LGBM 每次结算自动重训（本地 CI 均可训了），盯 ready=true（需双基线显著）
 - [ ] 可选：Qwen 新闻→情境层管道（等用户定新闻源）
 - [x] 用户侧遗留→已解锁：本地推送已不依赖旧 PAT（deploy key 接管），keychain 里的
       GitHub token 现在可以随时撤销重发，不影响自动化
