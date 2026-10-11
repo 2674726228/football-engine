@@ -57,11 +57,26 @@ import json; print(json.dumps(SportMonksClient().verify_access(), ensure_ascii=F
 
 ## 2. NJStats（竞彩原生信号：凯利/风控/指数异动/中文概率）
 
+### 前端接口逆向结论（2026-10-12 凌晨，匿名实测）
+- `GET /api/client/match/leagues` ✓ 匿名可用（联赛清单，含中文名）
+- `POST /api/client/match/ALL/list` ✓ 匿名可用但**数据全抹**：345 场/152 字段的骨架，
+  队名 None、xG/potentials/odds_list 全 0——字段名暴露了他们的数据模型
+  （team_axg_pre_match、o25/btts/u35_potential、pre_match_ppg），确认试用接口会带这些值
+- 竞彩指数走 `POST /njserver/openApi/` **protobuf 私有协议**；`/api/sportApi/realtime` 401
+- **结论：匿名层无可用增量（竞彩指数我们已有 sina 直连），一切价值在登录后的试用窗口**
+
 ### 注册后做（3 天试用从注册时点起算）
 1. 后台拿 API key → `export NJSTATS_TOKEN=...`（或告诉我，我按同模式接）
 2. 下载示例 Excel（无需会员）→ 确认下载数据的字段 schema
 3. 看「购买/升级」页：API 个人版 ¥698/月 与 下载数据月卡（30次/月）的最终价
 4. 把 key 给我 → 建njstats source（按 djyy 模式）→ 试用窗口内跑 A/B 测量
+
+### 试用窗口收割清单（3 天，别浪费）
+- **/prob**：每日竞彩场次的概率信号（o25/u25/btts/主客龙/平局）→ 与 DJYY model_probs
+  同场对照（独立 Brier）
+- **/odds/list**：36*/平* 初盘+赛前+凯利+风控系数 → Pinnacle 基准 CLV 的第二来源
+- **/team/recent/list**：近 3-10 场 vs 赛季差异% → LGBM 候选特征
+- 每次 capture 落 data/state/njstats/，窗口结束后统一裁决
 
 ## 3. 验证裁决标准（试用窗口内完成）
 
