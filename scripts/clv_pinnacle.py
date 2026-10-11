@@ -62,7 +62,7 @@ def _tokens(s: str) -> set:
 def build_zh_en_dict() -> dict:
     """ZH→EN 队名字典：config/team_zh_en.json 人工种子 + 缓存阵容中英双名自动积累。"""
     zh_en: dict = {}
-    seed = ROOT / "config" / "team_zh_en.json"
+    seed = ROOT / "assets" / "team_zh_en.json"
     if seed.exists():
         try:
             raw = json.loads(seed.read_text(encoding="utf-8"))
