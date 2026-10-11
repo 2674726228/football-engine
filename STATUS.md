@@ -25,6 +25,10 @@ DJYY 第三通道曾静默死亡 6 周（10-11 已修复回填+报警），待�
   若失效，在新对话用 CronCreate 重建，提示词要点在 docs/UPGRADE2 的路线图段落
 - GitHub Actions 每半小时跑 daily-forecast（预测+结算+自检+部署 Pages；schedule 实际延迟 2~4h）
 - 本地 `auto_run.sh` 每小时实时监控（含代理自愈：7897 不通自动拉起 Clash Verge）
+- **系统医生 `engine/doctor.py`（2026-10-11 起）**：auto_run 每轮末尾自动体检+安全自愈——
+  git 卡死清场/积压补推/refspec 修复、补抓赛果、补结算、DJYY 存活率、CI 停摆、
+  概率分布先验带、权重归一、cron 存在性、代理、仓库体积。报告: data/state/system_health.json。
+  设计: 幂等自愈 + critical 返回 2（供 CI 门禁）+ 每条检查对应一次真实事故
 - **推送走 SSH deploy key（2026-10-11 起）**：远端 = `git@github-football-engine:...`，
   密钥 `~/.ssh/football-engine_deploy`（只授权本仓库，经 ssh.github.com:443 + Clash 代理）。
   cron 后台会话拿不到 keychain 凭据，别把推送改回 HTTPS+osxkeychain
@@ -77,9 +81,9 @@ DJYY 第三通道曾静默死亡 6 周（10-11 已修复回填+报警），待�
       曾在无拟合器环境做出；要么本地补依赖，要么进化决策权只归 CI
 - [ ] 结算归属本地化：CI schedule 延迟 2~4h 是账本滞后根因，本地 :25 加幂等 settle
 - [ ] PR #4（进化闭环）rebase 到最新 main 再合（直接合并会回退 #6~#9 的 5500 行测试）
-- [ ] 分支清理：7 个远端空壳分支 + 4 个本地分支可删（内容零残留，已实测）；
-      fetch refspec 恢复全量 + --prune
-- [ ] 仓库瘦身：.git pack 165MB（30分钟提交数据+odds_series 873文件），考虑 LFS/瘦身
+- [ ] 分支清理：7 个远端空壳分支 + 4 个本地分支可删（内容零残留，已实测）
+- [ ] 仓库瘦身：.git pack 186MB（30分钟提交数据+odds_series 873文件），考虑 LFS/瘦身
+      （doctor 已加体积告警阈值 400MB）
 - [ ] 洁净样本继续累积，跟踪 upgrade_tracker 判定
 - [ ] LGBM 每次结算自动重训（训练在 CI 侧），盯 ready=true（需双基线显著）
 - [ ] 可选：Qwen 新闻→情境层管道（等用户定新闻源）
