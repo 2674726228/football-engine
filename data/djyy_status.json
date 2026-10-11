@@ -1,20 +1,21 @@
 {
   "date": "2026-10-11",
-  "generated_at": "2026-10-11T09:25:13",
+  "generated_at": "2026-10-11T01:34:38",
   "healthy": false,
-  "coverage": 0.75,
-  "covered": 21,
+  "coverage": 0.0,
+  "covered": 0,
   "fixtures": 28,
   "budget_s": 672.0,
   "budget_exhausted": false,
-  "error": null,
+  "error": "fetch_fixtures_empty",
   "detail": {
-    "fixtures": 265,
-    "matched": 21,
+    "fixtures": 0,
+    "matched": 0,
     "enriched": 0,
     "failed": 0,
-    "cache_hit": 21,
-    "budget_exhausted": false
+    "cache_hit": 0,
+    "budget_exhausted": false,
+    "error": "fetch_fixtures_empty"
   },
   "note": "coverage < 0.8 或预算耗尽 → fusion 的 djyy 名义权重不产生任何贡献，等价于模型权重被摊薄"
 }
