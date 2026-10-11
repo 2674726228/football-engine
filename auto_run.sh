@@ -58,6 +58,8 @@ run_doctor() {
     "$PY" -m engine.review.clv --quiet >> "$LOG_FILE" 2>&1 || true
     # SportMonks 采集（token 门控：未配置则静默跳过；免费档/试用通用）
     "$PY" scripts/sportmonks_capture.py --date "$(TZ=Asia/Shanghai date +%Y-%m-%d)" --quiet >> "$LOG_FILE" 2>&1 || true
+    # NJStats 试用收割（key 门控；试用期至 2026-10-15）
+    "$PY" scripts/njstats_capture.py --quiet >> "$LOG_FILE" 2>&1 || true
 }
 
 # Step 1: 运行预测
