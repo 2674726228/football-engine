@@ -54,6 +54,8 @@ log "使用解释器: $PY"
 run_doctor() {
     log "---------- 系统医生体检 ----------"
     "$PY" -m engine.doctor --quiet >> "$LOG_FILE" 2>&1 || true
+    # 下注级 CLV（每小时随体检刷新；data/state/clv_report.json，周检消费）
+    "$PY" -m engine.review.clv --quiet >> "$LOG_FILE" 2>&1 || true
 }
 
 # Step 1: 运行预测
