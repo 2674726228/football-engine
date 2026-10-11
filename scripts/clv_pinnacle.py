@@ -98,7 +98,6 @@ def _resolve_team(zh: str, zh_en: dict, tokens_index: dict) -> str | None:
     en = zh_en.get(zh.rstrip("队"))
     if en:
         return en
-    toks = _tokens(zh)  # 中文名通常无英文字母，兜底返回 None
     for t in tokens_index:
         if t in zh or zh.rstrip("队") in t:
             return tokens_index[t]

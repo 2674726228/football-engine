@@ -7,7 +7,7 @@
 （历史真实存在过价差）；但其自 2026-07-17 实盘 222 注 -8.7% ROI——edge 已衰减。
 建议每月重跑监控其 live 恢复情况（免费信号源的可选跟随项）。
 """
-import json, re, statistics as st
+import json, re
 from collections import defaultdict
 from pathlib import Path
 

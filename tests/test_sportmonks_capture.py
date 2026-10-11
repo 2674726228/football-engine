@@ -44,7 +44,7 @@ def _seed(tmp_path, day="2026-10-12", n=2):
 
 
 def test_capture_appends_odds_and_details(tmp_path, monkeypatch):
-    preds = _seed(tmp_path)
+    _seed(tmp_path)
     monkeypatch.setattr(cap, "DAILY", tmp_path / "daily")
     monkeypatch.setattr(cap, "OUT_DIR", tmp_path / "state" / "sportmonks")
     fc = FakeClient(one_time={"predictions": [{"id": 1}], "lineups": []})

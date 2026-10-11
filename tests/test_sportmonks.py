@@ -44,7 +44,7 @@ def test_load_token_priority(monkeypatch, tmp_path):
 
 def test_client_requires_token(monkeypatch):
     monkeypatch.delenv("SPORTMONKS_TOKEN", raising=False)
-    monkeypatch.setattr(sm, "TOKEN_FILE", tmp_no_exist := (__import__("pathlib").Path("/nonexistent/tok")))
+    monkeypatch.setattr(sm, "TOKEN_FILE", __import__("pathlib").Path("/nonexistent/tok"))
     with pytest.raises(ValueError):
         SportMonksClient()
 
