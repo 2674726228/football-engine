@@ -40,10 +40,11 @@ Brier 0.6172→0.5573，命中率 51.6%→55.95%，**持续小幅跑赢纯市场
 - DJYY 断供两周三层根因（2026-10-09 全修）: ①限流(2400+调用/天→按天缓存)
   ②队名匹配(竞彩缩写/译名→前缀规则+别名) ③API schema迁移(referee→referees.main、
   injuries→home.sidelined)
-- push 卡死 detached HEAD（2026-10-11 修）: monitor/auto_run 的 pull --rebase 停在
-  空提交上残留 rebase-merge → HEAD 游离、push 全挂、本地拉不回远端（2小时数据没同步）。
-  两脚本已加自愈: rebase --quit + checkout -B main + reset --hard origin/main（远端为准，
-  数据每小时重生成不怕丢）
+- push 卡死 detached HEAD（2026-10-11 两次复发，晚20:25终修）: auto_run 的 pull --rebase
+  停在空提交上残留 rebase-merge → HEAD 游离。自愈代码其实凌晨就加了，但埋在
+  `if ! git pull | tee` 里——测的是 tee 的退出码，bash 管道取末位退出码，**自愈分支
+  是从未执行的死代码**。终修: PIPESTATUS 判 git 退出码 + 启动时兜底清场。
+  monitor 的 python 版自愈用 returncode 判断，一直是好的
 - cron 推送拿不到凭据（2026-10-11 修）: keychain 条目和设置都正常、GUI 会话能推，
   但 launchd 后台会话 osxkeychain 静默返回空 → "could not read Username: Device not
   configured"。凌晨起挂了数小时，根因未完全定位（疑似 keychain 授权弹窗未被应答后拒绝）。
