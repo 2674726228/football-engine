@@ -599,6 +599,9 @@ class SourceManager:
 
                 enrichment[fixture.match_id] = {
                     "djyy_id": djyy_id,
+                    # 结算回填用（2026-10-11）：CI 生成的预测可能没有 _djyy_id
+                    # （其富化失败时），缓存条目带上 match_id 让 post_match 可按比赛反查。
+                    "match_id": fixture.match_id,
                     "model_probs": {
                         "home": model.get("p_home"),
                         "draw": model.get("p_draw"),
