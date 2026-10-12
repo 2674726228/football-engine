@@ -1,15 +1,23 @@
 {
   "stable": [],
   "value": [],
-  "lottery": [],
-  "total_stake": 0,
-  "expected_roi": 0.0,
+  "lottery": [
+    {
+      "match": "2026-10-12_周一006#ttg",
+      "sel": "ttg_1",
+      "odds": 5.95,
+      "stake": 50.0,
+      "prob": 0.212
+    }
+  ],
+  "total_stake": 50.0,
+  "expected_roi": 0.2612,
   "bankroll": 3945.8711000000003,
   "breaker_multiplier": 1.0,
   "parlay": [],
   "score_parlay": [],
   "parlay_stake": 0,
-  "total_exposure": 0.0,
+  "total_exposure": 50.0,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5405,
