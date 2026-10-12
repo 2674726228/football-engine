@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-10-12T23:25:57",
+  "generated_at": "2026-10-13T00:28:31",
   "summary": {
     "total": 12,
     "critical": 0,
-    "healed": 0
+    "healed": 2
   },
   "findings": [
     {
       "id": "git/state",
       "layer": "git",
-      "severity": "ok",
-      "detail": "分支状态正常",
-      "healable": false,
-      "healed": false
+      "severity": "warn",
+      "detail": "残留 rebase 状态=False, detached HEAD=True → 已清场对齐远端",
+      "healable": true,
+      "healed": true
     },
     {
       "id": "git/backlog",
@@ -33,16 +33,16 @@
     {
       "id": "data/results",
       "layer": "data",
-      "severity": "ok",
-      "detail": "昨日赛果文件在",
-      "healable": false,
-      "healed": false
+      "severity": "warn",
+      "detail": "昨日(2026-10-12)缺 results_sina.json→ 已补抓",
+      "healable": true,
+      "healed": true
     },
     {
       "id": "data/yesterday",
       "layer": "data",
-      "severity": "ok",
-      "detail": "昨日(2026-10-11)已结算",
+      "severity": "info",
+      "detail": "昨日(2026-10-12)无预测或无赛果，跳过结算检查",
       "healable": false,
       "healed": false
     },
@@ -50,15 +50,15 @@
       "id": "source/djyy",
       "layer": "source",
       "severity": "ok",
-      "detail": "DJYY 存活率 2026-10-12:80%、2026-10-11:75%、2026-10-10:13%",
+      "detail": "DJYY 存活率 2026-10-13:62%、2026-10-12:80%、2026-10-11:75%",
       "healable": false,
       "healed": false
     },
     {
       "id": "source/ci",
       "layer": "source",
-      "severity": "info",
-      "detail": "CI 状态检查跳过（HTTPError）",
+      "severity": "ok",
+      "detail": "最近 CI 运行 0.2h 前",
       "healable": false,
       "healed": false
     },
@@ -66,7 +66,7 @@
       "id": "model/draw",
       "layer": "model",
       "severity": "ok",
-      "detail": "平局均值 26.9% 在先验带内",
+      "detail": "平局均值 22.4% 在先验带内",
       "healable": false,
       "healed": false
     },
@@ -98,7 +98,7 @@
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 152MB",
+      "detail": ".git 体积 150MB",
       "healable": false,
       "healed": false
     }
