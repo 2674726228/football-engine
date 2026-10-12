@@ -1,19 +1,19 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-13 03:25（主线 agent / Air 收口轮）
-> 在干什么: Air 收口已全部合入（#31 重建提交器 + #32 协议实证）。剩余动作都在 Air 上，主线做不了
-> 下一步: ① 在 Air 上停掉除预测挑战外的所有本地 cron（auto_run.sh / run_realtime_monitor.sh / launchd）
->          ② 在 Air 上登录 NJStats，从 DevTools 复制 Bearer token 到 ~/.football-engine/njstats_token.txt
->          ③ 跑 `node scripts/njstats_challenge/submit.js --probe` 复验协议（不需 token，应回「请先登录」）
->          ④ **实现 guessingId 映射**（调 GMI_MATCH_LIST msgId=1 拿 guessingId 再 join match_id）—— 这是提交前最后一个卡点
->          ⑤ 确认 Air 停止 hourly 推送后，ci-sync 成为 data/state/ 的唯一写入方
->          ⑥ 下一轮优先处理 issue #1（未开盘却出 1X2 推荐）
+> 状态: doing　更新: 2026-10-13 03:50（主线 agent / 挑战协议+池映射轮）
+> 在干什么: 用真实 apikey 打通挑战全链路（协议/配额/guessingId 映射/盘口口径），已合入 #32 #33
+> 下一步: ① Air 上停掉除预测挑战外的所有本地 cron（auto_run/run_realtime_monitor/launchd）
+>          ② Air 上登录 NJStats 拿 Bearer token → ~/.football-engine/njstats_token.txt（apikey 过不了提交）
+>          ③ **给引擎加欧冠预测**——池内 222 场唯一带竞彩盘口的是 8 场欧冠，我们当前只预测主流联赛，匹配 0 命中
+>          ④ 合并 #29 后观察巴甲平局概率是否回升（原 31.6% vs 市场 63.2%）
+>          ⑤ issue #1（未开盘却出 1X2 推荐）
 > 已知坑: ① Air 每小时与 ci-sync 同时写 data/state/，互相覆盖不可追溯 —— Air 停推前持续存在
->          ② submit.js 的 guessing_id 目前用 match_id **占位**，未实现真实映射 → 只准 dry-run，不准 --submit
->          ③ weekKey() 必须按北京时间算周界；ROOT 基准用 process.argv[1] 而非 __dirname
-> 待验证: ① Bearer token 过期周期未知（Air 上人工导出一次后观察）
+>          ② 我们侧与 NJStats 开放池**联赛完全不重叠**：池子 222 场是欧青联/欧冠/欧协联/欧联/亚冠二级/美职联/英冠…，意甲西甲巴甲英超瑞典超葡超法乙一场都没有 → 有登录态也无注可提
+>          ③ 竞彩盘口只有 8 场欧冠有（jcSpf/jcRq，jcRq 带让球线）；其余 214 场只有欧赔口径
+> 待验证: ① Bearer token 过期周期（Air 上人工导出后观察）
 >          ② 让球票「真实给分」机制（STATUS.md：待结算校准），此前让球 EV 排序可能高估
+>          ③ 低赔带豁免未实现（STATUS.md 说只适用胜平负），当前统一按 [1.60,2.31] 过滤
 >          ③ 合并 #29 后巴甲平局概率是否回升（原 31.6% vs 市场 63.2%）
 
 - 更新: 2026-10-13（主线 agent 统一入口轮）
@@ -48,6 +48,7 @@
 - [ ] `evolution/` 每轮在 main 上直接跑 `python -m evolution.cycle`，产物进 `evolution/out*`（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
+- 2026-10-13 挑战 guessingId 映射打通：用真实 apikey 调 GMI_MATCH_LIST(listType=OPEN) 拿 222 场，按 schema 逐层解出 guessingId+中文队名+开赛时间+三盘口赔率；weekId 编码实测=YYYY+ISO周号（2026-10-13→202642）；配额实测 maxCount=28/本周已用0。**同时发现池内 8 场欧冠才有竞彩盘口（jcSpf/jcRq 带让球线），我们 10 场匹配 0 命中（联赛不重叠）**——不是没注可提，是没预测欧冠 → `matchPool()` 加盘口口径择优（有 jc 用 JC_SPF/JC_RQ，否则欧赔）（`scripts/njstats_challenge/submit.js`）
 - 2026-10-13 预测挑战协议实证：v3 端点是推断的 → 逆向前端 bundle 挖出真实协议（`POST /njserver/openApi/` + `application/x-protobuf` + modId/msgId/Bearer），实测「合法 protobuf + 无 token → 200 + 请先登录」证明链路正确 → 改用手工 protobuf 编解码 + `--probe` 子命令；5 条新测试锁 wire format/有符号 code/枚举/pick 口径（`scripts/njstats_challenge/submit.js`）
 - 2026-10-13 Air 收口：预测挑战提交器（`_vault/njstats_challenge_submit.js`）从未入仓库，只在 Air 本地磁盘，Air 一出问题这个唯一无法上云的任务就断了且仓库无记录 → 根因：`_vault/` 被 gitignore，关键任务成了"黑工" → 修法：按 STATUS.md 记录的实测规则重建为 `scripts/njstats_challenge/submit.js` + README，补 7 条回归测试锁住周界/择优/幂等/让球符号
 - 2026-10-13 `weekKey()` 时区坑：用 `getDay()` 算周界，北京周一 07:00 = UTC 周日 23:00 → 被算成上一个周一，周一早上的提交记到上周配额（部分重复计算、部分凭空消失）→ 修法：shift 到 +08:00 再取 UTC 字段（submit.js）
