@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-12T21:25:40",
+  "generated_at": "2026-10-12T22:25:42",
   "summary": {
     "total": 12,
     "critical": 0,
@@ -57,8 +57,8 @@
     {
       "id": "source/ci",
       "layer": "source",
-      "severity": "ok",
-      "detail": "最近 CI 运行 3.1h 前",
+      "severity": "info",
+      "detail": "CI 状态检查跳过（HTTPError）",
       "healable": false,
       "healed": false
     },
@@ -98,7 +98,7 @@
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 151MB",
+      "detail": ".git 体积 152MB",
       "healable": false,
       "healed": false
     }
