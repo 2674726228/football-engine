@@ -1,23 +1,61 @@
 {
   "stable": [],
   "value": [],
-  "lottery": [
-    {
-      "match": "2026-10-12_周一006#ttg",
-      "sel": "ttg_1",
-      "odds": 5.95,
-      "stake": 50.0,
-      "prob": 0.212
-    }
-  ],
-  "total_stake": 50.0,
-  "expected_roi": 0.2612,
+  "lottery": [],
+  "total_stake": 0,
+  "expected_roi": 0.0,
   "bankroll": 3945.8711000000003,
   "breaker_multiplier": 1.0,
-  "parlay": [],
+  "parlay": [
+    {
+      "type": "2串1",
+      "legs": [
+        {
+          "match": "2026-10-12_周一004",
+          "home": "奥斯KFUM",
+          "away": "瓦勒伦加",
+          "league": "挪超",
+          "sel": "away",
+          "odds": 2.19,
+          "prob": 0.413,
+          "cal_prob": 0.49,
+          "market_prob": 0.404,
+          "source": "fusion",
+          "hit_prob": 0.49
+        },
+        {
+          "match": "2026-10-12_周一008",
+          "home": "莱万特",
+          "away": "塞维利亚",
+          "league": "西甲",
+          "sel": "away",
+          "odds": 2.52,
+          "prob": 0.355,
+          "cal_prob": 0.422,
+          "market_prob": 0.351,
+          "source": "fusion",
+          "hit_prob": 0.422
+        }
+      ],
+      "total_odds": 5.52,
+      "model_ev": -0.38,
+      "cal_ev": 2.03,
+      "cal_roi": 0.143,
+      "market_ev": -0.43,
+      "market_roi": -0.2158,
+      "hit_prob_cal": 0.207,
+      "recommended": true,
+      "stake": 14.21,
+      "n_bets": 1,
+      "potential": 78.42,
+      "worst_win": 0.0,
+      "note": "两场全中才赢",
+      "source": "calibrated"
+    }
+  ],
   "score_parlay": [],
-  "parlay_stake": 0,
-  "total_exposure": 50.0,
+  "parlay_stake": 14.21,
+  "total_exposure": 14.21,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5405,
