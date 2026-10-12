@@ -1,17 +1,19 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-13 02:15（主线 agent / Air 收口轮）
-> 在干什么: 把 Mac Air 从"黑工"变成有档案的协作者——它的唯一职责（预测挑战提交）已重建进仓库
-> 下一步: ① 在 Air 上执行：停掉除预测挑战外的所有本地 cron（auto_run.sh / run_realtime_monitor.sh / launchd）
+> 状态: doing　更新: 2026-10-13 02:20（主线 agent / Air 收口轮）
+> 在干什么: Air 收口已合入 #31（提交器重建进仓库 + 文档分工）。剩余动作都在 Air 上，主线做不了
+> 下一步: ① 在 Air 上停掉除预测挑战外的所有本地 cron（auto_run.sh / run_realtime_monitor.sh / launchd）
 >          ② 在 Air 上导出 NJStats cookie 到 ~/.football-engine/njstats_cookies.json（README 有步骤）
 >          ③ 抓包核对 submit.js 的 API_BASE 与 /challenge/predict 端点（标了【易变】，未真实验证）
->          ④ 观察 Air 停止 hourly 推送后，ci-sync 是否成为 data/state/ 的唯一写入方
-> 已知坑: ① Air 每小时与 ci-sync 同时写 data/state/，互相覆盖不可追溯（10-12 晚~10-13 凌晨的 hourly 提交即来自 Air，彼时 Actions 无调度）
+>          ④ 确认 Air 停止 hourly 推送后，ci-sync 成为 data/state/ 的唯一写入方
+>          ⑤ 下一轮优先处理 issue #1（未开盘却出 1X2 推荐）
+> 已知坑: ① Air 每小时与 ci-sync 同时写 data/state/，互相覆盖不可追溯（10-12 晚~10-13 凌晨的 hourly 提交即来自 Air，彼时 Actions 无调度）——Air 停推前这条持续存在
 >          ② weekKey() 必须按北京时间算周界——用 getDay() 会让北京周一 07:00 记到上周配额
 >          ③ submit.js 的 ROOT 基准用 process.argv[1] 而非 __dirname（后者在被载入的上下文里失效）
 > 待验证: ① 预测挑战 API 端点（按站点结构推断，未经真实验证）
 >          ② 让球票"真实给分"机制（STATUS.md：待 10-13 结算校准），此前让球 EV 排序可能高估
+>          ③ 合并 #29 后巴甲平局概率是否回升（原 31.6% vs 市场 63.2%）
 
 - 更新: 2026-10-13（主线 agent 统一入口轮）
 
