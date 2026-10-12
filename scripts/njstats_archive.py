@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from datetime import datetime, timedelta
@@ -28,7 +29,9 @@ if str(ROOT) not in sys.path:
 
 API = "https://api.njstats.cn/api/v1"
 OUT = ROOT / "data" / "state" / "njstats_archive"
-PROGRESS = Path.home() / ".football-engine" / "njstats_archive_progress.json"
+# 进度文件可由环境变量覆盖（CI 上跑时放仓库内以便断点续采跨运行）
+PROGRESS = Path(os.environ.get("NJSTATS_ARCHIVE_PROGRESS",
+                                str(Path.home() / ".football-engine" / "njstats_archive_progress.json")))
 KEY_FILE = Path.home() / ".football-engine" / "njstats_key"
 PROXY = {"https": "http://127.0.0.1:7897", "http": "http://127.0.0.1:7897"}
 
@@ -102,6 +105,25 @@ def main(argv: list[str] | None = None) -> int:
         for ep in PROB_ENDPOINTS:
             tasks.append((d, f"prob_{ep}", f"/prob/{ep}", {"page": 1, "pageSize": 100}))
             tasks.append((d, f"prob_{ep}_p2", f"/prob/{ep}", {"page": 2, "pageSize": 100}))
+
+    # team 系列（2026-10-12 补测全通）：seasonId/teamId 从当日 match 归档动态取
+    for d in dates:
+        mfile = OUT / f"{d}_match.json"
+        if not mfile.exists():
+            continue
+        try:
+            rows = json.loads(mfile.read_text(encoding="utf-8"))["data"]
+            sid = rows[0].get("seasonId")
+            tid = rows[0].get("homeId")
+        except Exception:
+            continue
+        if not sid or not tid:
+            continue
+        tasks.append((d, "team_list", "/team/list", {"seasonId": sid, "pageSize": 100}))
+        tasks.append((d, "team_stats", "/team/stats/list",
+                      {"seasonId": sid, "teamIds": tid}))
+        tasks.append((d, "team_recent", "/team/recent/list",
+                      {"seasonId": sid, "teamIds": tid, "recentCount": 5}))
 
     used = 0
     saved = 0

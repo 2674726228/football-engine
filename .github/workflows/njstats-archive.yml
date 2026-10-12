@@ -1,0 +1,32 @@
+# NJStats 试用窗口全量归档（CI 侧运行，不依赖本地 Mac）
+# 背景: 试用数据窗口限 3 天、10-15 00:08 到期后不可再得；本地 cron 依赖电脑
+# 开机, 故窗口期核心收割搬上 GitHub Actions（服务端 24/7 运行）。
+# 需要仓库 secret: NJSTATS_KEY（设置一次: Settings → Secrets → New repository secret）
+name: NJStats Archive
+on:
+  schedule:
+    - cron: '23 * * * *'   # 每小时第 23 分（避开 daily-forecast 的 :15/:45 峰值）
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Install deps
+        run: pip install requests --quiet
+      - name: Archive (budget 25/h, 与本地 20/h 共享 60/h 限额)
+        env:
+          NJSTATS_TOKEN: ${{ secrets.NJSTATS_KEY }}
+          NJSTATS_ARCHIVE_PROGRESS: data/state/njstats_archive/.progress.json
+        run: python scripts/njstats_archive.py --budget 25
+      - name: Commit archive
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git add data/state/njstats_archive
+          git diff --cached --quiet || git commit -m "archive(njstats): CI 窗口归档 $(date +%F\ %H:%M)"
+          git push
