@@ -60,6 +60,8 @@ run_doctor() {
     "$PY" scripts/sportmonks_capture.py --date "$(TZ=Asia/Shanghai date +%Y-%m-%d)" --quiet >> "$LOG_FILE" 2>&1 || true
     # NJStats 试用收割（key 门控；试用期至 2026-10-15）
     "$PY" scripts/njstats_capture.py --quiet >> "$LOG_FILE" 2>&1 || true
+    # NJStats 窗口全量归档（数据窗口到期后永久失去，断点续采；预算与 capture 共享 60/h）
+    "$PY" scripts/njstats_archive.py --budget 20 --quiet >> "$LOG_FILE" 2>&1 || true
     # 每日一次（date 门控）: fdc 历史刷新 → AUT 平局纸面跟踪 → DJYY live 审计
     DAILY_MARKER="./logs/fdc_daily_$(TZ=Asia/Shanghai date +%Y-%m-%d).done"
     if [ ! -f "$DAILY_MARKER" ]; then
