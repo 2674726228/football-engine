@@ -76,6 +76,14 @@ DJYY 第三通道曾静默死亡 6 周（10-11 已修复回填+报警），待�
 - LGBM save() API 不对称（LGBMClassifier 无 save_model）→ 已修
 - CI 挂了别慌：先看失败步骤（守门员拦截=设计行为），再查日志
 
+## 本地保险库 `_vault/`（不入公开仓库，同机 agent 可读）
+
+站点侦察细节/密钥位置/挑战策略与配额状态全在这里；公开仓库只留泛化结论。
+文件索引：recon_njstats.md（端点+JWT+规则）、recon_djyy.md（screen 契约+交叉验证）、
+recon_njstats_matrix.md（16/16 矩阵）、challenge_state.json（配额）、
+njstats_challenge_submit.js（v2 提交器）、njstats_value_model.json（1,667 注战绩）、
+njstats_exports/sample.xlsx（Excel schema）、close_calibration_notes.md（研究笔记）。
+
 ## 下一步/开放事项（2026-10-12 晨更新）
 
 - [ ] NJStats 试用窗口（10-15 00:08 到期）：归档管线每小时断点续采（match/odds/8概率端点
@@ -91,6 +99,24 @@ DJYY 第三通道曾静默死亡 6 周（10-11 已修复回填+报警），待�
 - [ ] git 历史端点路径清洗决策（HEAD 已清，历史待用户裁决是否 force-push 重写）
 - [ ] AUT 平局纸面证据累计（双源佐证 +7.5%/+9.24%，t≈1.7 候选，live 证据持续累计）
 - [ ] 洁净样本累积 / LGBM ready / Qwen 新闻源（用户决定）
+
+## 云端化与凭证现状（2026-10-12 下午补录）
+
+- **GitHub Actions 三条管线**：daily-forecast（预测+结算，原有）、njstats-archive（试用窗口归档）、
+  **ci-sync.yml（新）**：盘口监控/SportMonks 采集/NJStats 归档/每日 fdc+纸面+DJYY 审计/CLV/体检
+  ——Mac 关机不断采（预测挑战除外：需浏览器登录态，留本地）
+- **CI Secrets**：NJSTATS_KEY ✓、SPORTMONKS_TOKEN ✓（均 API 端加密注入）；
+  ⚠ **DJYY_PROXY 从未设置**——daily-forecast 引用它但 secret 不存在，CI 侧 DJYY 富化
+  一直静默直连被 403（Worker URL 在用户 Cloudflare 账号，待用户提供后一条命令补上）
+- **SSH deploy key**：本地推送走 git@github-football-engine:（密钥仓库外，勿改回 HTTPS+keychain）
+
+## 预测挑战状态（2026-10-12 晚）
+
+- 本周 11/28 已提交，段位**挑战者**、周榜 **#12**、排位分 140
+- 实测规则：**每场仅一市场**（提过即消失）；低赔带豁免只适用胜平负；
+  让球按水位口径记录（主队-1@0.95），真实给分待 10-13 结算校准
+- 自动化 v2（每日 11:30）：跨 胜平负/让球 择优（大小球观察不提交），
+  提交器 `_vault/njstats_challenge_submit.js`（带让球线校验防符号错位）
 
 ## 数据资产现状（2026-10-12 晨）
 
