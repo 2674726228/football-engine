@@ -1,0 +1,60 @@
+# 云端同步与研究管线（2026-10-12）：把可搬迁的本地 cron 搬上 GitHub Actions
+# 项目本身在 GitHub——数据/研究类任务不依赖用户的 Mac 开机。
+# 浏览器会话类（预测挑战提交、NJStats 前端）无法上云：需要登录态，保留本地。
+name: Sync & Research
+on:
+  schedule:
+    - cron: '47 * * * *'    # 每小时第47分，避开 daily-forecast(:15/:45)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ci-sync
+  cancel-in-progress: false   # 不中途砍，防半截写坏状态文件
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r requirements.txt --quiet
+      - name: 盘口监控（odds_series 收盘序列采集——CLV 生命线）
+        env:
+          DJYY_PROXY: ${{ secrets.DJYY_PROXY }}
+          DJYY_KEY: ${{ secrets.DJYY_KEY }}
+        run: python scripts/realtime_odds_monitor.py || true
+      - name: SportMonks 采集（免费档/试用通用，token 门控）
+        env:
+          SPORTMONKS_TOKEN: ${{ secrets.SPORTMONKS_TOKEN }}
+        run: python scripts/sportmonks_capture.py --date "$(TZ=Asia/Shanghai date +%F)" --quiet || true
+      - name: NJStats 窗口归档（试用至 10-15；预算 12 与本地共享 60/h）
+        env:
+          NJSTATS_TOKEN: ${{ secrets.NJSTATS_KEY }}
+          NJSTATS_ARCHIVE_PROGRESS: data/state/njstats_archive/.progress_ci.json
+        run: python scripts/njstats_archive.py --budget 12 --quiet || true
+      - name: 每日任务（fdc 历史刷新/AUT 纸面跟踪/DJYY 月审；date 门控）
+        run: |
+          STAMP="data/state/.daily_ci_$(TZ=Asia/Shanghai date +%F)"
+          if [ ! -f "$STAMP" ]; then
+            python scripts/fetch_football_data.py >> "$STAMP" 2>&1 || true
+            python scripts/paper_track_draw.py >> "$STAMP" 2>&1 || true
+            python scripts/djyy_audit.py >> "$STAMP" 2>&1 || true
+            touch "$STAMP"
+          fi
+      - name: 刷新 CLV 与体检报告
+        run: |
+          python -m engine.review.clv --quiet || true
+          python -m engine.doctor --check --no-net --quiet || true
+      - name: 提交回仓库
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # runner 上没有本地那份 SSH deploy key，用 workflow token 走 HTTPS
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/wlrwx/football-engine.git"
+          git pull --rebase origin main || (git rebase --abort 2>/dev/null; git fetch origin main; git reset --hard origin/main)
+          git add data/
+          git diff --cached --quiet || (git commit -m "ci-sync: $(TZ=Asia/Shanghai date +%F\ %H:%M)"; git push origin HEAD:main)
+
