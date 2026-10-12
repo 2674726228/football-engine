@@ -10,33 +10,38 @@
 
 ## 已验证的真实协议（2026-10-13 逆向 + 实测）
 
-从 NJStats 前端 bundle（`/app/index-*.js` + `mine-*.js` + `proto-*.js`）逆向出协议，
-并用 curl 实测通过：
+从 NJStats 前端 bundle（`/app/index-*.js` + `mine-*.js` + `proto-*.js`）逆向出协议，并用 curl + 真实 apikey 实测通过：
 
 | 项 | 值 |
 |---|---|
 | 端点 | `POST https://www.njstats.cn/njserver/openApi/` |
 | Content-Type | `application/x-protobuf` |
-| 自定义头 | `modId: 1012`（MI_GUESSING）、`msgId: 2`（GMI_SUBMIT） |
-| 鉴权 | `Authorization: Bearer <token>` |
-| 请求体 | protobuf：外层 `{params(1,bytes), page(2,msg)}`，params = `ReqGuessingSubmit{guessingId(1,str), playType(2,enum), pick(3,int32)}` |
-| 响应体 | protobuf：`{code(1,varint), msg(2,string)}`；`code=0` 成功，`code=-1` = 未登录 |
+| 自定义头 | `modId: 1012`（MI_GUESSING）、`msgId: <接口>` |
+| 读接口鉴权 | `apikey: <数据API key>`（`?apikey=` 那个 key 直接当头发也行） |
+| 写接口鉴权 | `Authorization: Bearer <token>` —— **必须浏览器登录态** |
+| 请求体 | protobuf：外层 `{params(1,bytes), page(2,msg)}` |
+| 响应体 | protobuf：`{code(1,varint), msg(2,string), data(5,bytes)}`；`code=0` 成功 |
 
-**实测结果**：合法 protobuf + 无 token → `HTTP 200 code=-1 msg="请先登录"`。
-协议链路完全正确，只差登录态。`node submit.js --probe` 可随时复验（不需 token）。
+### msgId 一览
 
-### GuessingPlayType 枚举（逆向自前端）
+| msgId | 名称 | 鉴权 | 用途 |
+|---|---|---|---|
+| 1 | GMI_MATCH_LIST | apikey | 开放池（listType=0 OPEN / 1 GUESSING / 2 FINISHED） |
+| 2 | GMI_SUBMIT | **Bearer** | 提交预测 |
+| 15 | GMI_WEEK_PREDICT_QUOTA | apikey | 本周配额 |
 
-| 值 | 名称 | 用途 |
-|---|---|---|
-| 0 | GPT_NONE | — |
-| 1 | GPT_SPF | 胜平负（欧赔） |
-| 2 | GPT_RQ | 让球（欧赔） |
-| 3 | GPT_DX | 大小球（**竞彩不用**，与 STATUS.md「大小球只观察不提交」一致） |
-| 4 | GPT_JC_SPF | **竞彩胜平负** ← 用 |
-| 5 | GPT_JC_RQ | **竞彩让球** ← 用 |
+### 实测结论（2026-10-13，真实 apikey）
 
-`pick` 是 **1-based**（home=1 / draw=2 / away=3），逆向自前端 `Yn()` 的 `pick = index + 1`。
+1. **apikey 读得到一切，但提交永远「请先登录」**——带不带 apikey 都一样
+2. **开放池 222 场**，联赛：欧青联28 / 欧冠18 / 欧协联18 / 欧联18 / 亚冠二级16 /
+   美职联15 / 英冠12 / 亚冠10 / 土甲10 / 德丙10 / 日联杯8 / 挪甲8…
+3. **我们侧 10 场（意甲/西甲/巴甲/英超/瑞典超/葡超/法乙/亚冠精英）命中 0 场**
+   ——那些联赛池子里一场都没有
+4. **但池子里有 8 场欧冠带真实竞彩盘口**（jcSpf/jcRq，jcRq 带让球线 -1/-2/+2/+3），
+   例如「比利亚雷亚尔 vs 那不勒斯」jcSpf 主胜 **2.04**，落在 [1.60,2.31] 带内
+   → **不是没注可提，是我们没预测欧冠**
+5. **周配额**：`maxCount=28`、本周 `usedCount=0`、`remainCount=28`
+6. `weekId` 编码 = `YYYY + ISO周号`（2026-10-13 → 202642）
 
 > ⚠️ 前端 bundle 的 hash 会随发版变（`index-DIYsyTJY.js`）。协议变动时按上面的路径重新逆向：
 > 搜 `ReqGuessingSubmit` / `MI_GUESSING` / `resolveProtoBaseURL`。
@@ -45,12 +50,24 @@
 
 ```
 1. daily-forecast（Actions，每小时 :15/:45）产出 data/daily/<date>/predictions.json
-2. Air 11:30 跑:  node scripts/njstats_challenge/submit.js --date <date> --submit
-3. 提交结果写 ~/.football-engine/challenge_state.json（周配额 + 已提场次）
+2. Air 上先拉一次池子缓存：  node scripts/njstats_challenge/submit.js --pool
+3. Air 11:30 跑:  node scripts/njstats_challenge/submit.js --date <date> --submit
+4. 提交结果写 ~/.football-engine/challenge_state.json（周配额 + 已提场次）
 ```
 
 **Air 上只需要这一个定时任务。** 其他本地 hourly cron（auto_run.sh / run_realtime_monitor.sh）
 必须全部停掉——它们与 ci-sync.yml 每小时同时写 `data/state/`，互相覆盖。
+
+## 常用命令
+
+| 命令 | 需要 | 作用 |
+|---|---|---|
+| `--probe` | 无 | 探活：验证协议链路（期望「请先登录」） |
+| `--pool` | apikey | 拉开放池 + 联赛分布，缓存到 `njstats_pool.json` |
+| `--quota` | apikey | 本周配额（已用/上限/剩余） |
+| `--date <d>` | apikey | dry-run：选场 + 匹配池子，**不提交** |
+| `--date <d> --submit` | apikey + **Bearer token** | 真提交 |
+| `--status` | 无 | 本周已提场次 |
 
 ## 提交规则（2026-10-12 实测，改规则必须改这里 + STATUS.md 两处）
 
@@ -81,24 +98,27 @@
 
 token 过期后重新导出即可。**不要**把 token 提交进仓库（`~/.football-engine/` 在仓库外）。
 
+数据 API key（只读，拉池子/看配额用）写到 `~/.football-engine/njstats_apikey.txt`。
+
 ## 状态文件（都在仓库外，不随 git 走）
 
 | 文件 | 内容 |
 |---|---|
+| `~/.football-engine/njstats_apikey.txt` | 数据 API key（只读） |
+| `~/.football-engine/njstats_token.txt` | Bearer token（提交用） |
 | `~/.football-engine/challenge_state.json` | 周配额计数 + 已提 match_id（幂等：提过即跳过） |
-| `~/.football-engine/njstats_token.txt` | Bearer token |
+| `~/.football-engine/njstats_pool.json` | 开放池缓存（`--pool` 拉取） |
 | `~/.football-engine/njstats_value_model.json` | 战绩累积（STATUS.md 记的 1,667 注） |
 
 **Air 重装后**：本目录 + README 就是全部；token 需重新人工导出一次。
 
 ## 已知未修
 
-- [ ] **`guessingId` 映射未实现**（最重要）：真实协议的 key 是 NJStats 侧的 `guessingId`，
-      **不是**我们的 `match_id`。当前 `loadCandidates()` 用 `match_id` 占位，
-      直接 `--submit` 会被服务端拒绝或提交到错误的场次。
-      正确做法：先调 `GMI_MATCH_LIST`（modId=1012, msgId=1, listType）拿 guessingId，
-      再按队名+日期 join 到我们的 match_id。**这个映射做完之前，只跑 dry-run。**
-- [ ] `--probe` 通过 ≠ 能提交：probe 只验协议，不验 token 有效性和 guessingId 映射
+- [ ] **我们侧与开放池联赛不重叠**（当前最大问题）：池子 222 场里意甲/西甲/巴甲/
+      英超/瑞典超/葡超/法乙**一场都没有**，我们 10 场匹配 **0 命中**。
+      池内唯一带竞彩盘口的是 **8 场欧冠**。
+      → 要真正提注，要么等池子开放主流联赛，要么**给引擎加欧冠预测**
+- [ ] `--submit` 需要 Bearer token（apikey 过不了提交），必须 Air 上人工登录一次
 - [ ] 低赔带豁免目前没实现（统一按 [1.60,2.31] 过滤）。STATUS.md 说豁免只适用胜平负，
       若要让低赔胜平负也能提，需要在 pickBest 里给 1x2 单独放宽下界——但那会改变提交行为，
       **需人拍板后再改**
