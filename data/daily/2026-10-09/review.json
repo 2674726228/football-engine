@@ -104,19 +104,25 @@
     }
   },
   "by_odds_band": {
-    "2.0-3.0": {
-      "n": 4,
+    "L4 冷(2.2-3.0)": {
+      "n": 2,
       "hit_rate": 0.5,
-      "wilson_lower": 0.15,
-      "avg_brier": 0.6173
+      "wilson_lower": 0.0945,
+      "avg_brier": 0.6089
     },
-    "1.5-2.0": {
-      "n": 4,
-      "hit_rate": 0.75,
-      "wilson_lower": 0.3006,
-      "avg_brier": 0.505
+    "L3 中(1.8-2.2)": {
+      "n": 3,
+      "hit_rate": 0.6667,
+      "wilson_lower": 0.2077,
+      "avg_brier": 0.5828
     },
-    "1.0-1.5": {
+    "L2 热(1.5-1.8)": {
+      "n": 3,
+      "hit_rate": 0.6667,
+      "wilson_lower": 0.2077,
+      "avg_brier": 0.5077
+    },
+    "L1 大热(<1.5)": {
       "n": 4,
       "hit_rate": 0.5,
       "wilson_lower": 0.15,
@@ -203,6 +209,6 @@
     }
   ],
   "total_pnl": 0.0,
-  "generated_at": "2026-10-12T16:17:48.711452",
-  "sha256": "a31d1b4c2a21208c91ebff34ff96058d"
+  "generated_at": "2026-10-12T19:49:06.541423",
+  "sha256": "7b2484b71cee37da7cfe3f8e825b8a1a"
 }
