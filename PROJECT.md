@@ -1,15 +1,15 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-13 01:55（主线 agent / 统一入口轮）
-> 在干什么: 收口 PR 乱局 —— 6 个 open PR 中 3 个是重复/悬空重建版，已逐一本地验证（测试+ruff）
-> 下一步: ① 合 #29(audit-chain-v2) → #28(whitelist-locks-v2) → #27(e3-e4-rebuild)（三者互不冲突，已用 merge-tree 验证）
->          ② 合完关掉 4 个悬空/重复 PR（#21/#22/#24 + 删 9 个遗留分支）
->          ③ 合并后观察巴甲平局率回升（原 31.6% vs 市场 63.2%）与总进球指标（预期短期偏高）
-> 已知坑: ① 分支带上 `data/`+`web/` 全量产物 = 几千行 diff 噪音（主因是分支落后 main 6~14 笔自动提交）
->          ② PR#28 的 `evolution/` 有 16 处 ruff F 级告警，但 test.yml 只 lint `engine scripts tests` ——  lint 范围没跟上触发路径
-> 待验证: ① `~/.ssh/football-engine_deploy` 本机不存在（STATUS.md 说推送走它）——推送方式实测待确认
->          ② 本机无 `~/football-engine`、无 crontab/launchd —— 旧"本地每小时跑"管线确认已不在本机
+> 状态: done　更新: 2026-10-13 01:50（主线 agent / 统一入口轮）
+> 在干什么: 已收口 PR 乱局并建立统一入口 —— 三个有效 PR 全部合入 main，open PR 清零，分支只剩 main + gh-pages
+> 下一步: ① 合并后观察 2~3 个结算日：巴甲平局概率是否回升（原 31.6% vs 市场 63.2%）、总进球类指标是否短期偏高
+>          ② 若连续 3 个结算日 Brier 相对基线恶化 >0.002，整体 revert（#29 或 #28 可独立 revert）
+>          ③ 下一轮优先处理 issue #1（未开盘却出 1X2 推荐）
+> 已知坑: ① 分支带上 `data/`+`web/` 全量产物 = 几千行 diff 噪音（主因是分支落后 main 6~16 笔自动提交）→ 开 PR 前必先 rebase
+>          ② STATUS.md 记录的本地管线（`~/football-engine`、deploy key、cron）在本机均不存在，已按"全在 GitHub Actions"重写锚点
+> 待验证: ① 推送方式实测（HTTPS token 可用；STATUS.md 说的 SSH deploy key 本机未验证）
+>          ② evolution-loop.yml 已挂上每日 01:30 UTC schedule（#28 合入后才存在），首轮自动产物待观察
 
 - 更新: 2026-10-13（主线 agent 统一入口轮）
 
@@ -37,13 +37,14 @@
 - GitHub 对公开仓高频 schedule 有排队限流：实测 */15 实际只跑 5 次/天，阈值必须按真实频率设
 
 ## 已知未修（按优先级）
-- [ ] `evolution/` 16 处 ruff F 级告警（`fusion_core.py:109` 未用变量、`invariants.py` 未用 import）→ 修法：加 `evolution` 进 test.yml lint 范围，或直接清掉
 - [ ] issue #1（外部用户 dzd1234 报）：竞彩未开盘但 predictions.json 有胜平负推荐 → 需复现"无盘口场次仍出 1X2 推荐"的路径
 - [ ] `kelly.py` 拿 `1/odds`（含 12.1% 抽水）当市场概率，与 `clv.py`/`upgrade_tracker.py`/`post_match.py` 的去水口径不一致 → 改口径会放宽闸门 1.4~2.6 倍，**需人拍板**（PR#27 文档已标注，故意未改）
 - [ ] 开盘价列（PSH/PSD/PSA）样本为 0：`_new.csv` 有收盘无比分旧格式有开盘无比分 → 要开收盘对比须先合并两套 schema
 - [ ] `evolution/` 每轮在 main 上直接跑 `python -m evolution.cycle`，产物进 `evolution/out*`（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
+- 2026-10-13 PR 乱局收口：6 个 open PR 中 3 个是重复/悬空重建版（分支落后 main 68 笔后 CONFLICTING，只能开新分支重放）→ 根因是 `data/`+`web/` 有每小时自动提交，分支不及时 rebase 就必然悬空 → 修法：三有效 PR 按 #29→#28→#27 合入（merge-tree 预验证互不冲突），4 个悬空 PR 关闭+注释去向，8 个遗留分支删除，开 PR 前必先 rebase 写进 AGENTS.md
+- 2026-10-13 `evolution/` 16 处 ruff F 级告警 CI 完全不可见 → 根因：#28 把 `evolution/**` 挂上触发路径但 lint 步骤没跟着扩（"跑了"不等于"查了"）→ 修法：test.yml ruff 范围加 `evolution`，含 F601 重复 dict 键（`known_issues.py` 的 detect_by/invariant_id/candidate 被静默覆盖）、F821 缺 `import random`
 - 2026-10-12 CI 重试循环从不 abort → Daily Forecast 永久失败；`|| echo` 吞掉失败把毒状态传给下游 → 失败必须 abort + 显式告警（daily-forecast.yml）
 - 2026-10-12 测试并发组跨 PR 互相取消 → group 是全局 `sporttery-tests` + cancel-in-progress → 按 PR 号分组（test.yml）
 - 2026-10-12 评估类报告从未被 CI 刷新 → 修复只进 PR 没进生产（PR#6 的修复在生产从未生效）→ 报告生成步骤挂进 ci-sync
