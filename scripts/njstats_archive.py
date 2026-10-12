@@ -74,6 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--budget", type=int, default=24, help="本次最多调用数")
     parser.add_argument("--start", default=WINDOW_START)
     parser.add_argument("--days", type=int, default=6, help="窗口天数")
+    parser.add_argument("--quiet", action="store_true", help="安静模式（auto_run/CI 挂载用）")
     args = parser.parse_args(argv)
 
     key = load_key()
@@ -160,8 +161,9 @@ def main(argv: list[str] | None = None) -> int:
     progress["updated_at"] = datetime.now().strftime("%F %T")
     PROGRESS.write_text(json.dumps(progress, ensure_ascii=False), encoding="utf-8")
     total = len(tasks)
-    print(f"归档: 本次调用 {used} 次, 新增 {saved} 个文件 | 进度 {len(done)}/{total}"
-          f" ({len(done)/total:.0%})")
+    if not args.quiet:
+        print(f"归档: 本次调用 {used} 次, 新增 {saved} 个文件 | 进度 {len(done)}/{total}"
+              f" ({len(done)/total:.0%})")
     return 0
 
 

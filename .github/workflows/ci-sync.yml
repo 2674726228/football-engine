@@ -54,7 +54,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # runner 上没有本地那份 SSH deploy key，用 workflow token 走 HTTPS
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/wlrwx/football-engine.git"
-          git pull --rebase origin main || (git rebase --abort 2>/dev/null; git fetch origin main; git reset --hard origin/main)
-          git add data/
-          git diff --cached --quiet || (git commit -m "ci-sync: $(TZ=Asia/Shanghai date +%F\ %H:%M)"; git push origin HEAD:main)
+          # 先本地提交（含 monitor 步骤留下的工作区变更），再 rebase 拉齐，最后推送
+          git add data/ web/ || true
+          git diff --cached --quiet || git commit -m "ci-sync: $(TZ=Asia/Shanghai date +%F\ %H:%M)"
+          git pull --rebase origin main || (git rebase --abort 2>/dev/null; true)
+          git push origin HEAD:main || echo "推送跳过（无新提交或竞态，下轮重试）"
 
