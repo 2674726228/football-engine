@@ -107,9 +107,15 @@ class DJYYSource(DataSource):
                                 "若已配 DJYY_KEY，确认仓库 Secret 也已配置")
                         if not DJYY_KEY:
                             hint += "（当前进程未读到 DJYY_KEY 环境变量）"
+                        # 直连时代 403 = IP 永久封，重试无意义；经 cf-proxy Worker 后
+                        # 403 变为 CF 瞬时挑战（2026-10-12 CI 实测：SSR 同参数分钟级
+                        # 成功、引擎却 403，直连/Worker 手工复刻均 200），故退避重试。
+                        if attempt < retries - 1:
+                            time.sleep(2 * (attempt + 1))
+                            continue
                         _record_error(kind, f"{last} {path} — {hint}")
                         print(f"    [djyy] {last} {path} — {hint}")
-                        return None       # 被拦截时重试无意义
+                        return None
                     if attempt < retries - 1:
                         time.sleep(1)
                         continue
