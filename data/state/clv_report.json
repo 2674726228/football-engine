@@ -1,24 +1,24 @@
 {
-  "generated_at": "2026-10-13T06:25:30",
+  "generated_at": "2026-10-13T23:46:01",
   "window_days": 30,
-  "n_ledger_bets": 1016,
+  "n_ledger_bets": 1022,
   "coverage": {
-    "ok": 665,
+    "ok": 671,
     "no_taken_odds": 12,
     "no_close": 339,
     "bad_close_data": 0
   },
-  "median_close_horizon_h": 9.2,
+  "median_close_horizon_h": 9.3,
   "overall": {
-    "n": 665,
+    "n": 671,
     "clv_close_mean": -0.0221,
-    "clv_close_median": -0.0367,
-    "clv_close_pos_pct": 0.215,
-    "clv_close_t": -4.66,
-    "clv_fair_mean": -0.126,
+    "clv_close_median": -0.0365,
+    "clv_close_pos_pct": 0.216,
+    "clv_close_t": -4.7,
+    "clv_fair_mean": -0.1261,
     "clv_fair_median": -0.1397,
     "clv_fair_pos_pct": 0.054,
-    "clv_fair_t": -29.43,
+    "clv_fair_t": -29.69,
     "verdict": "NEGATIVE_CLV（下注价格系统性输给收盘）"
   },
   "by_tier": {
@@ -35,27 +35,27 @@
       "verdict": "NEGATIVE_CLV（下注价格系统性输给收盘）"
     },
     "low": {
-      "n": 75,
-      "clv_close_mean": -0.003,
-      "clv_close_median": -0.0083,
-      "clv_close_pos_pct": 0.44,
-      "clv_close_t": -0.46,
-      "clv_fair_mean": -0.1106,
-      "clv_fair_median": -0.1148,
+      "n": 79,
+      "clv_close_mean": -0.002,
+      "clv_close_median": -0.0062,
+      "clv_close_pos_pct": 0.443,
+      "clv_close_t": -0.32,
+      "clv_fair_mean": -0.1101,
+      "clv_fair_median": -0.1103,
       "clv_fair_pos_pct": 0.0,
-      "clv_fair_t": -20.07,
+      "clv_fair_t": -21.01,
       "verdict": "NEGATIVE_CLV（下注价格系统性输给收盘）"
     },
     "mid": {
-      "n": 326,
-      "clv_close_mean": -0.0438,
-      "clv_close_median": -0.0552,
-      "clv_close_pos_pct": 0.153,
-      "clv_close_t": -6.64,
-      "clv_fair_mean": -0.1457,
-      "clv_fair_median": -0.1548,
+      "n": 328,
+      "clv_close_mean": -0.0441,
+      "clv_close_median": -0.0554,
+      "clv_close_pos_pct": 0.152,
+      "clv_close_t": -6.74,
+      "clv_fair_mean": -0.1461,
+      "clv_fair_median": -0.1549,
       "clv_fair_pos_pct": 0.021,
-      "clv_fair_t": -24.78,
+      "clv_fair_t": -24.96,
       "verdict": "NEGATIVE_CLV（下注价格系统性输给收盘）"
     }
   },
@@ -9831,6 +9831,72 @@
       "clv_close": 0.018604651162790642,
       "clv_fair": -0.09283219382646568,
       "close_horizon_h": 14.7
+    },
+    {
+      "date": "2026-10-12",
+      "match_id": "2026-10-12_周一005",
+      "sel": 0,
+      "tier": "low",
+      "status": "ok",
+      "taken": 2.25,
+      "clv_close": -0.013157894736842035,
+      "clv_fair": -0.1125951152024689,
+      "close_horizon_h": 16.4
+    },
+    {
+      "date": "2026-10-12",
+      "match_id": "2026-10-12_周一006",
+      "sel": 2,
+      "tier": "low",
+      "status": "ok",
+      "taken": 2.23,
+      "clv_close": 0.06190476190476191,
+      "clv_fair": -0.0982222704579987,
+      "close_horizon_h": 16.4
+    },
+    {
+      "date": "2026-10-12",
+      "match_id": "2026-10-12_周一007",
+      "sel": 2,
+      "tier": "mid",
+      "status": "ok",
+      "taken": 1.88,
+      "clv_close": -0.10476190476190483,
+      "clv_fair": -0.19707456807805934,
+      "close_horizon_h": 16.7
+    },
+    {
+      "date": "2026-10-12",
+      "match_id": "2026-10-12_周一008",
+      "sel": 2,
+      "tier": "low",
+      "status": "ok",
+      "taken": 2.52,
+      "clv_close": 0.0,
+      "clv_fair": -0.10091565659737478,
+      "close_horizon_h": 16.7
+    },
+    {
+      "date": "2026-10-12",
+      "match_id": "2026-10-12_周一009",
+      "sel": 2,
+      "tier": "low",
+      "status": "ok",
+      "taken": 2.38,
+      "clv_close": 0.02145922746781115,
+      "clv_fair": -0.09109719224368906,
+      "close_horizon_h": 16.7
+    },
+    {
+      "date": "2026-10-12",
+      "match_id": "2026-10-12_周一010",
+      "sel": 0,
+      "tier": "mid",
+      "status": "ok",
+      "taken": 1.64,
+      "clv_close": -0.10382513661202197,
+      "clv_fair": -0.20197536844399788,
+      "close_horizon_h": 16.9
     }
   ]
 }
