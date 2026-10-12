@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-13T01:55:03",
+  "generated_at": "2026-10-13T04:25:32",
   "summary": {
-    "total": 11,
+    "total": 12,
     "critical": 0,
     "healed": 0
   },
@@ -33,16 +33,16 @@
     {
       "id": "data/results",
       "layer": "data",
-      "severity": "warn",
-      "detail": "昨日(2026-10-12)缺 results_sina.json（补抓失败）",
-      "healable": true,
+      "severity": "ok",
+      "detail": "昨日赛果文件在",
+      "healable": false,
       "healed": false
     },
     {
       "id": "data/yesterday",
       "layer": "data",
-      "severity": "info",
-      "detail": "昨日(2026-10-12)无预测或无赛果，跳过结算检查",
+      "severity": "ok",
+      "detail": "昨日(2026-10-12)已结算",
       "healable": false,
       "healed": false
     },
@@ -51,6 +51,14 @@
       "layer": "source",
       "severity": "ok",
       "detail": "DJYY 存活率 2026-10-13:62%、2026-10-12:80%、2026-10-11:75%",
+      "healable": false,
+      "healed": false
+    },
+    {
+      "id": "source/ci",
+      "layer": "source",
+      "severity": "ok",
+      "detail": "最近 CI 运行 0.6h 前",
       "healable": false,
       "healed": false
     },
@@ -90,7 +98,7 @@
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 154MB",
+      "detail": ".git 体积 173MB",
       "healable": false,
       "healed": false
     }
