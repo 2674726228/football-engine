@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-13T17:01:16",
+  "generated_at": "2026-10-13T01:55:03",
   "summary": {
     "total": 11,
-    "critical": 1,
+    "critical": 0,
     "healed": 0
   },
   "findings": [
@@ -58,7 +58,7 @@
       "id": "model/draw",
       "layer": "model",
       "severity": "ok",
-      "detail": "平局均值 22.4% 在先验带内",
+      "detail": "平局均值 22.3% 在先验带内",
       "healable": false,
       "healed": false
     },
@@ -73,24 +73,24 @@
     {
       "id": "env/cron",
       "layer": "env",
-      "severity": "critical",
-      "detail": "crontab 缺少关键任务: ['run_realtime_monitor.sh', 'auto_run.sh']（调度层断裂）",
+      "severity": "ok",
+      "detail": "crontab 关键任务在",
       "healable": false,
       "healed": false
     },
     {
       "id": "env/proxy",
       "layer": "env",
-      "severity": "warn",
-      "detail": "代理 7897 不通（拉起失败）",
-      "healable": true,
+      "severity": "ok",
+      "detail": "代理 7897 通",
+      "healable": false,
       "healed": false
     },
     {
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 17MB",
+      "detail": ".git 体积 154MB",
       "healable": false,
       "healed": false
     }
