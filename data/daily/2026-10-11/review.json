@@ -1,13 +1,13 @@
 {
   "date": "2026-10-11",
-  "n_matches": 27,
-  "hit_rate": 0.5926,
-  "hits": 16,
+  "n_matches": 28,
+  "hit_rate": 0.6071,
+  "hits": 17,
   "source_brier": {
-    "model": 0.5694,
-    "market": 0.5813,
+    "model": 0.5617,
+    "market": 0.5666,
     "djyy": 0.6295,
-    "final": 0.5623
+    "final": 0.5491
   },
   "by_league": {
     "K1联赛": {
@@ -93,14 +93,20 @@
       "hit_rate": 1.0,
       "wilson_lower": 0.2065,
       "avg_brier": 0.4541
+    },
+    "美职": {
+      "n": 1,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.2065,
+      "avg_brier": 0.1915
     }
   },
   "by_confidence_tier": {
     "high": {
-      "n": 9,
-      "hit_rate": 0.7778,
-      "wilson_lower": 0.4526,
-      "avg_brier": 0.3859
+      "n": 10,
+      "hit_rate": 0.8,
+      "wilson_lower": 0.4902,
+      "avg_brier": 0.3665
     },
     "low": {
       "n": 4,
@@ -117,10 +123,10 @@
   },
   "by_odds_band": {
     "1.0-1.5": {
-      "n": 8,
-      "hit_rate": 0.75,
-      "wilson_lower": 0.4093,
-      "avg_brier": 0.4033
+      "n": 9,
+      "hit_rate": 0.7778,
+      "wilson_lower": 0.4526,
+      "avg_brier": 0.3798
     },
     "2.0-3.0": {
       "n": 9,
@@ -163,15 +169,15 @@
     }
   },
   "market_signal_stats": {
-    "n": 19,
-    "hits": 6
+    "n": 20,
+    "hits": 7
   },
   "layered": {
-    "log_loss_final": 0.9525,
-    "rps_final": 0.1795,
-    "rps_market": 0.1857,
+    "log_loss_final": 0.9342,
+    "rps_final": 0.1758,
+    "rps_market": 0.1816,
     "goal_framework": {
-      "n": 27,
+      "n": 28,
       "hits": 14
     },
     "prob_bands": {
@@ -184,8 +190,8 @@
         "hit_rate": 0.5
       },
       "60%+": {
-        "n": 8,
-        "hit_rate": 0.75
+        "n": 9,
+        "hit_rate": 0.7778
       },
       "<40%": {
         "n": 4,
@@ -194,8 +200,8 @@
     },
     "freshness_groups": {
       "alert": {
-        "n": 1,
-        "hit_rate": 0.0
+        "n": 2,
+        "hit_rate": 0.5
       },
       "ok": {
         "n": 13,
@@ -221,6 +227,6 @@
     }
   ],
   "total_pnl": 0.0,
-  "generated_at": "2026-10-11T23:12:25.598808",
-  "sha256": "98e0a625e94e67823f8f78448b58130b"
+  "generated_at": "2026-10-12T06:29:05.138501",
+  "sha256": "e9c1ed318a4d2f23d6baab0d89ca0fe2"
 }
