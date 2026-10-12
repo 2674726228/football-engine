@@ -74,12 +74,12 @@ def test_401_also_treated_as_blocked(patched_get):
     assert djyy_mod.LAST_ERROR["kind"] == "blocked_by_edge"
 
 
-def test_blocked_is_not_retried(patched_get):
-    """被拦截时重试无意义（不是限流），应当立即返回避免白等。"""
+def test_blocked_is_retried_then_gives_up(patched_get):
+    """403 经 Worker 后是 CF 瞬时挑战：退避重试；耗尽后返回 None 并记录（2026-10-12 语义）。"""
     calls = patched_get(_FakeResp(403))
-    djyy_mod.DJYYSource()._get_json("/api/leagues/fixtures", retries=3)
-    assert len(calls) == 1, "403 不应重试"
-
+    assert djyy_mod.DJYYSource()._get_json("/api/leagues/fixtures", retries=3) is None
+    assert len(calls) == 3, "blocked_by_edge 应重试满 retries 次"
+    assert djyy_mod.LAST_ERROR.get("kind") == "blocked_by_edge"
 
 def test_other_http_errors_are_retried_then_reported(patched_get):
     calls = patched_get(_FakeResp(500))
