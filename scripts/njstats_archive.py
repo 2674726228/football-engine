@@ -26,8 +26,6 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from engine.beijing_time import beijing_today  # noqa: E402
-
 API = "https://api.njstats.cn/api/v1"
 OUT = ROOT / "data" / "state" / "njstats_archive"
 PROGRESS = Path.home() / ".football-engine" / "njstats_archive_progress.json"
@@ -89,10 +87,8 @@ def main(argv: list[str] | None = None) -> int:
             progress = {}
     done = set(progress.get("done", []))
 
-    today = beijing_today()
     dates = [(datetime.strptime(args.start, "%Y-%m-%d") + timedelta(days=i)).strftime("%Y-%m-%d")
              for i in range(args.days)]
-    # 任务清单（按优先级: 赛果+赛程 → 指数 → 概率）
     # 任务顺序 = 优先级：每天 赛程+赛果 → 指数(含分页，CLV 基准最重) → 概率端点(含分页)
     tasks = []
     for d in dates:
