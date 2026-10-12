@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-10-13T00:28:31",
+  "generated_at": "2026-10-13T17:01:16",
   "summary": {
-    "total": 12,
-    "critical": 0,
-    "healed": 2
+    "total": 11,
+    "critical": 1,
+    "healed": 0
   },
   "findings": [
     {
       "id": "git/state",
       "layer": "git",
-      "severity": "warn",
-      "detail": "残留 rebase 状态=False, detached HEAD=True → 已清场对齐远端",
-      "healable": true,
-      "healed": true
+      "severity": "ok",
+      "detail": "分支状态正常",
+      "healable": false,
+      "healed": false
     },
     {
       "id": "git/backlog",
@@ -34,9 +34,9 @@
       "id": "data/results",
       "layer": "data",
       "severity": "warn",
-      "detail": "昨日(2026-10-12)缺 results_sina.json→ 已补抓",
+      "detail": "昨日(2026-10-12)缺 results_sina.json（补抓失败）",
       "healable": true,
-      "healed": true
+      "healed": false
     },
     {
       "id": "data/yesterday",
@@ -51,14 +51,6 @@
       "layer": "source",
       "severity": "ok",
       "detail": "DJYY 存活率 2026-10-13:62%、2026-10-12:80%、2026-10-11:75%",
-      "healable": false,
-      "healed": false
-    },
-    {
-      "id": "source/ci",
-      "layer": "source",
-      "severity": "ok",
-      "detail": "最近 CI 运行 0.2h 前",
       "healable": false,
       "healed": false
     },
@@ -81,24 +73,24 @@
     {
       "id": "env/cron",
       "layer": "env",
-      "severity": "ok",
-      "detail": "crontab 关键任务在",
+      "severity": "critical",
+      "detail": "crontab 缺少关键任务: ['run_realtime_monitor.sh', 'auto_run.sh']（调度层断裂）",
       "healable": false,
       "healed": false
     },
     {
       "id": "env/proxy",
       "layer": "env",
-      "severity": "ok",
-      "detail": "代理 7897 通",
-      "healable": false,
+      "severity": "warn",
+      "detail": "代理 7897 不通（拉起失败）",
+      "healable": true,
       "healed": false
     },
     {
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 150MB",
+      "detail": ".git 体积 17MB",
       "healable": false,
       "healed": false
     }
