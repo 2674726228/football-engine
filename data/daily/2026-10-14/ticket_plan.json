@@ -4,8 +4,8 @@
   "lottery": [],
   "total_stake": 0,
   "expected_roi": 0.0,
-  "bankroll": 3931.6611000000003,
-  "breaker_multiplier": 0.25,
+  "bankroll": 3915.6611000000003,
+  "breaker_multiplier": 0.5,
   "parlay": [],
   "score_parlay": [
     {
@@ -17,8 +17,8 @@
           "away": "皇马",
           "league": "欧冠",
           "score": "1-0",
-          "prob": 0.227,
-          "cal_prob": 0.096,
+          "prob": 0.228,
+          "cal_prob": 0.0961,
           "odds": 19.0
         },
         {
@@ -27,8 +27,8 @@
           "away": "多特蒙德",
           "league": "欧冠",
           "score": "1-0",
-          "prob": 0.317,
-          "cal_prob": 0.096,
+          "prob": 0.318,
+          "cal_prob": 0.0961,
           "odds": 20.0
         }
       ],
@@ -39,24 +39,24 @@
       "worst_win": 0.0,
       "n_bets": 1,
       "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 0.9% × 赔率 380 倍 = EV +250%）"
+      "note": "两场比分都中才赢（校准命中 0.9% × 赔率 380 倍 = EV +251%）"
     }
   ],
   "parlay_stake": 2.0,
   "total_exposure": 2.0,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
-    "overall": 0.539,
-    "n": 1026,
+    "overall": 0.5406,
+    "n": 1034,
     "table": {
       "0.35": 0.4218,
       "0.4": 0.4878,
-      "0.45": 0.4837,
-      "0.5": 0.5,
+      "0.45": 0.4866,
+      "0.5": 0.5034,
       "0.55": 0.5,
-      "0.6": 0.6829,
+      "0.6": 0.6867,
       "0.65": 0.7424,
-      "0.7": 0.8111
+      "0.7": 0.8065
     },
     "note": "串关 EV 用账本校准命中率（模型概率高估，0.55-0.60 段仅 31.6% 命中）；推荐=校准EV>0"
   }
