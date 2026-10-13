@@ -1,19 +1,19 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-13 11:10（逆向轮 / NJStats 全链路 + 收尾）
-> 在干什么: NJStats 逆向完成并**打通价值兑付**——别名匹配修好后挑战从"命中 0/5"变"5/5 全中，只差 Bearer token
-> 下一步: ① Air 上登录 NJStats 拿 Bearer token → ~/.football-engine/njstats_token.txt（**现在做这一件就能真提注**）
->          ② Air 上停掉除预测挑战外的本地 cron（auto_run/run_realtime_monitor/launchd）
->          ③ 额度恢复后补满 30 个 prob 分页缺口（后台循环在跑；10-15 到期前完成即可）
->          ④ 合并 #29 后观察巴甲平局概率回升（原 31.6% vs 市场 63.2%）
-> 已知坑: ① **`git reset --hard` 会清掉归档**（已发生两次，第二次靠备份救回 124 个文件）——归档目录已移出索引，reset 前先跑 `njstats_safeguard.py`
->          ② 归档进度标记会与磁盘脱节（文件被清但标记还在）→ 已加每轮自愈对账
->          ③ 同一个 key 曾有两个文件名（`njstats_key` vs `njstats_apikey.txt`）→ 已统一认多个
->          ④ 代理曾硬编码 7897，换机器静默零产物 → 已改为探测
-> 待验证: ① Bearer token 过期周期（Air 上人工导出后观察）
->          ② 让球票「真实给分」机制（STATUS.md：待结算校准），此前让球 EV 排序可能高估
->          ③ 竞彩池内 8 场欧冠才有 jcSpf/jcRq；其余 214 场只有欧赔口径（口径择优已实现）
+> 状态: doing　更新: 2026-10-13 11:40（逆向轮 / 首次真实提交成功）
+> 在干什么: **挑战任务首次真实提交成功**——5 注全部落库（服务端配额 usedCount 0→14），整条链路打通
+> 下一步: ① 把这个任务部署到 Air（launchd 每天 11:25；步骤见 README「登录态怎么来」）
+>          ② **token 20 小时过期**——Air 上需每天刷新一次（localStorage 的 `token` 键，不是 cookie）
+>          ③ 额度恢复后补满 27 个 prob 分页缺口（后台循环在跑；10-15 到期前完成即可）
+>          ④ Air 上停掉除预测挑战外的本地 cron（auto_run/run_realtime_monitor/launchd）
+> 已知坑: ① **token 只能留在 Air**：20h 有效期 + CI 无法无人值守刷新；主线 Mac Pro 非常开，不能承担定时任务
+>          ② **`git reset --hard` 会清掉归档**（已发生两次）——归档已移出索引，reset 前先跑 `njstats_safeguard.py`
+>          ③ 提交成功的判定是 `msg="suc"`，**不是 `code===0`**（成功时不返回 code 字段）——写反会把成功记成失败、破坏幂等
+>          ④ 归档进度标记会与磁盘脱节 → 已加每轮自愈对账；代理曾硬编码 → 已改探测
+> 待验证: ① 让球票「真实给分」机制（STATUS.md：待结算校准），此前让球 EV 排序可能高估
+>          ② 竞彩池内只有欧冠有 jcSpf/jcRq；其余 214 场只有欧赔口径（口径择优已实现）
+>          ③ 首次真实提交的 5 注结算结果（10-13 凌晨后）
 
 - 更新: 2026-10-13（主线 agent 统一入口轮）
 
@@ -47,6 +47,8 @@
 - [ ] `evolution/` 每轮在 main 上直接跑 `python -m evolution.cycle`，产物进 `evolution/out*`（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
+- 2026-10-13 **挑战任务首次真实提交成功**：真 token 下 5 注全部落库（服务端配额 usedCount 0→14，浏览器直查后端确认）。过程中发现**成功判定写反**——`GMI_SUBMIT` 成功时不返回 `code` 字段（只回 `msg="suc"`），原判定 `code===0` 把成功记成失败、破坏幂等（`scripts/njstats_challenge/submit.js::isSubmitOk`）
+- 2026-10-13 token 有效期实测 **20 小时**（JWT iat→exp=72000s）→ 推翻"搬进 CI"方案：CI 无法无人值守刷新，任务必须留在 7×24 的 Air（`scripts/njstats_challenge/README.md`）
 - 2026-10-13 **别名匹配打通价值兑付**：挑战任务"命中 0/5"根因是**队名译写差异**（非联赛不重叠）——竞彩用简称（比利亚雷/巴萨/里斯本/莱红牛/马竞/加拉塔萨），池子用全称。改用手写归一化 → 复用 `engine/team_aliases.py` 三级匹配（别名表/loose/内置兜底）+ 补齐欧冠主流简称 → **命中 5/5，全部走竞彩口径**（`scripts/njstats_challenge/submit.js`）
 - 2026-10-13 归档安全网：`git reset --hard` 清掉归档（第二次发生，靠备份救回 124 文件）→ 加 `njstats_safeguard.py`（只增不删/拒写仓库内/每轮自动跑）+ 归档进度每轮自愈对账（`scripts/njstats_safeguard.py`）
 - 2026-10-13 归档跨机器故障：代理硬编码 7897 + key 文件名跨脚本不一致（`njstats_key` vs `njstats_apikey.txt`）→ 两处都**静默零产物**（不报错）→ 改为探测/多文件名兜底（`scripts/njstats_archive.py`）
