@@ -167,6 +167,21 @@ class KellyStrategy:
                         ))
                         continue
 
+                # 【口径说明，勿当 bug 修】这里的 market_prob 用 1/odds（**含抽水**，
+                # 实测均值 5.66%），与 clv.py / upgrade_tracker.py / post_match.py /
+                # 账本 market_fair 的**去水**口径不一致 —— 这是**已知且有意的取舍**。
+                #
+                # 后果：min_edge 的实际门槛是 0.03 + p_fair×vig，名义 0.03 对热门
+                # 实际约 0.053（严 1.75 倍），参数名与行为不符。
+                #
+                # 为什么不改：实测（账本 1,022 条）两种口径的过闸比例**都是 0.00%**，
+                # 改口径理论放宽 1.4~2.6 倍但基数太小、宽松倍数是假象。而
+                # final_prob − market_fair 中位 −0.0050、正值仅 30%（模型 70% 场次
+                # 比市场差，与 E0 的 Brier Δ=+0.02018 同向）——放宽只会增加负期望注。
+                #
+                # 完整量化与重新评估条件见 docs/KELLY_CALIBER_DECISION_20261013.md
+                # 与 docs/EXPERIMENTS.md 的 E3。要改请连同 E3 结论一起改，
+                # 不要悄悄漂移（测试刻意未锁死现状）。
                 market_prob = 1.0 / odds
                 edge = model_prob - market_prob
                 ev = model_prob * odds - 1.0
