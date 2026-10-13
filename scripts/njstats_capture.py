@@ -33,18 +33,45 @@ API = "https://api.njstats.cn/api/v1"
 OUT = ROOT / "data" / "state" / "njstats"
 DAILY = ROOT / "data" / "daily"
 KEY_FILE = Path.home() / ".football-engine" / "njstats_key"
-PROXY = {"https": "http://127.0.0.1:7897", "http": "http://127.0.0.1:7897"}
+
+# 代理改为可选探测（2026-10-13）：原实现写死 127.0.0.1:7897，
+# 不开 Clash 的机器上每次请求静默失败，脚本看起来"跑过了"实际没采到。
+# 与 njstats_archive.py 同一处理：环境变量 > 端口探测 > 直连。
+def _resolve_proxy() -> dict | None:
+    import os
+    import socket
+    env = os.environ.get("NJSTATS_PROXY", "").strip()
+    if env:
+        return {"https": env, "http": env}
+    for port in (7897, 7890, 1080):
+        try:
+            with socket.create_connection(("127.0.0.1", port), timeout=0.5):
+                return {"https": f"http://127.0.0.1:{port}", "http": f"http://127.0.0.1:{port}"}
+        except OSError:
+            continue
+    return None
+
+PROXY = _resolve_proxy()
 MIN_REMAINING = 6          # 低于此额度本轮收手
 SIM_THRESHOLD = 0.6
 
 
 def load_key() -> str:
+    """按 环境变量 > 多个候选文件名 取 key（与 njstats_archive.load_key 同口径）。
+
+    同一个 key 在两处用了不同文件名（njstats_key vs njstats_apikey.txt），
+    只认其一会导致静默"无 key 跳过"。
+    """
     import os
     tok = os.environ.get("NJSTATS_TOKEN", "").strip()
     if tok:
         return tok
-    if KEY_FILE.exists():
-        return KEY_FILE.read_text(encoding="utf-8").strip()
+    for name in ("njstats_key", "njstats_apikey.txt", "njstats_token.txt"):
+        p = Path.home() / ".football-engine" / name
+        if p.exists():
+            v = p.read_text(encoding="utf-8").strip()
+            if v:
+                return v
     return ""
 
 

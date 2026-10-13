@@ -69,11 +69,24 @@ SNAPSHOT_ENDPOINTS = ["match", "odds"]   # 无 date 的全市场横截面
 
 
 def load_key() -> str:
+    """按 环境变量 > 多个候选文件名 的顺序取 key。
+
+    2026-10-13：原来只认 `njstats_key` 一个名字，但实际落在盘上的是
+    `njstats_apikey.txt`（挑战提交器用那个名字）——**同一个 key 两处不同文件名**，
+    结果归档脚本静默认为"无 key"直接跳过，看起来跑过了实际一条没采。
+    现在两个名字都认，并且环境变量优先。
+    """
     import os
     tok = os.environ.get("NJSTATS_TOKEN", "").strip()
     if tok:
         return tok
-    return KEY_FILE.read_text(encoding="utf-8").strip() if KEY_FILE.exists() else ""
+    for name in ("njstats_key", "njstats_apikey.txt", "njstats_token.txt"):
+        p = Path.home() / ".football-engine" / name
+        if p.exists():
+            v = p.read_text(encoding="utf-8").strip()
+            if v:
+                return v
+    return ""
 
 
 def api_get(path: str, key: str, params: dict) -> dict | None:
