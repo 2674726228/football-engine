@@ -240,7 +240,7 @@ def check_djyy_liveness(report: DoctorReport) -> None:
     for i in range(3):
         day = _beijing_date(i)
         preds = _load_preds(day)
-        if not preds or len(preds) < 5:
+        if not preds or len(preds) < 15:   # 凌晨小卡片占比噪声（10-14 误报修正）
             continue
         cnt = sum(1 for p in preds if p.get("djyy_enriched"))
         rates.append((day, cnt / len(preds)))

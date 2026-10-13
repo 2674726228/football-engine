@@ -76,7 +76,8 @@ def test_backup_target_outside_repo(tmp_path, monkeypatch):
     写在仓库里等于没有备份：git reset --hard / clean 一样会清掉，
     而事故恰恰就是 reset 引起的。
     """
-    assert not str(ns.DEFAULT_BACKUP).startswith(str(ns.ROOT)), \
+    bak = Path(ns.DEFAULT_BACKUP); rp = Path(ns.ROOT)
+    assert not (bak == rp or rp in bak.parents), \
         f"默认备份在仓库内: {ns.DEFAULT_BACKUP}"
 
 

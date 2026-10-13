@@ -102,7 +102,8 @@ def test_export_goes_outside_repo(tmp_path, monkeypatch):
     原始归档刚按 .gitignore 政策移出 git（33MB+，每小时新增）；
     若导出默认写回仓库目录，等于把清理成果又塞回去。
     """
-    assert not str(ne.DEFAULT_OUT).startswith(str(ne.ROOT)), \
+    out = Path(ne.DEFAULT_OUT); rp = Path(ne.ROOT)
+    assert not (out == rp or rp in out.parents), \
         f"默认导出目录在仓库内: {ne.DEFAULT_OUT}"
     assert ne.DEFAULT_OUT == Path.home() / "football-engine-archive"
 
