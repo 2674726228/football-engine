@@ -132,6 +132,24 @@ def main(argv: list[str] | None = None) -> int:
             progress = {}
     done = set(progress.get("done", []))
 
+    # 自愈：清掉「标 done 但磁盘无文件」的标记（2026-10-13 事故驱动）。
+    # 事故：为对齐远端跑 git reset --hard，归档文件被回退掉，
+    # 但进度文件（在仓库外）仍记着"已完成" → 后续每轮都跳过，
+    # 缺口永远补不上且**不报错**。实测因此丢了 6 页（约 600 条）。
+    # 这里在每轮开始前对账一次：done 里的 key 必须有对应文件，否则重新入队。
+    _stale = []
+    for _k in list(done):
+        if not _k.startswith("2026-") or ":prob_" not in _k:
+            continue
+        _date, _kind = _k.split(":", 1)
+        if _kind.endswith(("_p7", "_p8")):      # 超出真实 maxPage 的空页，本就无文件
+            continue
+        if not (OUT / f"{_date}_{_kind}.json").exists():
+            done.discard(_k)
+            _stale.append(_k)
+    if _stale:
+        print(f"  ↻ 自愈：{len(_stale)} 个标记标 done 但无文件，已重新入队")
+
     dates = [(datetime.strptime(args.start, "%Y-%m-%d") + timedelta(days=i)).strftime("%Y-%m-%d")
              for i in range(args.days)]
     # 任务顺序 = 优先级：每天 赛程+赛果 → 指数(含分页，CLV 基准最重) → 概率端点(全分页)
