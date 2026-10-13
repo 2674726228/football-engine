@@ -41,6 +41,22 @@ HEADERS = {
 _SESSION = requests.Session()
 _SESSION.trust_env = False
 
+# 最后一次失败的可区分记录（2026-10-13，仿 engine/sources/djyy.py 的
+# LAST_ERROR 模式）。背景：fetch_results 原来 `except Exception: return []`
+# 连日志都没有——被 WAF 拦（403）、网络断、返回结构变更三种情况在下游
+# 全部表现为"今天没有赛果"，结算静默跳过。与 DJYY 静默 3.5 周同病。
+LAST_ERROR: dict = {}
+
+
+def _record_error(kind: str, detail: str) -> None:
+    LAST_ERROR.clear()
+    LAST_ERROR.update({
+        "kind": kind,
+        "detail": detail,
+        "at": datetime.now().isoformat(timespec="seconds"),
+        "proxy_configured": bool(_PROXY),
+    })
+
 
 class SportterySource(DataSource):
     """竞彩官方 API — 优先级最高的权威数据源"""
@@ -59,6 +75,9 @@ class SportterySource(DataSource):
             try:
                 resp = _SESSION.get(url, params=params, headers=HEADERS, timeout=15)
                 resp.raise_for_status()
+                # 成功必须清掉旧错误（与 djyy._get_json 同口径）——
+                # 否则一次历史故障会永久挂红，掩盖"现在已恢复"的事实
+                LAST_ERROR.clear()
                 return resp.json()
             except (requests.RequestException, json.JSONDecodeError) as e:
                 print(f"    [sporttery] attempt {attempt+1}/{retries} failed: {type(e).__name__}: {e}")
@@ -79,7 +98,11 @@ class SportterySource(DataSource):
         try:
             data = self._fetch_json(SPORTTERY_API, params)
         except Exception as e:
-            print(f"    [sporttery] 最终失败: {e}")
+            # 2026-10-13: 与 fetch_results 同修——失败原因要可区分（WAF/代理/结构变更），
+            # "今天确实没在售"是另一种情况（返回 200 + 空列表，不会走到这里）。
+            kind = "blocked_by_waf" if isinstance(e, requests.HTTPError) else "fetch_failed"
+            _record_error(kind, f"{type(e).__name__}: {e}")
+            print(f"    [sporttery] ⚠ fetch_fixtures {kind}: {e}")
             return []
 
         fixtures = []
@@ -165,7 +188,15 @@ class SportterySource(DataSource):
 
         try:
             data = self._fetch_json(url, params)
-        except Exception:
+        except Exception as e:
+            # 2026-10-13: 原来这里 `except Exception: return []` 完全静默。
+            # 被 WAF 拦（raise_for_status 的 HTTPError）、代理没配好、返回结构
+            # 变更，三种病因在下游长得一模一样："今天没有赛果" → 结算静默跳过、
+            # 账本不涨、也没人知道。记录病因 + 打日志，让"拿不到"和"没有赛果"可区分。
+            kind = "blocked_by_waf" if isinstance(e, requests.HTTPError) else "fetch_failed"
+            _record_error(kind, f"{type(e).__name__}: {e}")
+            print(f"    [sporttery] ⚠ fetch_results {kind}: {e}"
+                  + ("（403=被拦，不是没赛果）" if kind == "blocked_by_waf" else ""))
             return []
 
         results = []
