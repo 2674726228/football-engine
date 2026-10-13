@@ -83,11 +83,11 @@ def test_settlement_skips_when_no_results(tmp_path, monkeypatch):
 def test_djyy_liveness_critical_on_two_low_days(tmp_path, monkeypatch):
     for i, rate in enumerate([0.0, 0.13, 0.75]):   # 昨天/前天/大前天
         day = doctor._beijing_date(i)
-        _make_day(tmp_path, day, n_preds=10)
+        _make_day(tmp_path, day, n_preds=20)      # 阈值 15 后需 >=15 场才计存活率
         d = tmp_path / "daily" / day
         preds = json.loads((d / "predictions.json").read_text(encoding="utf-8"))
         for k, p in enumerate(preds):
-            p["djyy_enriched"] = k < int(rate * 10)
+            p["djyy_enriched"] = k < int(rate * 20)
         (d / "predictions.json").write_text(json.dumps(preds), encoding="utf-8")
     monkeypatch.setattr(doctor, "DAILY", tmp_path / "daily")
 
@@ -99,7 +99,7 @@ def test_djyy_liveness_critical_on_two_low_days(tmp_path, monkeypatch):
 
 def test_djyy_liveness_ok_when_healthy(tmp_path, monkeypatch):
     day = doctor._beijing_date(0)
-    _make_day(tmp_path, day, n_preds=10)
+    _make_day(tmp_path, day, n_preds=20)
     d = tmp_path / "daily" / day
     preds = json.loads((d / "predictions.json").read_text(encoding="utf-8"))
     for p in preds:
