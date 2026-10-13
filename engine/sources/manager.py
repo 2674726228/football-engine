@@ -41,6 +41,72 @@ def djyy_time_budget(n_matches: int) -> float:
 
 
 
+def _opening_movement(comparison: dict | None) -> dict | None:
+    """从 comparison 里提取 Pinnacle 初盘→即时盘的变动（2026-10-13 新增接入）。
+
+    ## 为什么值得单独提出来
+
+    `DJYYSource.get_opening_vs_current()` 早就写好了，但**从未被调用**
+    （grep 全仓库只有定义处）。而它提供的正是项目缺的那块拼图：
+
+    STATUS.md 记的缺口是「开盘列（PSH/PSD/PSA）样本为 0，带开盘列的旧格式
+    文件又没有比分，要做开收盘对比必须先合并两套 schema」。
+    odds_series 里我们自己的快照只有竞彩价，没有锐线开盘。
+
+    DJYY 的 comparison API 直接给 **Pinnacle 的开盘价与即时价**——
+    这是"市场怎么移动"的信号，且是锐线（Pinnacle）而非软庄。
+    实测可用性 44%（25 场抽样 11 场有），不是稀有字段。
+
+    ## 取哪个值
+
+    只用 `opening`/`current`/`movement` 三组，且**必须带 bookmaker 名**——
+    不同庄的移动不可比，混起来会让"水位变动"这个特征失去意义。
+
+    ## 口径提醒
+
+    这是**赔率差**（current - opening），不是概率差。赔率是非线性的
+    （2.0→2.1 与 10.0→10.1 含义完全不同），所以下游若要用它做特征，
+    应当先转成隐含概率再比较。这里保持原始赔率不动，避免在采集层
+    做有损变换——转换逻辑放模型侧，方便回放时改口径重算。
+    """
+    if not comparison:
+        return None
+    for market in (comparison.get("markets") or []):
+        if market.get("key") != "1x2_fulltime":
+            continue
+        bm = market.get("bookmaker") or {}
+        opening = bm.get("opening_raw_odds") or {}
+        current = bm.get("raw_odds") or {}
+        if not (opening and current):
+            continue
+        def _f(v):
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return None
+        o = {k: _f(opening.get(k)) for k in ("home", "draw", "away")}
+        c = {k: _f(current.get(k)) for k in ("home", "draw", "away")}
+        if any(v is None for v in o.values()) or any(v is None for v in c.values()):
+            continue
+        # 隐含概率（去水后再比，避免把水位变化误读成方向）
+        def _probs(d):
+            inv = {k: 1.0 / d[k] for k in d}
+            s = sum(inv.values())
+            return {k: inv[k] / s for k in inv} if s > 0 else None
+        po, pc = _probs(o), _probs(c)
+        return {
+            "bookmaker": bm.get("name") or "Pinnacle",
+            "opening": o,
+            "current": c,
+            "movement": {k: round(c[k] - o[k], 4) for k in o},
+            # 概率口径的移动（下游做特征直接可用，且不受赔率非线性影响）
+            "prob_shift": (
+                {k: round(pc[k] - po[k], 6) for k in po} if (po and pc) else None
+            ),
+        }
+    return None
+
+
 def _extract_context(comparison: dict | None, info: dict | None,
                      lineups: dict | None) -> dict:
     """从 DJYY 已有/新增接口提取比赛情境特征（store-only，供日后验证）。
@@ -48,12 +114,18 @@ def _extract_context(comparison: dict | None, info: dict | None,
     - stakes: 动机/情境（comparison 已有，零成本）—— 平局的经典预测因子
     - referee/weather/coach: info 附带字段
     - lineup: 双方阵型 + 首发攻击手数（防缩阵型是平局信号）
+    - opening_movement: Pinnacle 初盘→即时盘（2026-10-13 新接入，零额外请求）
     """
     ctx: dict = {}
     if comparison:
         stakes = comparison.get("stakes")
         if stakes:
             ctx["stakes"] = stakes
+        # 零额外请求：数据就在 comparison 的 markets 里，
+        # 此前只是没人把它取出来（get_opening_vs_current 写了却没被调用过）
+        _om = _opening_movement(comparison)
+        if _om:
+            ctx["opening_movement"] = _om
     if info:
         # 2026-10-09 DJYY schema 迁移: referee→referees.main, coach/formation/sidelined 进子对象
         _ref = (info.get("referees") or {}).get("main") or {}
