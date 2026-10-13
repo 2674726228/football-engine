@@ -1,20 +1,21 @@
 {
   "date": "2026-10-13",
-  "generated_at": "2026-10-13T09:25:06",
+  "generated_at": "2026-10-13T02:01:07",
   "healthy": false,
-  "coverage": 0.625,
-  "covered": 5,
+  "coverage": 0.0,
+  "covered": 0,
   "fixtures": 8,
   "budget_s": 192.0,
   "budget_exhausted": false,
-  "error": null,
+  "error": "blocked_by_edge HTTP 403 /api/leagues/fixtures — 检查 Cloudflare 是否对 GitHub Actions IP 返回 403；若已配 DJYY_KEY，确认仓库 Secret 也已配置（当前进程未读到 DJYY_KEY 环境变量）",
   "detail": {
-    "fixtures": 81,
-    "matched": 5,
+    "fixtures": 0,
+    "matched": 0,
     "enriched": 0,
     "failed": 0,
-    "cache_hit": 5,
-    "budget_exhausted": false
+    "cache_hit": 0,
+    "budget_exhausted": false,
+    "error": "blocked_by_edge HTTP 403 /api/leagues/fixtures — 检查 Cloudflare 是否对 GitHub Actions IP 返回 403；若已配 DJYY_KEY，确认仓库 Secret 也已配置（当前进程未读到 DJYY_KEY 环境变量）"
   },
   "note": "coverage < 0.8 或预算耗尽 → fusion 的 djyy 名义权重不产生任何贡献，等价于模型权重被摊薄"
 }
