@@ -42,69 +42,99 @@ def djyy_time_budget(n_matches: int) -> float:
 
 
 def _opening_movement(comparison: dict | None) -> dict | None:
-    """从 comparison 里提取 Pinnacle 初盘→即时盘的变动（2026-10-13 新增接入）。
+    """提取各市场的开盘→即时盘变动（2026-10-13 全市场版）。
 
     ## 为什么值得单独提出来
 
-    `DJYYSource.get_opening_vs_current()` 早就写好了，但**从未被调用**
+    `DJYYSource.get_opening_vs_current()` 早就写好，但**从未被调用**过
     （grep 全仓库只有定义处）。而它提供的正是项目缺的那块拼图：
 
     STATUS.md 记的缺口是「开盘列（PSH/PSD/PSA）样本为 0，带开盘列的旧格式
     文件又没有比分，要做开收盘对比必须先合并两套 schema」。
-    odds_series 里我们自己的快照只有竞彩价，没有锐线开盘。
+    我们自己的 `odds_series` 只有**竞彩价**，没有锐线开盘。
 
-    DJYY 的 comparison API 直接给 **Pinnacle 的开盘价与即时价**——
-    这是"市场怎么移动"的信号，且是锐线（Pinnacle）而非软庄。
-    实测可用性 44%（25 场抽样 11 场有），不是稀有字段。
+    ## 2026-10-13 实测：远不止 1x2
 
-    ## 取哪个值
+    第一版只看 `1x2_fulltime`。登录后逐市场统计发现 comparison 返回
+    **10 个市场**，其中 8 个带开盘价（9 场抽样）：
 
-    只用 `opening`/`current`/`movement` 三组，且**必须带 bookmaker 名**——
-    不同庄的移动不可比，混起来会让"水位变动"这个特征失去意义。
+    | 市场 | 即时 | 开盘 | 庄 |
+    |---|---|---|---|
+    | totals_main | 9/9 | **9/9** | Pinnacle |
+    | 1x2_fulltime | 9/9 | 7/9 | Pinnacle |
+    | handicap | 9/9 | 7/9 | Pinnacle |
+    | 1x2_first_half | 9/9 | 7/9 | Pinnacle |
+    | btts | 9/9 | 7/9 | bet365 |
+    | correct_score | 9/9 | 7/9 | bet365 |
+    | ht_ft | 9/9 | 7/9 | bet365 |
+    | double_chance | 9/9 | 3/9 | bet365 |
+    | corners_main | 9/9 | 0/9 | Pinnacle |
+    | team_to_score_first | 0/9 | 0/9 | — |
 
-    ## 口径提醒
+    ## 设计
 
-    这是**赔率差**（current - opening），不是概率差。赔率是非线性的
-    （2.0→2.1 与 10.0→10.1 含义完全不同），所以下游若要用它做特征，
-    应当先转成隐含概率再比较。这里保持原始赔率不动，避免在采集层
-    做有损变换——转换逻辑放模型侧，方便回放时改口径重算。
+    - **全部市场都收**，不做筛选——筛选逻辑属于模型侧，采集层只管存全
+    - 每个市场独立记录 `bookmaker`：不同庄的移动不可比（Pinnacle 是锐线，
+      bet365 是软庄），混起来特征就没意义了
+    - 每个市场额外给 `prob_shift`（去水后的概率位移）：赔率非线性，
+      `2.0→2.1` 与 `10.0→10.1` 都是 +0.1 但含义天差地别
+    - 只在**两边都有**数据时记录（开盘或即时缺一就跳过该市场）
     """
     if not comparison:
         return None
+
+    def _f(v):
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    out: dict = {}
     for market in (comparison.get("markets") or []):
-        if market.get("key") != "1x2_fulltime":
+        key = market.get("key")
+        if not key:
             continue
         bm = market.get("bookmaker") or {}
-        opening = bm.get("opening_raw_odds") or {}
-        current = bm.get("raw_odds") or {}
-        if not (opening and current):
+        opening_raw = bm.get("opening_raw_odds") or {}
+        current_raw = bm.get("raw_odds") or {}
+        if not (opening_raw and current_raw):
             continue
-        def _f(v):
-            try:
-                return float(v)
-            except (TypeError, ValueError):
-                return None
-        o = {k: _f(opening.get(k)) for k in ("home", "draw", "away")}
-        c = {k: _f(current.get(k)) for k in ("home", "draw", "away")}
-        if any(v is None for v in o.values()) or any(v is None for v in c.values()):
+        # 逐腿对齐（只保留两边都有、且能转合法赔率的腿）
+        legs = sorted(set(opening_raw) & set(current_raw))
+        opening_ok, current_ok = {}, {}
+        for leg in legs:
+            o, c = _f(opening_raw[leg]), _f(current_raw[leg])
+            if o is None or c is None or o <= 1.0 or c <= 1.0:
+                continue
+            opening_ok[leg] = o
+            current_ok[leg] = c
+        if not opening_ok:
             continue
-        # 隐含概率（去水后再比，避免把水位变化误读成方向）
-        def _probs(d):
-            inv = {k: 1.0 / d[k] for k in d}
-            s = sum(inv.values())
-            return {k: inv[k] / s for k in inv} if s > 0 else None
-        po, pc = _probs(o), _probs(c)
-        return {
-            "bookmaker": bm.get("name") or "Pinnacle",
-            "opening": o,
-            "current": c,
-            "movement": {k: round(c[k] - o[k], 4) for k in o},
-            # 概率口径的移动（下游做特征直接可用，且不受赔率非线性影响）
-            "prob_shift": (
-                {k: round(pc[k] - po[k], 6) for k in po} if (po and pc) else None
-            ),
+
+        mv = {k: round(current_ok[k] - opening_ok[k], 4) for k in opening_ok}
+
+        # 概率位移：仅对"完备市场"（腿的隐含概率和可视作一个市场）计算。
+        # 1x2/double_chance/btts/totals 这类腿数少的算；correct_score 这种
+        # 40+ 腿的算出来也没意义（且大部分腿缺失），跳过。
+        prob_shift = None
+        if 2 <= len(opening_ok) <= 6:
+            def _norm(d):
+                inv = {k: 1.0 / d[k] for k in d}
+                tot = sum(inv.values())
+                return {k: inv[k] / tot for k in inv} if tot > 0 else None
+            po, pc = _norm(opening_ok), _norm(current_ok)
+            if po and pc:
+                prob_shift = {k: round(pc[k] - po[k], 6) for k in po}
+
+        out[key] = {
+            "bookmaker": bm.get("name") or "",
+            "opening": opening_ok,
+            "current": current_ok,
+            "movement": mv,
+            "prob_shift": prob_shift,
+            "legs": len(opening_ok),
         }
-    return None
+    return out or None
 
 
 def _extract_context(comparison: dict | None, info: dict | None,
