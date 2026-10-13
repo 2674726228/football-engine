@@ -186,3 +186,96 @@ def test_lineups_flag_env(monkeypatch):
     finally:
         monkeypatch.undo()
         importlib.reload(mod)
+
+
+# ---------- 健康阈值口径（2026-10-13 修正）----------
+
+class _PoolFixture:
+    """DJYY 池里的比赛（带 _djyy_id，供 djyy_map 建立映射）。"""
+    def __init__(self, i, home=None, away=None):
+        self.match_id = f"djyy_{i}"
+        self.home_team = home or f"H{i}"
+        self.away_team = away or f"A{i}"
+        self._djyy_id = 1000 + i
+
+
+class _OkSource(mgr.DJYYSource):
+    """池子有数据、comparison 正常返回的 DJYY 源。"""
+    def __init__(self, pool):
+        self._pool = pool
+    def fetch_fixtures(self, target_date):
+        return self._pool
+    def fetch_match_comparison(self, i):
+        return {"model": {"p_home": .4, "p_draw": .3, "p_away": .3}, "bookmaker": {}}
+    def fetch_team_form(self, i, limit=5):
+        return {"available": False}
+    def fetch_match_info(self, i):
+        return {"available": False}
+
+
+def test_league_coverage_does_not_make_unhealthy(tmp_path):
+    """联赛覆盖面差异不该判不健康——这是 2026-10-13 修正的核心。
+
+    实测当天：12 场预测里 5 场是亚冠/英冠（DJYY 池里没有），
+    7 场欧冠全部富化成功。旧口径 coverage = 7/12 = 0.58 < 0.8
+    → **永远 healthy=false**，告警变成狼来了。
+
+    新口径：healthy 只看 enrich_success（匹配上的场次里富化成功的比例）。
+    """
+    # 池子有 2 场，我们预测 3 场（第 3 场 DJYY 不覆盖）
+    pool = [_PoolFixture(1), _PoolFixture(2)]
+    ours = [_PoolFixture(1), _PoolFixture(2),
+            _PoolFixture(9, home="某亚冠队", away="另一队")]
+
+    m = mgr.SourceManager(tmp_path)
+    m._djyy = _OkSource(pool)
+    m.enrich_from_djyy(ours, __import__("datetime").date(2026, 10, 13))
+    status = json.loads((tmp_path / "djyy_status.json").read_text(encoding="utf-8"))
+
+    # 匹配上的 2 场全部成功 → enrich_success = 1.0 → 健康
+    assert status["detail"]["matched"] == 2, status["detail"]
+    assert status["enrich_success"] == 1.0
+    assert status["healthy"] is True, "联赛覆盖差异被误判为不健康（旧口径的 bug）"
+    # 旧口径 coverage = 2/3 < 0.8，仍然记录但不决定健康
+    assert status["coverage"] < 0.8
+    assert "league_coverage" in status
+
+
+def test_upstream_empty_pool_is_unhealthy(tmp_path):
+    """DJYY 池返回 0 场 = 上游故障，必须判不健康。
+
+    这是 2026-10-11 事故的形态：529 场 djyy_prob 全 null 却无人察觉。
+    matched=0 有两种成因，不能一律当健康：
+      pool == 0        → 上游空/被拦 → 不健康
+      pool > 0, 无交集 → 联赛差异   → 健康
+    """
+    m = mgr.SourceManager(tmp_path)
+    m._djyy = _OkSource([])          # 池子为空
+    m.enrich_from_djyy([], __import__("datetime").date(2026, 10, 13))
+    status = json.loads((tmp_path / "djyy_status.json").read_text(encoding="utf-8"))
+    assert status["enrich_success"] == 0.0
+    assert status["healthy"] is False, "上游池为空必须判不健康"
+
+
+def test_pool_nonempty_but_no_overlap_is_healthy(tmp_path):
+    """池子有数据、只是与我们无交集 → 健康（无富化机会，不是故障）。"""
+    pool = [_PoolFixture(1), _PoolFixture(2)]
+    ours = [_PoolFixture(7, home="无关队", away="也无关")]
+
+    m = mgr.SourceManager(tmp_path)
+    m._djyy = _OkSource(pool)
+    m.enrich_from_djyy(ours, __import__("datetime").date(2026, 10, 13))
+    status = json.loads((tmp_path / "djyy_status.json").read_text(encoding="utf-8"))
+    assert status["detail"]["matched"] == 0
+    assert status["healthy"] is True, "有池子但无交集不该判故障"
+    assert status["league_coverage"] == 0.0
+
+
+def test_status_keeps_backward_compatible_coverage(tmp_path):
+    """旧字段 coverage 必须保留（dashboard/已有消费方在读）。"""
+    m = mgr.SourceManager(tmp_path)
+    m._djyy = _OkSource([])
+    m.enrich_from_djyy([], __import__("datetime").date(2026, 10, 13))
+    status = json.loads((tmp_path / "djyy_status.json").read_text(encoding="utf-8"))
+    for k in ("coverage", "covered", "fixtures", "budget_exhausted", "detail"):
+        assert k in status, f"旧字段 {k} 丢失，会打破现有消费方"

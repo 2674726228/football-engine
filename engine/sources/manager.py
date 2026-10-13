@@ -646,24 +646,70 @@ class SourceManager:
         或预算耗尽提前 break），系统会静默地用「名义 0.2 权重、实际 0 贡献」
         继续跑，账本里 djyy_prob 长期为 null 而没有任何告警——
         实测 v2 链 529 场 djyy 命中率为 0 却无人察觉。
+
+        【2026-10-13 修正：健康阈值的分母语义】原实现 `coverage = covered /
+        n_fixtures`，其中 n_fixtures 是**我们的预测场次**。含义变成
+        「我们预测的场次里有多少拿到了 DJYY 富化」。
+
+        问题：这个比值**混了两件事**——
+          ① DJYY 故障（真问题，该告警）
+          ② 我们预测了 DJYY 不覆盖的联赛（结构性差异，不该告警）
+        实测 2026-10-13：12 场预测里 5 场是亚冠/英冠（DJYY 池里没有），
+        即使 7 场欧冠全部富化成功，coverage 也只能到 7/12=0.58 < 0.8
+        → **永远 healthy=false**，告警失去意义（狼来了）。
+
+        修法：把「结构覆盖」与「富化成功率」拆成两个独立指标——
+          - league_coverage：我们预测的场次里，DJYY 池**有对应比赛**的比例
+            （低 = 联赛覆盖面差异，不是故障）
+          - enrich_success：在**匹配上的**场次里，富化成功的比例
+            （低 = DJYY 真故障，这才是该告警的）
+        healthy 只由 enrich_success 决定；league_coverage 仅记录与展示。
         """
         try:
             covered = int(stats.get("enriched", 0)) + int(stats.get("cache_hit", 0))
+            matched = int(stats.get("matched", 0))
+            failed = int(stats.get("failed", 0))
+            pool = int(stats.get("fixtures", 0))       # DJYY 池返回的场次数
+
+            # 富化成功率：分母只算「DJYY 池里有对应比赛」的场次。
+            #
+            # 关键：**池子本身为空 = DJYY 挂了**，必须判不健康（2026-10-11 事故：
+            # 529 场 djyy 命中率为 0 却无人察觉）。但如果池子有数据、只是与我们
+            # 的场次没交集（league_coverage 低），那是联赛覆盖面差异，不是故障。
+            # 所以"matched=0"要分两种情况，不能一律当健康：
+            #   pool == 0 → 上游空/被拦 → 不健康
+            #   pool > 0 但 matched == 0 → 无交集 → 视为健康（无富化机会）
+            if matched:
+                enrich_success = covered / matched
+            elif pool == 0:
+                enrich_success = 0.0        # 上游没给任何赛程 = 故障
+            else:
+                enrich_success = 1.0        # 池子有数据但当天无交集
+            # 结构覆盖率：我们预测的场次里有多少能在 DJYY 池里找到。
+            # 仅作参考——低值说明联赛覆盖面差异，不是 DJYY 挂了。
+            league_coverage = (matched / n_fixtures) if n_fixtures else 0.0
+            # 旧口径保留为 coverage（向后兼容 dashboard/已有消费方）
             coverage = (covered / n_fixtures) if n_fixtures else 0.0
-            healthy = coverage >= 0.8 and not stats.get("budget_exhausted")
+
+            healthy = enrich_success >= 0.8 and not stats.get("budget_exhausted")
             payload = {
                 "date": target_date.isoformat(),
                 "generated_at": datetime.now().isoformat(timespec="seconds"),
                 "healthy": healthy,
                 "coverage": round(coverage, 4),
+                "enrich_success": round(enrich_success, 4),
+                "league_coverage": round(league_coverage, 4),
                 "covered": covered,
+                "matched": matched,
+                "failed": failed,
                 "fixtures": n_fixtures,
                 "budget_s": round(budget, 1),
                 "budget_exhausted": bool(stats.get("budget_exhausted")),
                 "error": stats.get("error"),
                 "detail": stats,
-                "note": ("coverage < 0.8 或预算耗尽 → fusion 的 djyy 名义权重"
-                         "不产生任何贡献，等价于模型权重被摊薄"),
+                "note": ("healthy 由 enrich_success 决定（匹配上的场次里富化成功的比例）；"
+                         "league_coverage 低说明我们预测了 DJYY 不覆盖的联赛，"
+                         "属结构性差异而非故障——两者混用会让告警永远为真"),
             }
             out = self.data_dir / "djyy_status.json"
             out.parent.mkdir(parents=True, exist_ok=True)
