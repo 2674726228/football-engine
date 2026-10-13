@@ -39,7 +39,7 @@ def _node(script: str) -> str:
     // ROOT 的基准：submit.js 优先用 process.argv[1]，被 new Function 载入时
     // argv[1] 是 node -e 的占位符，所以这里显式喂真实路径进去。
     process.argv[1] = {str(SUBMIT_JS)!r};
-    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, PLAY_TYPE, LIST_TYPE}};')();
+    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, isSubmitOk, PLAY_TYPE, LIST_TYPE}};')();
     {script}
     """
     p = subprocess.run(["node", "-e", src], capture_output=True, text=True, timeout=60)
@@ -476,3 +476,46 @@ def test_real_today_matches_pool():
         pytest.skip("当日无 1X2 候选")
     # 至少要有命中（具体数量随当天赛程变）
     assert d["hit"] > 0, f"{d['cands']} 个候选全部未命中池子——别名表可能退化"
+
+
+# ---------------------------------------------------------------- 提交成功判定（v3.4）
+
+def test_success_is_msg_suc_not_code_zero():
+    """成功判定必须是 msg='suc'，不是 code===0。
+
+    【真实踩坑，2026-10-13】GMI_SUBMIT **成功时不返回 code 字段**。
+    实测 5 注全部真实提交成功（服务端配额 usedCount 0→5），
+    但脚本写 `code === 0` 就报「❌ HTTP 200 code=undefined suc」，
+    把成功当失败。
+
+    危险在于方向反了：成功记成失败 → 状态文件不更新 →
+    下一轮重复提交同一场（每场仅一市场，重复必被拒）。
+    """
+    out = _node("""
+    console.log(JSON.stringify({
+      realSuccess: mod.isSubmitOk({status:200, code:undefined, msg:'suc'}),
+      realSuccessCap: mod.isSubmitOk({status:200, code:undefined, msg:'SUC'}),
+      notLoggedIn: mod.isSubmitOk({status:200, code:-1, msg:'请先登录'}),
+      invalidMatch: mod.isSubmitOk({status:200, code:-1, msg:'比赛信息无效'}),
+      httpError: mod.isSubmitOk({status:500, code:undefined, msg:'suc'}),
+      codeZero: mod.isSubmitOk({status:200, code:0, msg:''}),
+    }));
+    """)
+    d = json.loads(out)
+    assert d["realSuccess"] is True, "msg=suc 必须判成功（这是实测的真实形态）"
+    assert d["realSuccessCap"] is True, "msg 大小写不敏感"
+    assert d["notLoggedIn"] is False, "「请先登录」必须判失败"
+    assert d["invalidMatch"] is False, "「比赛信息无效」必须判失败"
+    assert d["httpError"] is False, "HTTP 非 200 必须判失败"
+    assert d["codeZero"] is True, "兼容 code=0 的旧形态"
+
+
+def test_failure_reports_reason():
+    """失败时必须能拿到原因（便于日志定位是 token 过期还是场次无效）。"""
+    out = _node("""
+    const r = {status:200, code:-1, msg:'请先登录'};
+    console.log(JSON.stringify({ok: mod.isSubmitOk(r), msg: r.msg}));
+    """)
+    d = json.loads(out)
+    assert d["ok"] is False
+    assert "登录" in d["msg"]

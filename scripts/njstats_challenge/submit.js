@@ -452,6 +452,24 @@ function pickBest(cands, alreadySubmitted) {
 
 // ---------------------------------------------------------------- 提交
 
+/**
+ * 判定提交是否成功。
+ *
+ * 【2026-10-13 实测踩坑，真实提交过 5 注才发现】
+ * 写 `code === 0` 是错的——GMI_SUBMIT **成功时不返回 code 字段**，
+ * 只回 `msg="suc"`。实测 5 注全部真实提交成功（服务端配额 usedCount 0→5），
+ * 但脚本报「❌ HTTP 200 code=undefined suc」，把成功当失败。
+ * 失败才回 `code=-1` + 中文说明（"请先登录" / "比赛信息无效"）。
+ *
+ * 这个 bug 的危险在于**方向反了**：真实提交成功却记成失败 →
+ * 状态文件不更新 → 下一轮重复提交同一场（每场仅一市场，重复会被拒）。
+ */
+function isSubmitOk(r) {
+  if (r.status !== 200) return false;
+  const msg = String(r.msg || '').trim().toLowerCase();
+  return msg === 'suc' || msg === 'success' || r.code === 0;
+}
+
 async function submitOne(cand, token) {
   const r = await rpc({
     msgId: MSG_SUBMIT, token,
@@ -465,7 +483,7 @@ async function submitOne(cand, token) {
       pick: { home: 1, draw: 2, away: 3 }[cand.sel],
     }),
   });
-  return { ok: r.status === 200 && r.code === 0, status: r.status, code: r.code, msg: r.msg };
+  return { ok: isSubmitOk(r), status: r.status, code: r.code, msg: r.msg };
 }
 
 // ---------------------------------------------------------------- 主流程
