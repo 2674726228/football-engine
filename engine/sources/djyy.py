@@ -299,7 +299,24 @@ class DJYYSource(DataSource):
         return results
 
     def fetch_odds_snapshot(self, target_date: date) -> list[OddsSnapshot]:
-        """获取赔率快照（从 comparison API 提取 Pinnacle 赔率）"""
+        """获取赔率快照（从 comparison 的 markets 取 Pinnacle **真实**赔率）。
+
+        【2026-10-13 修正：原实现用 1/p 转的是公平赔率，不是真实赔率】
+
+        原实现取 `bookmaker["1x2"]`（这是**去水概率**），再 `1/p` 转回赔率。
+        实测对比同一场（19713912）：
+
+            markets 里 Pinnacle 真实赔率:  2.43 / 3.72 / 2.82
+            原实现 1/p 得到的:            2.515 / 3.85 / 2.919   ← 偏高 3~4%
+
+        偏高的量正好是抽水。也就是说原实现产出的是"公平赔率"，
+        却被当成含抽水的真实赔率存进 OddsSnapshot——**与 sporttery
+        的口径不一致**（后者直接用 `f.home_odds` 真实价）。
+        两处口径不同正是项目反复警告的失真来源：拿它们算 EV 会系统性偏乐观。
+
+        修法：改用 `markets[].bookmaker.raw_odds`（真实含抽水赔率），
+        与 sporttery 口径对齐。
+        """
         fixtures = self.fetch_fixtures(target_date)
         now = datetime.now().isoformat()
         snapshots = []
@@ -313,23 +330,38 @@ class DJYYSource(DataSource):
             if not comparison:
                 continue
 
-            # 提取 Pinnacle 1X2 赔率
-            bookmaker = comparison.get("bookmaker", {})
-            odds_1x2 = bookmaker.get("1x2", {})
-            home_p = odds_1x2.get("home")
-            draw_p = odds_1x2.get("draw")
-            away_p = odds_1x2.get("away")
+            # 从 markets 里取 1x2_fulltime 的真实赔率（含抽水）
+            raw = None
+            book_name = None
+            for market in (comparison.get("markets") or []):
+                if market.get("key") != "1x2_fulltime":
+                    continue
+                bm = market.get("bookmaker") or {}
+                raw = bm.get("raw_odds") or {}
+                book_name = bm.get("name")
+                if raw:
+                    break
+            if not raw:
+                continue
 
-            if home_p and draw_p and away_p:
-                # 概率转赔率
-                snapshots.append(OddsSnapshot(
-                    match_id=f.match_id,
-                    timestamp=now,
-                    home_odds=round(1.0 / home_p, 3) if home_p > 0 else 0,
-                    draw_odds=round(1.0 / draw_p, 3) if draw_p > 0 else 0,
-                    away_odds=round(1.0 / away_p, 3) if away_p > 0 else 0,
-                    source=f"{self.name}_pinnacle",
-                ))
+            def _f(v):
+                try:
+                    return float(v)
+                except (TypeError, ValueError):
+                    return None
+
+            h, d, a = _f(raw.get("home")), _f(raw.get("draw")), _f(raw.get("away"))
+            if not (h and d and a) or min(h, d, a) <= 1.0:
+                continue
+
+            snapshots.append(OddsSnapshot(
+                match_id=f.match_id,
+                timestamp=now,
+                home_odds=round(h, 3),
+                draw_odds=round(d, 3),
+                away_odds=round(a, 3),
+                source=f"{self.name}_{(book_name or 'unknown').lower()}",
+            ))
 
             time.sleep(0.2)  # 礼貌延迟
 
