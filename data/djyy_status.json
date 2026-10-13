@@ -1,25 +1,24 @@
 {
   "date": "2026-10-14",
-  "generated_at": "2026-10-13T17:08:58",
-  "healthy": false,
-  "coverage": 0.0,
-  "enrich_success": 0.0,
-  "league_coverage": 0.0,
-  "covered": 0,
-  "matched": 0,
+  "generated_at": "2026-10-14T02:25:09",
+  "healthy": true,
+  "coverage": 0.2727,
+  "enrich_success": 1.0,
+  "league_coverage": 0.2727,
+  "covered": 3,
+  "matched": 3,
   "failed": 0,
   "fixtures": 11,
   "budget_s": 264.0,
   "budget_exhausted": false,
-  "error": "blocked_by_edge HTTP 403 /api/leagues/fixtures — 检查 Cloudflare 是否对 GitHub Actions IP 返回 403；若已配 DJYY_KEY，确认仓库 Secret 也已配置（当前进程未读到 DJYY_KEY 环境变量）",
+  "error": null,
   "detail": {
-    "fixtures": 0,
-    "matched": 0,
+    "fixtures": 75,
+    "matched": 3,
     "enriched": 0,
     "failed": 0,
-    "cache_hit": 0,
-    "budget_exhausted": false,
-    "error": "blocked_by_edge HTTP 403 /api/leagues/fixtures — 检查 Cloudflare 是否对 GitHub Actions IP 返回 403；若已配 DJYY_KEY，确认仓库 Secret 也已配置（当前进程未读到 DJYY_KEY 环境变量）"
+    "cache_hit": 3,
+    "budget_exhausted": false
   },
   "note": "healthy 由 enrich_success 决定（匹配上的场次里富化成功的比例）；league_coverage 低说明我们预测了 DJYY 不覆盖的联赛，属结构性差异而非故障——两者混用会让告警永远为真"
 }

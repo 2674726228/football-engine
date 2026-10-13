@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-13T23:25:53",
+  "generated_at": "2026-10-14T02:21:49",
   "summary": {
-    "total": 12,
-    "critical": 0,
+    "total": 11,
+    "critical": 1,
     "healed": 0
   },
   "findings": [
@@ -42,23 +42,15 @@
       "id": "data/yesterday",
       "layer": "data",
       "severity": "ok",
-      "detail": "昨日(2026-10-12)已结算",
+      "detail": "昨日(2026-10-13)已结算",
       "healable": false,
       "healed": false
     },
     {
       "id": "source/djyy",
       "layer": "source",
-      "severity": "ok",
-      "detail": "DJYY 存活率 2026-10-13:42%、2026-10-12:80%、2026-10-11:75%",
-      "healable": false,
-      "healed": false
-    },
-    {
-      "id": "source/ci",
-      "layer": "source",
-      "severity": "ok",
-      "detail": "最近 CI 运行 3.1h 前",
+      "severity": "critical",
+      "detail": "DJYY 存活率 2026-10-14:27%、2026-10-13:42%、2026-10-12:80% ——2 天 <50%，第三通道将再次断链",
       "healable": false,
       "healed": false
     },
@@ -66,7 +58,7 @@
       "id": "model/draw",
       "layer": "model",
       "severity": "ok",
-      "detail": "平局均值 22.9% 在先验带内",
+      "detail": "平局均值 23.6% 在先验带内",
       "healable": false,
       "healed": false
     },
@@ -98,7 +90,7 @@
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 156MB",
+      "detail": ".git 体积 160MB",
       "healable": false,
       "healed": false
     }
