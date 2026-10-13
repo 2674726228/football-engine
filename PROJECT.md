@@ -68,7 +68,10 @@
 - [x] `evolution/` 产物（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
-- 2026-10-13 `same_odds._load()` 按不存在的列名读（odds.csv 里没有 match_id/result/league 三列）→ 永远加载 0 条 → analyze 恒 0 → find_value_signals 恒空，功能从未真正跑通过且不报错；已按真实列名改（0 → 29586 条）+ 赛果从比分推导。同批标注 DJYY.get_model_probabilities 为已取代（与 manager 直接读 model 重复，且其 btts/over25/top_scores 恒 null）。**教训：评估参数要用真实数据**——用 3 个样本扫描得出容差要 0.15，用真实 92 场测则是 0.015→14%、0.1→91%，结论完全不同
+- 2026-10-13 **静默吞异常·关键路径第一处**：sporttery（竞彩官方主源）的 fetch_results 完全静默 return []、fetch_fixtures 只 print——被 WAF 拦/代理没配/结构变更三种病因在下游全表现为「今天没赛果」→ 结算静默跳过、账本静默不涨（与 DJYY 静默 3.5 周同病）→ 照 djyy 的 LAST_ERROR 模式接上，blocked_by_waf 与 fetch_failed 可区分；写测试时又当场抓到「成功后旧错误不清会永久挂红」并补上
+- 2026-10-13 same_odds._load() 列名全错：读 match_id/result/league 而 odds.csv 里是 home_score/away_score/competition → 永远加载 0 条 → analyze 恒 0 → find_value_signals 恒空，功能从未真正跑通过且不报错；已改真实列名+比分推导（**0 → 29586 条**）。教训：**评估参数必须用真实数据**——3 个样本测出「容差要 0.15」，92 场真实数据测出 0.015→14%、0.1→91%，结论相反
+- 2026-10-13 死代码终审（7 个「写了从未被调用」逐个实测）：fetch_odds_snapshot 真 bug 已修（1/p 把去水概率转成公平赔率当真实赔率存，偏高 3~4%=抽水量，与 sporttery 口径不一致）；same_odds 两条已修；get_model_probabilities 标注已取代；fetch_match_events 实测正常；sina.get_available_dates 可用未接；sportmonks 三项本机无 token 不可验证（如实标注，不凭文档猜）
+- 2026-10-13 evolution-loop 首跑已验证（手动 dispatch 38365314945，success）：ACCEPT 2 候选走 audit/invariant 事实通道；**auto-fix 补丁 0 个 → 不推分支不开 PR（C1/C2 三道锁行为正确）**。其诊断 DEAD-FEATURES-INJURY-REST（1374 队 injury 全零）与现状矛盾——fetch_match_info 的 sidelined 数据有、manager 也在取 → 断点在 enrichment→feature 一环，记入待办需人拍板
 - 2026-10-13 全盘复核：① **待办清单陈旧**——4 条早已完成却仍挂在"已知未修"（issue #1/kelly 口径/开盘价/evolution 产物），会让下一个 agent 重做已完成的事，已清理并标注 ② 全仓库扫出 **7 个"写了却从未被调用"的方法**，其中 `DJYYSource.fetch_odds_snapshot` 有真 bug：`1/p` 把去水概率转回的"公平赔率"当成真实赔率存（实测偏高 3~4%=抽水量），与 sporttery 口径不一致 → 已改用 `markets.raw_odds` ③ `main.py` 2421 行（两个 1000+ 行函数）经核实**无重复去水逻辑**，属维护性风险而非正确性漂移
 - 2026-10-13 **挑战任务首次真实提交成功**：真 token 下 5 注全部落库（服务端配额 usedCount 0→14，浏览器直查后端确认）。过程中发现**成功判定写反**——`GMI_SUBMIT` 成功时不返回 `code` 字段（只回 `msg="suc"`），原判定 `code===0` 把成功记成失败、破坏幂等（`scripts/njstats_challenge/submit.js::isSubmitOk`）
 - 2026-10-13 token 有效期实测 **20 小时**（JWT iat→exp=72000s）→ 推翻"搬进 CI"方案：CI 无法无人值守刷新，任务必须留在 7×24 的 Air（`scripts/njstats_challenge/README.md`）
