@@ -260,9 +260,18 @@ async function fetchPool(apikey) {
   return rows;
 }
 
-/** 本周配额（apikey 可读）：{weekId, maxCount, usedCount, remainCount} */
-async function fetchQuota(apikey, weekId) {
-  const r = await rpc({ msgId: MSG_WEEK_QUOTA, apikey, params: encodeWeekQuotaReq(weekId) });
+/**
+ * 本周配额：{weekId, maxCount, usedCount, remainCount}
+ *
+ * 【2026-10-13 实测澄清】apikey 视角与账号真实已提数**不一致**：
+ * 同日同 weekId 下，apikey 读到 `usedCount=0`，真 token 读到 `usedCount=14`。
+ * 说明配额按**凭证维度**统计，apikey 看不到账号内用 token 提的注。
+ * 所以这个查询只能验"接口通不通"，**不能当"本周还剩几次"的依据**——
+ * 准数要带 token 查，或看本地 `--status`（提交成功时累加）。
+ */
+async function fetchQuota(apikey, weekId, token) {
+  const r = await rpc({ msgId: MSG_WEEK_QUOTA, apikey: token ? undefined : apikey,
+                        token, params: encodeWeekQuotaReq(weekId) });
   if (!r.data) throw new Error(`配额查询失败: ${r.msg}`);
   return {
     weekId: num(firstField(r.data, 1)),
@@ -506,7 +515,21 @@ async function main() {
   if (args.includes('--quota')) {
     if (!apikey) throw new Error(`无 apikey: ${APIKEY_FILE}（数据 API key，只读）`);
     const q = await fetchQuota(apikey, weekIdOf());
-    log(`本周配额 weekId=${q.weekId}: 已用 ${q.usedCount}/${q.maxCount}，剩余 ${q.remainCount}`);
+    log(`本周配额（apikey 视角）weekId=${q.weekId}: 已用 ${q.usedCount}/${q.maxCount}，剩余 ${q.remainCount}`);
+    // 【2026-10-13 实测】apikey 视角与账号真实已提数不一致（实测同日同 weekId：
+    // apikey 读 0，真 token 读 14）——配额按凭证维度统计，apikey 看不到
+    // 账号内用 token 提的注。有 token 就复核一遍，避免被这个数字误导。
+    const tk = readKey(TOKEN_FILE);
+    if (tk) {
+      try {
+        const qt = await fetchQuota(undefined, weekIdOf(), tk);
+        log(`本周配额（token 视角）已用 ${qt.usedCount}/${qt.maxCount}，剩余 ${qt.remainCount} ← 以此为准`);
+      } catch (e) {
+        log(`⚠ token 视角查询失败（${e.message}）——可能已过期`);
+      }
+    } else {
+      log('⚠ 无 token，上面是 apikey 视角，不含账号内已提的注；准数请看 --status');
+    }
     return;
   }
 
