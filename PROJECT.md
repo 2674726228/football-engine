@@ -51,12 +51,13 @@
 - [ ] git 历史端点路径清洗决策（HEAD 已清，历史待用户裁决是否 force-push 重写）
 - [ ] AUT 平局纸面证据累计（双源佐证 +7.5%/+9.24%，t≈1.7 候选，live 证据持续累计）
 - [ ] 洁净样本累积 / LGBM ready / Qwen 新闻源（用户决定）
-- [ ] DJYY 有 6 个未接入的 API 包装方法（`fetch_match_events`/`get_model_probabilities`/
-      `sina.get_available_dates`/`same_odds.find_value_signals`/`sportmonks.fixtures_on`/
-      `sportmonks.fixture_odds`/`sportmonks.injuries`）。**已逐个实测**，多数与已接入能力重复
-      （伤停走 DJYY `sidelined`、赔率走 `markets`），暂不接——但要接时它们是可用的
-- [ ] 全仓库 98 处 `except → return None/pass` 静默吞异常。今晚两次遇到它导致的
-      静默零产物（代理/key 文件名）。**不要批量改**（会淹没真正需要静默的地方）；
+- [ ] SportMonks `fixtures_on` / `fixture_odds` / `injuries` 三个方法未接入。
+      **本机无 token 无法验证**（SPORTMONKS_TOKEN 只在 GitHub Secret 里，
+      试用激活用户已暂缓）。要动它们需先在 `~/.football-engine/sportmonks_token`
+      配好 token 再实测——**不要凭文档猜**，这三个的 odds 模块"需订阅"
+- [ ] 全仓库 98 处 `except → return None/pass` 静默吞异常。**这是本项目的头号病害**——
+      今晚发现的三处静默零产物（代理硬编码、key 文件名、`same_odds` 列名不匹配）
+      都是同一个病：不报错，只是没产出。**不要批量改**（会淹没真正需要静默的地方）；
       建议按"关键路径"逐个加可区分的错误记录，参考 `engine/sources/djyy.py` 的
       `_record_error()` 模式
 
