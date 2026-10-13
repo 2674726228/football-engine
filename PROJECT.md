@@ -1,21 +1,21 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-13 15:40（全盘复核轮）
-> 在干什么: 复核发现**待办清单本身已陈旧**（4 条早完成了还挂着），已清理；
->           扫出 7 个"写了却从未被调用"的方法，其中一个有真 bug（公平赔率当真实赔率，偏高 3~4%）已修
-> 下一步: ① 部署挑战任务到 Air（launchd 每天 11:25；README「登录态怎么来」）
->          ② **token 20 小时过期**——Air 上每天刷新一次（localStorage 的 `token` 键）
->          ③ 补满 prob 分页缺口（后台循环；10-15 到期前）
->          ④ `main.py` god object（2421 行，两个 1000+ 行函数）——**已核实无重复去水逻辑**，是维护性风险非正确性风险，需独立一轮重构
->          ④ Air 上停掉除预测挑战外的本地 cron（auto_run/run_realtime_monitor/launchd）
-> 已知坑: ① **token 只能留在 Air**：20h 有效期 + CI 无法无人值守刷新；主线 Mac Pro 非常开，不能承担定时任务
->          ② **`git reset --hard` 会清掉归档**（已发生两次）——归档已移出索引，reset 前先跑 `njstats_safeguard.py`
->          ③ 提交成功的判定是 `msg="suc"`，**不是 `code===0`**（成功时不返回 code 字段）——写反会把成功记成失败、破坏幂等
->          ④ 归档进度标记会与磁盘脱节 → 已加每轮自愈对账；代理曾硬编码 → 已改探测
-> 待验证: ① 让球票「真实给分」机制（STATUS.md：待结算校准），此前让球 EV 排序可能高估
->          ② 竞彩池内只有欧冠有 jcSpf/jcRq；其余 214 场只有欧赔口径（口径择优已实现）
->          ③ 首次真实提交的 5 注结算结果（10-13 凌晨后）
+> 状态: done　更新: 2026-10-13 16:45（逆向+复核轮收尾 / 全部直接推 main，无排队 PR）
+> 在干什么: NJStats 与 DJYY 两线逆向/复核全部落地：5 注真实提交（配额14/28）、开盘价 8 市场接入、
+>           健康阈值/别名/same_odds 列名/snapshot_at 等 **6 个真 bug 修复**，566 tests 全绿
+> 下一步: ① Air 部署挑战任务（launchd 11:25 + 每日刷 token；README 有全套步骤）
+>          ② 本机会话 token 今日 23:30 过期——Air 部署前先别在本机跑 --submit
+>          ③ 后台归档循环补完 snapshot×12 + 10-14 尾部 4 页（额度每小时自动续，无需人盯）
+>          ④ evolution-loop 首跑诊断 DEAD-FEATURES-INJURY-REST——与 manager 已在取 sidelined 矛盾，
+>             断点大概率在"enrichment 结果没进特征装配"；要人拍板才动（动=预测层改动）
+>          ⑤ main.py god object（2421 行；已核实无重复去水逻辑，属维护性风险）另开一轮
+> 已知坑: ① push 前必 fetch+rebase origin/main（Air 的 hourly 提交和 Actions 自动提交都在推 main）
+>          ② git reset --hard 会清归档文件（发生两次，靠备份救回）——reset 前跑 njstats_safeguard.py
+>          ③ prob 归档 label ≠ 市场快照时刻（已用 snapshot_at 透传；下游时序以它为准）
+> 待验证: ① 让球票「真实给分」（10-13 凌晨已结算——看 NJStats 段位/给分即可校准 EV 排序）
+>          ② 巴甲平局回升（10-11 后无巴甲结算样本，有样本后看 draw 概率是否离开 0.5025）
+>          ③ 静默吞异常还有 ~96 处（关键路径已修 sporttery/djyy 两源；其余按触碰即修）
 
 - 更新: 2026-10-13（主线 agent 统一入口轮）
 
