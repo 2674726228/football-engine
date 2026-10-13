@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-14T02:21:49",
+  "generated_at": "2026-10-14T02:34:57",
   "summary": {
-    "total": 11,
-    "critical": 1,
+    "total": 10,
+    "critical": 0,
     "healed": 0
   },
   "findings": [
@@ -47,14 +47,6 @@
       "healed": false
     },
     {
-      "id": "source/djyy",
-      "layer": "source",
-      "severity": "critical",
-      "detail": "DJYY 存活率 2026-10-14:27%、2026-10-13:42%、2026-10-12:80% ——2 天 <50%，第三通道将再次断链",
-      "healable": false,
-      "healed": false
-    },
-    {
       "id": "model/draw",
       "layer": "model",
       "severity": "ok",
@@ -90,7 +82,7 @@
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 160MB",
+      "detail": ".git 体积 164MB",
       "healable": false,
       "healed": false
     }
