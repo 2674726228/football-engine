@@ -39,7 +39,7 @@ def _node(script: str) -> str:
     // ROOT 的基准：submit.js 优先用 process.argv[1]，被 new Function 载入时
     // argv[1] 是 node -e 的占位符，所以这里显式喂真实路径进去。
     process.argv[1] = {str(SUBMIT_JS)!r};
-    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, matchPool, fetchPool, fetchQuota, weekIdOf, PLAY_TYPE, LIST_TYPE}};')();
+    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, PLAY_TYPE, LIST_TYPE}};')();
     {script}
     """
     p = subprocess.run(["node", "-e", src], capture_output=True, text=True, timeout=60)
@@ -387,3 +387,92 @@ def test_pool_response_decodes_names_and_ids():
     assert d['withGid'] == d['n'], "有场次缺 guessingId"
     assert d['withCnName'] == d['n'], "有场次缺中文队名（解码层级错了）"
     assert d['jcRows'] > 0, "没有一场带竞彩盘口——口径择优逻辑失去意义"
+
+
+# ---------------------------------------------------------------- 队名别名匹配（v3.3）
+
+def test_abbreviation_variants_match_via_alias():
+    """竞彩简称必须能匹配到池子的全称（2026-10-13 实测的 6 个失败案例）。
+
+    这是"有注提不了"的直接原因：手写简化归一化只认字面相等，
+    8 场欧冠里 6 场匹配失败。改用 engine/team_aliases.py 后 5/5 命中。
+    """
+    out = _node("""
+    const pool = [
+      {guessingId:'p1AU', league:'欧冠', home:'比利亚雷亚尔', away:'那不勒斯', odds:{}},
+      {guessingId:'XkAU', league:'欧冠', home:'莱比锡红牛', away:'埃因霍温', odds:{}},
+      {guessingId:'6xAU', league:'欧冠', home:'加拉塔萨雷', away:'巴塞罗那', odds:{}},
+      {guessingId:'OxAU', league:'欧冠', home:'马德里竞技', away:'曼彻斯特联', odds:{}},
+      {guessingId:'uHAU', league:'欧冠', home:'朗斯', away:'葡萄牙体育', odds:{}},
+    ];
+    const cands = [
+      {match_id:'A', market:'1x2', sel:'home', odds:2.04, model_prob:0.5, line:null,
+       home:'比利亚雷', away:'那不勒斯', competition:'欧冠'},
+      {match_id:'B', market:'1x2', sel:'home', odds:1.60, model_prob:0.5, line:null,
+       home:'莱红牛', away:'埃因霍温', competition:'欧冠'},
+      {match_id:'C', market:'1x2', sel:'home', odds:2.10, model_prob:0.5, line:null,
+       home:'加拉塔萨', away:'巴萨', competition:'欧冠'},
+      {match_id:'D', market:'1x2', sel:'home', odds:1.78, model_prob:0.5, line:null,
+       home:'马竞', away:'曼联', competition:'欧冠'},
+      {match_id:'E', market:'1x2', sel:'home', odds:2.27, model_prob:0.5, line:null,
+       home:'朗斯', away:'里斯本', competition:'欧冠'},
+    ];
+    const r = mod.matchPool(cands, pool);
+    console.log(JSON.stringify({
+      hit: r.matched.length, miss: r.unmatched.length,
+      gids: r.matched.map(m => m.guessingId).sort(),
+    }));
+    """)
+    d = json.loads(out)
+    assert d["hit"] == 5, f"只命中 {d['hit']}/5——译名变体没匹配上"
+    assert d["miss"] == 0
+    assert d["gids"] == ["6xAU", "OxAU", "XkAU", "p1AU", "uHAU"]
+
+
+def test_alias_does_not_merge_different_teams():
+    """别名不能过度合并——不同队必须匹配不上。
+
+    项目文档明确列了危险对（维京 vs 维京古、哥德堡 vs 哥德堡盖斯…），
+    合并了会把注提到错误的场次，而且 protobuf 不会报错。
+    """
+    out = _node("""
+    const pool = [
+      {guessingId:'V1', league:'欧冠', home:'维京古', away:'某队', odds:{}},
+    ];
+    const cands = [
+      {match_id:'X', market:'1x2', sel:'home', odds:2.0, model_prob:0.5, line:null,
+       home:'维京', away:'某队', competition:'欧冠'},
+    ];
+    const r = mod.matchPool(cands, pool);
+    console.log(JSON.stringify({hit: r.matched.length}));
+    """)
+    assert json.loads(out)["hit"] == 0, "维京与维京古被错误合并"
+
+
+def test_real_today_matches_pool():
+    """用真实数据端到端验证：今日欧冠必须全部命中池子。
+
+    这是价值兑付的验收线——从"0 命中"到"有注可提"。
+    数据缺失时跳过（CI 上可能没有当日 predictions）。
+    """
+    daily = ROOT / "data" / "daily"
+    pool_cache = Path.home() / ".football-engine" / "njstats_pool.json"
+    if not pool_cache.exists():
+        pytest.skip("无池缓存（先跑 --pool）")
+    days = sorted(p.name for p in daily.iterdir() if p.is_dir()) if daily.exists() else []
+    if not days:
+        pytest.skip("无 data/daily")
+
+    out = _node(f"""
+    const pool = JSON.parse(require('fs').readFileSync(process.env.HOME + '/.football-engine/njstats_pool.json','utf-8')).rows;
+    const cands = mod.loadCandidates({days[-1]!r}).filter(c => c.market === '1x2');
+    const r = mod.matchPool(cands, pool);
+    const byVia = {{}};
+    for (const m of r.matched) byVia[m.matched_via] = (byVia[m.matched_via] || 0) + 1;
+    console.log(JSON.stringify({{cands: cands.length, hit: r.matched.length, via: byVia}}));
+    """)
+    d = json.loads(out)
+    if d["cands"] == 0:
+        pytest.skip("当日无 1X2 候选")
+    # 至少要有命中（具体数量随当天赛程变）
+    assert d["hit"] > 0, f"{d['cands']} 个候选全部未命中池子——别名表可能退化"

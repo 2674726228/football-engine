@@ -327,39 +327,105 @@ function validateHandicapSign(cand) {
   return true;
 }
 
-/** 队名归一化（中文/英文名混用时的匹配键） */
-function normName(s) { return String(s || '').toLowerCase().replace(/[^0-9a-z\u4e00-\u9fff]/g, ''); }
+/**
+ * 队名归一化（匹配键用）。
+ *
+ * 2026-10-13：原来这里是手写的简单归一化（去非字母数字），
+ * 实测导致 8 场欧冠里 6 场匹配失败——全是**译名简称差异**：
+ *   比利亚雷   vs 比利亚雷亚尔
+ *   巴萨       vs 巴塞罗那
+ *   里斯本     vs 葡萄牙体育
+ *   莱红牛     vs 莱比锡红牛
+ *   马竞       vs 马德里竞技
+ *   维京/拜仁  vs 拜仁慕尼黑
+ *
+ * 项目里**已经有** `engine/team_aliases.py` 处理这类问题（含欧冠资格赛的
+ * "08-04 翻车重灾区"别名），结算/新浪/DJYY 三源都走它。这里改为调用它
+ * （通过 node 子进程读 Python 的归一化结果，避免两份别名表漂移）。
+ *
+ * 兜底：Python 不可用时退回内置简化归一化（保证脚本单独也能跑）。
+ */
+function normName(s) {
+  return String(s || '').toLowerCase().replace(/[^0-9a-z\u4e00-\u9fff]/g, '');
+}
+
+/** 从 engine.team_aliases 拿归一化结果（批量，一次子进程）。 */
+function normalizeTeamNames(names) {
+  const { execFileSync } = require('child_process');
+  try {
+    const script = `
+import json, sys
+sys.path.insert(0, ${JSON.stringify(ROOT)})
+from engine.team_aliases import normalize_team, loose_normalize
+names = json.loads(sys.stdin.read())
+print(json.dumps([[normalize_team(n), loose_normalize(n)] for n in names], ensure_ascii=False))
+`;
+    const out = execFileSync('python3', ['-c', script], {
+      input: JSON.stringify(names), encoding: 'utf-8', timeout: 30000,
+    });
+    return JSON.parse(out);
+  } catch {
+    // Python 不可用：退回内置归一化（会漏掉译名变体，但不崩）
+    return names.map(n => [normName(n), normName(n)]);
+  }
+}
 
 /**
- * 把我们的候选匹配到 NJStats 开放池。
- * 返回 {matched: [...], unmatched: [...]}
+ * 把我们的候选匹配到 NJStats 开放池（三级匹配）。
  *
- * 匹配键 = (主队中文名, 客队中文名) 归一化后精确相等。
+ * 匹配键按优先级：
+ *   1. `normalize_team`（别名表，精确）—— 主力，覆盖绝大多数译名差异
+ *   2. `loose_normalize`（再去 FC/队/竞技 等后缀）—— 兜底
+ *   3. 内置简化归一化 —— 最后兜底（Python 不可用时）
  *
- * **盘口口径择优**（2026-10-13 实测后加）：池子里有些场次带竞彩盘口
- * （jcSpf/jcRq，实测 222 场里有 8 场欧冠有），有些只有欧赔口径（spf/rq/dx）。
- * 提交时必须按**该场实际有的口径**选 playType：
- *   - 有 jcSpf → 1X2 用 GPT_JC_SPF(4)
- *   - 有 jcRq → 让球用 GPT_JC_RQ(5)
- *   - 都没有 → 退回欧赔 GPT_SPF(1)/GPT_RQ(2)
- * 竞彩口径的赔率才是竞彩实际开盘价，用它算 EV 才对得上我们要投的注。
+ * 实测教训（2026-10-13）：手写简化归一化只认字面相等，8 场欧冠里
+ * 6 场匹配失败（比利亚雷/比利亚雷亚尔、巴萨/巴塞罗那、里斯本/葡萄牙体育…）。
+ * 项目里早有 `engine/team_aliases.py` 管这事，直接用。
+ *
+ * 盘口口径择优：池子给了 jc 盘口就用竞彩口径（JC_SPF/JC_RQ），
+ * 否则退回欧赔（SPF/RQ）——竞彩口径的赔率才是我们要投的注的实价。
  */
 function matchPool(cands, pool) {
-  const idx = new Map();
-  for (const p of pool) idx.set(`${normName(p.home)}|${normName(p.away)}`, p);
+  // 收集所有需要的队名，一次性归一化
+  const allNames = [];
+  for (const c of cands) { allNames.push(c.home, c.away); }
+  for (const p of pool) { allNames.push(p.home, p.away); }
+  const normed = normalizeTeamNames(allNames);
+
+  const nameIndex = new Map();     // 原名 → [norm, loose]
+  allNames.forEach((n, i) => { if (!nameIndex.has(n)) nameIndex.set(n, normed[i]); });
+
+  // 三级索引：精确别名 > loose > 简化
+  const idx1 = new Map(), idx2 = new Map(), idx3 = new Map();
+  for (const p of pool) {
+    const [nh, lh] = nameIndex.get(p.home) || [normName(p.home), normName(p.home)];
+    const [na, la] = nameIndex.get(p.away) || [normName(p.away), normName(p.away)];
+    idx1.set(`${nh}|${na}`, p);
+    idx2.set(`${lh}|${la}`, p);
+    idx3.set(`${normName(p.home)}|${normName(p.away)}`, p);
+  }
+
   const matched = [], unmatched = [];
   for (const c of cands) {
-    const hit = idx.get(`${normName(c.home)}|${normName(c.away)}`);
+    const [nh, lh] = nameIndex.get(c.home) || [normName(c.home), normName(c.home)];
+    const [na, la] = nameIndex.get(c.away) || [normName(c.away), normName(c.away)];
+    let hit = idx1.get(`${nh}|${na}`), via = 'alias';
+    if (!hit) { hit = idx2.get(`${lh}|${la}`); via = 'loose'; }
+    if (!hit) { hit = idx3.get(`${normName(c.home)}|${normName(c.away)}`); via = 'raw'; }
     if (!hit) { unmatched.push(c); continue; }
+
     const odds = hit.odds || {};
     const hasJcSpf = !!odds['4'], hasJcRq = !!odds['5'];
-    let playType;
-    if (c.market === '1x2') playType = hasJcSpf ? PLAY_TYPE.JC_SPF : PLAY_TYPE.SPF;
-    else playType = hasJcRq ? PLAY_TYPE.JC_RQ : PLAY_TYPE.RQ;
+    const playType = c.market === '1x2'
+      ? (hasJcSpf ? PLAY_TYPE.JC_SPF : PLAY_TYPE.SPF)
+      : (hasJcRq ? PLAY_TYPE.JC_RQ : PLAY_TYPE.RQ);
     matched.push({
       ...c,
       guessingId: hit.guessingId,
       pool_league: hit.league,
+      pool_home: hit.home,
+      pool_away: hit.away,
+      matched_via: via,
       play_type: playType,
       pool_odds: c.market === '1x2' ? (odds[hasJcSpf ? '4' : '1']) : (odds[hasJcRq ? '5' : '2']),
       jc_available: hasJcSpf || hasJcRq,
