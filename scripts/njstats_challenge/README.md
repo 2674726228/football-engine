@@ -89,14 +89,34 @@
 
 ## 登录态怎么来（唯一需要人工的步骤）
 
+**token 有效期 20 小时**（实测 JWT：`iat`→`exp` = 72000 秒）。
+过期后 `GMI_SUBMIT` 回 `code=-1, msg="请先登录"`，提交静默失败。
+
+> ⚠️ **CI 方案不成立**：token 每天要换，没有无人值守的刷新方式。
+> 所以这个任务只能留在 **7×24 在线的 Mac Air** 上——
+> 主线 Mac Pro 不是常开机器，不能承担定时任务。
+
 ```bash
-# 在 Air 上执行一次：
+# 在 Air 上执行（每天一次，或 dry-run 出现「请先登录」时）：
 # 1. 浏览器打开 https://www.njstats.cn 并登录
-# 2. DevTools → Network → 任一条 /njserver/openApi/ 请求 → Request Headers
-# 3. 复制 Authorization: Bearer 后面的 token，写到 ~/.football-engine/njstats_token.txt（一行）
+# 2. F12 → Console 粘贴：  copy(localStorage.getItem('token'))
+#    （token 存在 localStorage 的 `token` 键，不是 cookie）
+# 3. 写入文件：
+printf '%s' '<粘贴的token>' > ~/.football-engine/njstats_token.txt
 ```
 
-token 过期后重新导出即可。**不要**把 token 提交进仓库（`~/.football-engine/` 在仓库外）。
+验证：
+
+```bash
+node scripts/njstats_challenge/submit.js --quota    # 看配额
+node scripts/njstats_challenge/submit.js --probe    # 协议探活（不需 token）
+node scripts/njstats_challenge/submit.js --date $(date +%F)   # dry-run
+```
+
+dry-run 出现「请先登录」= token 过期，回到第 1 步。
+
+**不要**把 token 提交进仓库（`~/.football-engine/` 在仓库外）。
+20 小时过期是好事：泄露窗口有限。
 
 数据 API key（只读，拉池子/看配额用）写到 `~/.football-engine/njstats_apikey.txt`。
 
