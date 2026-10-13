@@ -173,3 +173,21 @@ def test_features_dedup_by_match_id():
     rows = nf.load_day(day)
     ids = [r["match_id"] for r in rows]
     assert len(ids) == len(set(ids)), f"有重复 matchId: {len(ids)} → {len(set(ids))}"
+
+
+def test_snapshot_at_separates_label_from_real_time(tmp_path, monkeypatch):
+    """label 日期 ≠ 市场快照时刻：prob 无 date 参数，文件 label 不可信。
+
+    实测 2026-10-13：`2026-10-09_prob_draw.json` 的 fetched_at 是 10-12——
+    三个 label 都是 10-12 那次补采写的。按 label 当"市场状态日期"会错 3 天。
+    snapshot_at 透传文件时间戳，下游做时序以它为准。
+    """
+    import json as _j
+    monkeypatch.setattr(nf, "ARCHIVE", tmp_path)
+    snap = "2026-10-12 09:09:56"
+    (tmp_path / "2026-10-09_prob_draw.json").write_text(_j.dumps(
+        {"fetched_at": snap, "data": [{"matchId": "m1",
+                                       "home": {}, "away": {}}]}), encoding="utf-8")
+    rows = nf.load_day("2026-10-09")
+    assert rows and rows[0]["date"] == "2026-10-09"
+    assert rows[0]["snapshot_at"] == snap, "snapshot_at 未透传 label 文件的真实抓取时间"

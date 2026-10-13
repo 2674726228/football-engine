@@ -116,8 +116,19 @@ def extract_team(team: dict, scope: str) -> dict:
     return out
 
 
-def extract_record(r: dict, date_str: str) -> dict:
-    """一条 prob 记录 → 特征行。"""
+def extract_record(r: dict, date_str: str, snapshot_at: str = "") -> dict:
+    """一条 prob 记录 → 特征行。
+
+    【2026-10-13 新增 snapshot_at，修正数据语义】prob 端点**没有 date 参数**，
+    返回的永远是"抓取那一刻"的全市场快照。归档按 label 日期存文件
+    （`{label}_prob_draw.json`），但实测 label ≠ 快照时刻：
+    `2026-10-09_prob_draw.json` 的 fetched_at 是 2026-10-12 09:09
+    （10-09/10/11 三个 label 都是 10-12 那次补采写的）。
+    直接按 label 当"市场状态日期"会错 3 天。好在实测 6 个 label 的
+    matchId 指纹全不同——内容是真实的不同快照，不是复制。
+    把文件的 fetched_at 透传成 `snapshot_at`：下游做时序特征以它为准，
+    `date` 只当归档桶。
+    """
     opening = None
     try:
         oh, od, oa = r.get("openingHome"), r.get("openingDraw"), r.get("openingAway")
@@ -129,6 +140,7 @@ def extract_record(r: dict, date_str: str) -> dict:
     return {
         "match_id": str(r.get("matchId", "")),
         "date": date_str,
+        "snapshot_at": snapshot_at,   # 市场状态的真实时刻（≠ label 日期）
         "league": r.get("leagueName", ""),
         "season": r.get("season", ""),
         "home": r.get("homeName", ""),
@@ -175,13 +187,15 @@ def load_day(date_str: str) -> list[dict]:
         files = sorted(ARCHIVE.glob(f"{date_str}_prob_*.json"))
     for f in files:
         try:
-            data = json.loads(f.read_text(encoding="utf-8")).get("data") or []
+            doc = json.loads(f.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             continue
-        for r in data:
+        # 市场状态的真实时刻 = 文件写盘时间（prob 无 date 参数，label 不可信）
+        snap = doc.get("fetched_at") or ""
+        for r in (doc.get("data") or []):
             mid = str(r.get("matchId", ""))
             if mid and mid not in rows:
-                rows[mid] = extract_record(r, date_str)
+                rows[mid] = extract_record(r, date_str, snap)
     return list(rows.values())
 
 
