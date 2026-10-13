@@ -22,6 +22,15 @@ data/daily/*/odds_sina.json
 # 汇总 JSON data/state/football_data_baselines.json 仍提交）
 data/historical/football_data/
 
+# NJStats 试用窗口的原始 API 归档（2026-10-13 起不入 git）。
+# 与上面两条同一政策：原始可重抓数据不进 git，派生结论才进。
+# 规模实测：prob 8 端点 × 6 页 × 每天 ≈ 33MB，且每小时新增；
+# 写进 git 会让每次 clone 多背 30MB+。已入历史的 129 个文件保留不动
+# （清历史要 force-push，需用户裁决）。
+# 真正不可再得的是 10-15 试用到期后的数据——所以**导出走 Release/外部备份**，
+# 不走 git。派生特征 data/state/njstats_features/ 仍提交（小、且是结论）。
+data/state/njstats_archive/
+
 # 本地侦察保险库——端点/密钥/会话细节绝不入公开仓库
 _vault/
 
