@@ -385,6 +385,18 @@ class DJYYSource(DataSource):
         Returns:
             {"p_home": float, "p_draw": float, "p_away": float,
              "btts_yes": float, "over25": float, "top_scores": [...]}
+
+        【2026-10-13 标注：已被取代，保留仅为兼容】
+        `engine/sources/manager.py` 的富化路径直接读
+        `comparison["model"]["p_home"/"p_draw"/"p_away"]`，不走本方法——
+        即本方法**从未被调用**，且与现用路径数据源完全相同（都是 comparison）。
+        保留它只是为了不破坏可能的外部调用；新代码应该用 `fetch_match_comparison`
+        自己取 `model`，避免多一层无谓的封装。
+
+        另外实测：返回的 `btts_yes` / `over25` / `top_scores` **恒为 null/[]**
+        （登录与非登录都一样，API 不提供，见 docs/RETROSPECTIVE_20261013_NIGHT.md）。
+        所以不要指望这三个字段有值——要 BTTS/大小球信号应走
+        `markets` 里 `btts` / `totals_main` 的赔率（含开盘价）。
         """
         comparison = self.fetch_match_comparison(djyy_id)
         if not comparison:

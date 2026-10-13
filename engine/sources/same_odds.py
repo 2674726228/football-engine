@@ -74,21 +74,49 @@ class SameOddsAnalyzer:
         self._load(Path(odds_path))
 
     def _load(self, path: Path) -> None:
-        """加载历史赔率数据"""
+        """加载历史赔率数据。
+
+        【2026-10-13 修正：原实现按不存在的列名读取，永远加载 0 条】
+
+        `data/historical/odds.csv` 的实际列名是：
+
+            date, competition, home_team, away_team, home_score,
+            away_score, handicap, home_odds, draw_odds, away_odds, ...
+
+        而原实现读的是 `match_id` / `result` / `league`——**三个都不存在**，
+        于是 `result` 恒为空串 → `result in ("H","D","A")` 恒 False →
+        **加载 0 条记录**。后果是 `analyze()` 永远 matched_count=0，
+        `find_value_signals()` 永远返回空列表——**看起来"正常工作"，
+        实际这个功能从没真正跑通过**（这也是它一直没被发现的原因：
+        不报错，只是没信号）。
+
+        修法：按真实列名读取，赛果由 `home_score`/`away_score` 推导：
+          主 > 客 → "H"；相等 → "D"；主 < 客 → "A"
+        """
         if not path.exists():
             return
         with open(path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 try:
+                    hs, as_ = row.get("home_score"), row.get("away_score")
+                    result = ""
+                    try:
+                        hs_i, as_i = int(hs), int(as_)
+                        result = "H" if hs_i > as_i else ("D" if hs_i == as_i else "A")
+                    except (TypeError, ValueError):
+                        result = ""
                     rec = OddsRecord(
-                        match_id=row.get("match_id", ""),
+                        match_id=(
+                            row.get("match_id")
+                            or f"{row.get('date','')}_{row.get('home_team','')}_vs_{row.get('away_team','')}"
+                        ),
                         date=row.get("date", ""),
                         home_odds=float(row.get("home_odds", 0)),
                         draw_odds=float(row.get("draw_odds", 0)),
                         away_odds=float(row.get("away_odds", 0)),
-                        result=row.get("result", ""),
-                        league=row.get("league", ""),
+                        result=result,
+                        league=row.get("competition", ""),
                     )
                     if rec.home_odds > 0 and rec.result in ("H", "D", "A"):
                         self.records.append(rec)
