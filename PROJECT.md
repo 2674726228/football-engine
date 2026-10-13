@@ -1,11 +1,13 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-13 11:40（逆向轮 / 首次真实提交成功）
-> 在干什么: **挑战任务首次真实提交成功**——5 注全部落库（服务端配额 usedCount 0→14），整条链路打通
-> 下一步: ① 把这个任务部署到 Air（launchd 每天 11:25；步骤见 README「登录态怎么来」）
->          ② **token 20 小时过期**——Air 上需每天刷新一次（localStorage 的 `token` 键，不是 cookie）
->          ③ 额度恢复后补满 27 个 prob 分页缺口（后台循环在跑；10-15 到期前完成即可）
+> 状态: doing　更新: 2026-10-13 15:40（全盘复核轮）
+> 在干什么: 复核发现**待办清单本身已陈旧**（4 条早完成了还挂着），已清理；
+>           扫出 7 个"写了却从未被调用"的方法，其中一个有真 bug（公平赔率当真实赔率，偏高 3~4%）已修
+> 下一步: ① 部署挑战任务到 Air（launchd 每天 11:25；README「登录态怎么来」）
+>          ② **token 20 小时过期**——Air 上每天刷新一次（localStorage 的 `token` 键）
+>          ③ 补满 prob 分页缺口（后台循环；10-15 到期前）
+>          ④ `main.py` god object（2421 行，两个 1000+ 行函数）——**已核实无重复去水逻辑**，是维护性风险非正确性风险，需独立一轮重构
 >          ④ Air 上停掉除预测挑战外的本地 cron（auto_run/run_realtime_monitor/launchd）
 > 已知坑: ① **token 只能留在 Air**：20h 有效期 + CI 无法无人值守刷新；主线 Mac Pro 非常开，不能承担定时任务
 >          ② **`git reset --hard` 会清掉归档**（已发生两次）——归档已移出索引，reset 前先跑 `njstats_safeguard.py`
@@ -41,12 +43,31 @@
 - GitHub 对公开仓高频 schedule 有排队限流：实测 */15 实际只跑 5 次/天，阈值必须按真实频率设
 
 ## 已知未修（按优先级）
-- [ ] issue #1（外部用户 dzd1234 报）：竞彩未开盘但 predictions.json 有胜平负推荐 → 需复现"无盘口场次仍出 1X2 推荐"的路径
-- [ ] `kelly.py` 拿 `1/odds`（含 12.1% 抽水）当市场概率，与 `clv.py`/`upgrade_tracker.py`/`post_match.py` 的去水口径不一致 → 改口径会放宽闸门 1.4~2.6 倍，**需人拍板**（PR#27 文档已标注，故意未改）
-- [ ] 开盘价列（PSH/PSD/PSA）样本为 0：`_new.csv` 有收盘无比分旧格式有开盘无比分 → 要开收盘对比须先合并两套 schema
-- [ ] `evolution/` 每轮在 main 上直接跑 `python -m evolution.cycle`，产物进 `evolution/out*`（已 gitignore）
+> 2026-10-13 复核：前 4 条**已解决**，移到底部「已完成」；下面是真正还开着的。
+
+- [ ] **`main.py` god object**：`run_daily_pipeline` 1225 行 + `run_settlement` 955 行。
+      风险：任何改动都要在 2000+ 行里定位，且两处逻辑容易各写一份（同口径漂移的高发区）
+- [ ] SportMonks Growth 试用激活（用户暂缓）→ 验 odds 模块是否随套餐
+- [ ] git 历史端点路径清洗决策（HEAD 已清，历史待用户裁决是否 force-push 重写）
+- [ ] AUT 平局纸面证据累计（双源佐证 +7.5%/+9.24%，t≈1.7 候选，live 证据持续累计）
+- [ ] 洁净样本累积 / LGBM ready / Qwen 新闻源（用户决定）
+- [ ] DJYY 有 6 个未接入的 API 包装方法（`fetch_match_events`/`get_model_probabilities`/
+      `sina.get_available_dates`/`same_odds.find_value_signals`/`sportmonks.fixtures_on`/
+      `sportmonks.fixture_odds`/`sportmonks.injuries`）。**已逐个实测**，多数与已接入能力重复
+      （伤停走 DJYY `sidelined`、赔率走 `markets`），暂不接——但要接时它们是可用的
+- [ ] 全仓库 98 处 `except → return None/pass` 静默吞异常。今晚两次遇到它导致的
+      静默零产物（代理/key 文件名）。**不要批量改**（会淹没真正需要静默的地方）；
+      建议按"关键路径"逐个加可区分的错误记录，参考 `engine/sources/djyy.py` 的
+      `_record_error()` 模式
+
+## 今晚已解决（原在待办清单里，复核后移出）
+- [x] issue #1 无盘口标注（PR #35：`_pred_pick` 加「⚠ 无盘口·不可投注」；页面已验证 1 处）
+- [x] `kelly.py` 口径（量化裁决：**不改**，依据 docs/KELLY_CALIBER_DECISION_20261013.md）
+- [x] 开盘价缺口（DJYY comparison 的 8 个市场带 Pinnacle/bet365 开盘价，**零额外请求**）
+- [x] `evolution/` 产物（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
+- 2026-10-13 全盘复核：① **待办清单陈旧**——4 条早已完成却仍挂在"已知未修"（issue #1/kelly 口径/开盘价/evolution 产物），会让下一个 agent 重做已完成的事，已清理并标注 ② 全仓库扫出 **7 个"写了却从未被调用"的方法**，其中 `DJYYSource.fetch_odds_snapshot` 有真 bug：`1/p` 把去水概率转回的"公平赔率"当成真实赔率存（实测偏高 3~4%=抽水量），与 sporttery 口径不一致 → 已改用 `markets.raw_odds` ③ `main.py` 2421 行（两个 1000+ 行函数）经核实**无重复去水逻辑**，属维护性风险而非正确性漂移
 - 2026-10-13 **挑战任务首次真实提交成功**：真 token 下 5 注全部落库（服务端配额 usedCount 0→14，浏览器直查后端确认）。过程中发现**成功判定写反**——`GMI_SUBMIT` 成功时不返回 `code` 字段（只回 `msg="suc"`），原判定 `code===0` 把成功记成失败、破坏幂等（`scripts/njstats_challenge/submit.js::isSubmitOk`）
 - 2026-10-13 token 有效期实测 **20 小时**（JWT iat→exp=72000s）→ 推翻"搬进 CI"方案：CI 无法无人值守刷新，任务必须留在 7×24 的 Air（`scripts/njstats_challenge/README.md`）
 - 2026-10-13 **别名匹配打通价值兑付**：挑战任务"命中 0/5"根因是**队名译写差异**（非联赛不重叠）——竞彩用简称（比利亚雷/巴萨/里斯本/莱红牛/马竞/加拉塔萨），池子用全称。改用手写归一化 → 复用 `engine/team_aliases.py` 三级匹配（别名表/loose/内置兜底）+ 补齐欧冠主流简称 → **命中 5/5，全部走竞彩口径**（`scripts/njstats_challenge/submit.js`）
