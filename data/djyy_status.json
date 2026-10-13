@@ -1,13 +1,13 @@
 {
   "date": "2026-10-14",
-  "generated_at": "2026-10-14T00:00:54",
-  "healthy": false,
-  "coverage": 0.1818,
-  "enrich_success": 0.6667,
+  "generated_at": "2026-10-14T00:25:26",
+  "healthy": true,
+  "coverage": 0.2727,
+  "enrich_success": 1.0,
   "league_coverage": 0.2727,
-  "covered": 2,
+  "covered": 3,
   "matched": 3,
-  "failed": 1,
+  "failed": 0,
   "fixtures": 11,
   "budget_s": 264.0,
   "budget_exhausted": false,
@@ -15,9 +15,9 @@
   "detail": {
     "fixtures": 75,
     "matched": 3,
-    "enriched": 2,
-    "failed": 1,
-    "cache_hit": 0,
+    "enriched": 1,
+    "failed": 0,
+    "cache_hit": 2,
     "budget_exhausted": false
   },
   "note": "healthy 由 enrich_success 决定（匹配上的场次里富化成功的比例）；league_coverage 低说明我们预测了 DJYY 不覆盖的联赛，属结构性差异而非故障——两者混用会让告警永远为真"
