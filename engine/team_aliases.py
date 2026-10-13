@@ -51,6 +51,38 @@ TEAM_ALIASES: dict[str, str] = {
     "尤文": "尤文图斯",                    # Juventus
     "国竞": "国际米兰",                    # Inter（竞彩另一写法，实测出现过）
 
+    # ---- DJYY 池译名对齐（2026-10-13 实测补齐）----
+    # 背景：DJYY 富化匹配用的是「主队_vs_客队」精确键，任一侧译名不同整场就丢失。
+    # 实测跨 4 天（10-11~10-14）跑出 39 处未命中，其中 18 处是译名差异
+    # （另 21 处是 DJYY 真不覆盖的联赛，如 K1/日职/亚冠精英）。
+    # 逐条来自实测配对（`fetch_fixtures` 对 `predictions.json`），非猜测：
+    #   {简称} → {DJYY 用名}
+    "维拉": "阿斯顿维拉",                  # Aston Villa
+    "布伦特": "布伦特福德",                # Brentford
+    "纽卡斯尔": "纽卡斯尔联",              # Newcastle United
+    "伊普斯": "伊普斯维奇",                # Ipswich Town
+    "诺丁汉": "诺丁汉森林",                # Nottingham Forest
+    "门兴": "门兴格拉德巴赫",              # Borussia M'gladbach
+    "斯特拉斯": "斯特拉斯堡",              # Strasbourg
+    "弗洛西诺": "弗洛西诺尼",              # Frosinone
+    "凯泽": "凯泽斯劳滕",                  # Kaiserslautern
+    "阿尔克马": "阿尔克马尔",              # AZ Alkmaar
+    "福图纳": "福图纳锡塔德",              # Fortuna Sittard
+    "利雅新月": "利雅得新月",              # Al Hilal
+    "京都": "京都不死鸟",                  # Kyoto Sanga
+    "町田泽维": "町田泽维亚",              # Machida Zelvia
+    "毕尔巴鄂": "毕尔巴鄂竞技",            # Athletic Bilbao
+    "拉科": "拉科鲁尼亚",                  # Deportivo La Coruña
+    "贝蒂斯": "皇家贝蒂斯",                # Real Betis
+    "桑坦德": "桑坦德竞技",                # Racing Santander
+    "蔚山现代": "蔚山HD",                  # Ulsan HD（DJYY 用 HD）
+    "名古屋鲸": "名古屋鲸八",              # Nagoya Grampus
+    "女王巡游": "女王公园巡游者",          # QPR
+    # 这几个的特殊性：我们和 DJYY 各用一个"都不标准"的写法，
+    # 所以两边的写法都要指向同一个规范名（否则归一化后仍不相等）。
+    "米堡": "米德尔斯堡",                  # Middlesbrough（竞彩简称）
+    "RB莱比锡": "莱比锡红牛",              # RB Leipzig（DJYY 写法）
+
     # ---- 北欧联赛 ----
     "哈尔姆": "哈尔姆斯塔德",              # Halmstad
     "哈尔姆斯": "哈尔姆斯塔德",
