@@ -24,7 +24,6 @@ sys.path.insert(0, str(ROOT))
 
 from engine.beijing_time import BEIJING_TZ, beijing_now, beijing_today
 from engine.sources.manager import SourceManager
-from engine.odds_series import series_features
 from engine.sources.base import MatchResult
 from engine.sources.same_odds import SameOddsAnalyzer
 from engine.prediction.ensemble import EnsembleModel
@@ -301,8 +300,13 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
     fusion_cfg.setdefault("trust_shrink_enabled", True)
 
     # 加载新浪赔率数据（初始+即时+变化历史）——逻辑抽到
-    # engine.pipeline.sina_odds.load_sina_odds_map（2026-08-14 重构）
-    from engine.pipeline.sina_odds import load_sina_odds_map
+    # engine.pipeline.sina_odds（2026-08-14 重构 load_sina_odds_map，
+    # 2026-10-14 再抽 lookup_sina_match / build_sina_data）
+    from engine.pipeline.sina_odds import (
+        build_sina_data,
+        load_sina_odds_map,
+        lookup_sina_match,
+    )
     sina_odds_map, sina_odds_by_no, _sina_n = load_sina_odds_map(target_date.isoformat(), ROOT)
     if _sina_n:
         print(f"  ✓ 新浪赔率: {_sina_n} 场 (编号匹配: {len(sina_odds_by_no)})")
@@ -406,52 +410,10 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
             if away_miss > 0:
                 away_rating.attack *= max(0.88, 1.0 - away_miss * 0.04)
 
-        # 查找新浪赔率数据（优先用竞彩编号匹配，fallback用队名）
-        _sina_data = None
-        # 从 match_id 提取竞彩编号: "2026-08-01_周六001" → "周六001"
-        _match_no = fixture.match_id.split("_", 1)[-1] if "_" in fixture.match_id else ""
-        _sina_match = sina_odds_by_no.get(_match_no) if _match_no else None
-        if not _sina_match:
-            # fallback: 队名精确匹配
-            _sina_match = sina_odds_map.get((fixture.home_team, fixture.away_team))
-        if not _sina_match:
-            # fallback: 队名归一化匹配（译名变体，如 奥林匹亚 vs 奥林匹亚科斯）
-            _hk_n, _ak_n = normalize_team(fixture.home_team), normalize_team(fixture.away_team)
-            for (_sh, _sa), _v in sina_odds_map.items():
-                if (normalize_team(_sh), normalize_team(_sa)) == (_hk_n, _ak_n):
-                    _sina_match = _v
-                    break
-        if not _sina_match:
-            # fallback: 模糊匹配
-            import re as _re
-            def _norm_name(s):
-                s = s.replace("FC", "").replace("队", "").replace("市", "")
-                s = _re.sub(r'[^\u4e00-\u9fffa-zA-Z]', '', s)
-                return s.strip()
-            _ht = _norm_name(fixture.home_team)
-            _at = _norm_name(fixture.away_team)
-            for (sh, sa), v in sina_odds_map.items():
-                _sh = _norm_name(sh)
-                _sa = _norm_name(sa)
-                if (_ht and _sh and (_ht in _sh or _sh in _ht)) and \
-                   (_at and _sa and (_at in _sa or _sa in _at)):
-                    _sina_match = v
-                    break
-        if _sina_match:
-            _sina_data = {
-                "initial_odds": _sina_match.get("euro", {}).get("initial"),
-                "current_odds": _sina_match.get("euro", {}).get("current"),
-                "movement": _sina_match.get("euro", {}).get("movement"),
-                "compression": _sina_match.get("euro", {}).get("compression"),
-                "odds_history_count": len(_sina_match.get("odds_history", [])),
-                "asia": _sina_match.get("asia"),
-                "totals": _sina_match.get("totals"),
-                "match_time": _sina_match.get("match_time"),
-                # 水位时间序列特征（2026-08-05 盘口系统修复）：
-                # 由 data/state/odds_series/ 累积快照计算，识别赛前资金流斜率/加速。
-                # 特征存 predictions 供结算验证命中率，不预设有效/无效。
-                "series": series_features(fixture.match_id),
-            }
+        # 查找新浪赔率数据（优先用竞彩编号匹配，fallback用队名）。
+        # 四级 fallback 的顺序是行为契约，详见 lookup_sina_match 的 docstring。
+        _sina_match = lookup_sina_match(fixture, sina_odds_map, sina_odds_by_no)
+        _sina_data = build_sina_data(_sina_match, fixture.match_id)
 
         market_odds = None
         if fixture.home_odds and fixture.draw_odds and fixture.away_odds:
