@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-15",
-  "total_matches": 1040,
+  "generated_at": "2026-10-14",
+  "total_matches": 1041,
   "date_range": [
     "2026-07-19",
     "2026-10-14"
   ],
   "overall": {
-    "hit_rate": 0.5423,
-    "brier_final": 0.5789,
-    "brier_model": 0.6145,
-    "brier_market": 0.5676,
+    "hit_rate": 0.5418,
+    "brier_final": 0.579,
+    "brier_model": 0.6142,
+    "brier_market": 0.5677,
     "brier_djyy": 0.6347
   },
   "daily": [
@@ -1011,21 +1011,21 @@
     },
     {
       "date": "2026-10-14",
-      "n": 6,
+      "n": 7,
       "hits": 5,
-      "hit_rate": 0.8333,
-      "cum_hit_rate": 0.5423,
-      "brier_final": 0.3061,
-      "brier_model": 0.5071,
-      "brier_market": 0.297,
-      "brier_djyy": 0.4322,
+      "hit_rate": 0.7143,
+      "cum_hit_rate": 0.5418,
+      "brier_final": 0.3506,
+      "brier_model": 0.4707,
+      "brier_market": 0.3471,
+      "brier_djyy": 0.5339,
       "pnl": 0.0
     }
   ],
   "rolling7": {
-    "n": 103,
-    "hit_rate": 0.5922,
-    "brier_final": 0.5222,
+    "n": 104,
+    "hit_rate": 0.5865,
+    "brier_final": 0.5285,
     "pnl": 0.0
   },
   "prev7": {
@@ -1034,7 +1034,7 @@
     "brier_final": 0.5123,
     "pnl": 0.0
   },
-  "verdict": "命中率下降 -3pt",
+  "verdict": "命中率下降 -4pt",
   "by_league": [
     {
       "layer": "西甲",
@@ -1115,16 +1115,16 @@
       "brier_final": 0.648
     },
     {
+      "layer": "英冠",
+      "n": 36,
+      "hit_rate": 0.4444,
+      "brier_final": 0.6297
+    },
+    {
       "layer": "日职",
       "n": 35,
       "hit_rate": 0.6286,
       "brier_final": 0.5773
-    },
-    {
-      "layer": "英冠",
-      "n": 35,
-      "hit_rate": 0.4571,
-      "brier_final": 0.6301
     },
     {
       "layer": "芬超",
@@ -1333,16 +1333,16 @@
       "brier_final": 0.6381
     },
     {
+      "layer": "L4 冷(2.2-3.0)",
+      "n": 6,
+      "hit_rate": 0.3333,
+      "brier_final": 0.6559
+    },
+    {
       "layer": "L2 热(1.5-1.8)",
       "n": 5,
       "hit_rate": 0.6,
       "brier_final": 0.5625
-    },
-    {
-      "layer": "L4 冷(2.2-3.0)",
-      "n": 5,
-      "hit_rate": 0.4,
-      "brier_final": 0.6636
     }
   ],
   "by_conf_tier": [
@@ -1360,9 +1360,9 @@
     },
     {
       "layer": "low",
-      "n": 148,
-      "hit_rate": 0.4257,
-      "brier_final": 0.6609
+      "n": 149,
+      "hit_rate": 0.4228,
+      "brier_final": 0.6606
     }
   ]
 }
