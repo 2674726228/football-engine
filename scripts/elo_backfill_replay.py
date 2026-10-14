@@ -112,7 +112,11 @@ def main() -> int:
                 continue
     rows.sort(key=lambda x: x[0])
     for d, h, a, hg, ag, neutral in rows:
-        bf.update(canon(h), canon(a), hg, ag, is_neutral=neutral)
+        # match_date 必须传：EloUpdater 靠它写 last_match_date/rest_days。
+        # 缺了它回放臂的 rest_days 全是默认值 3，BF 与 CUR 的差异就
+        # 不只是"回放 vs 手工先验"，还混入一个恒 0 的 rest 项，
+        # 双段对比失去意义（DEAD-FEATURES-REST-DAYS）。
+        bf.update(canon(h), canon(a), hg, ag, is_neutral=neutral, match_date=d)
     bf.save()
     print(f"回放 {len(rows)} 场（{REPLAY_FROM}→{REPLAY_TO}），评级 {len(bf.ratings)} 队")
 

@@ -73,34 +73,51 @@ KNOWN_ISSUES: list[dict] = [
         ],
     },
     {
-        "id": "DEAD-FEATURES-INJURY-REST",
+        "id": "DEAD-FEATURES-REST-DAYS",
         "severity": "medium",
         "layer": "model",
         "kind": "config",
-        "title": "injury 与 rest_days 恒为默认值，两个权重从未生效",
+        "title": "rest_days 恒为默认值，rest_weight 从未生效",
         "detail": (
-            "对全部 1374 支球队统计：injury 全部为 0.0，rest_days 全部为 3"
-            "（TeamRating 默认值）。因此 dixon_coles 中的 injury_weight 与 rest_weight "
-            "从未对任何一场比赛产生过影响 —— DC 声明的 8 个特征实际只有 5 个生效。"
+            "对全部 1359 支球队统计：rest_days 全部为 3（TeamRating 默认值）。"
+            "因此 dixon_coles 中的 rest_weight 从未对任何一场比赛产生过影响。"
+            "\n\n"
+            "2026-10-14 已修复：EloUpdater.update() 新增 match_date 参数，"
+            "结算时写 last_match_date/rest_days（封顶 14 天）；预测侧"
+            "EloUpdater.refresh_rest_for() 按本场 kickoff 折算且不落盘；"
+            "存量评级按 match_history.db 最后两场间隔回填。"
+            "invariant DI-DEAD-FEATURES 相应改为只判 rest_days，"
+            "liveness 探针同样只报 rest_days。"
+            "\n\n"
+            "injury 恒为 0.0 不再算缺陷：伤停信号走 main.py:390-399 的"
+            "attack 惩罚路径（DJYY 缺阵攻击手数，有实测数据），而"
+            "“缺阵人数 → 单一 injury 标量”这个映射没有证据，不接线是"
+            "有意的。把 injury 计入判定只会持续诱导出"
+            "“把 injury_weight 归零”的候选修复 —— 让本来就不生效的"
+            "旋钮显得被处理过，实际问题（rest_days）原地不动。"
         ),
         "detect_by": "invariant",
         "invariant_id": "DI-DEAD-FEATURES",
         "candidate": {
             "type": "config",
-            "changes": {"prediction.injury_weight": 0.0, "prediction.rest_weight": 0.0},
-            "note": "参数归零以诚实反映实际生效特征；或改为真正接入数据源",
+            "changes": {"prediction.rest_weight": 0.0},
+            "note": "仅当 invariant 再次报警（rest_days 退回常量）时才考虑；"
+                    "当前 rest_days 已接线，权重应保留",
         },
         "evidence": {
-            "teams_checked": 1374,
-            "injury_nonzero": 0,
+            "teams_checked": 1359,
             "rest_days_nondefault": 0,
-            "effective_features_of_8": 5,
+            "effective_features_of_8": 6,
+            "injury_nonzero": 0,
+            "injury_intentional": True,
+            "fixed_on": "2026-10-14",
         },
         "auto_mergeable": True,
-        "verify": "invariant：ratings 表中 injury/rest_days 的方差为 0 时，相关权重应显式为 0",
+        "verify": "invariant：ratings 表中 rest_days 取值种数 <=1 时，rest_weight 应显式为 0",
         "side_effects": [
-            "更根本的修法是真正接入伤停与赛程密度数据，而非把权重归零。"
-            "但那属于新增数据源，不应与本次修正混在一个 PR。"
+            "更根本的修法是真正接入伤停数据，而非把 injury_weight 归零。"
+            "但那属于新增数据源，且现有 attack 惩罚路径已覆盖同一信号，"
+            "两条路径并存会双重计罚，不应与本次修正混在一个 PR。"
         ],
     },
     # ---------------------------------------------------- P0 融合层语义缺陷

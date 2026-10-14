@@ -85,26 +85,39 @@ def check_unit_dimension(model_core_module=None, sample_rating: dict | None = No
 
 
 def check_dead_features(ratings: dict) -> dict:
-    """DI-DEAD-FEATURES：injury / rest_days 是否恒为常量。
+    """DI-DEAD-FEATURES：rest_days 是否恒为常量（injury 有意不接线）。
 
-    若 injury 全为 0、rest_days 全为默认值，则
-    `injury_weight` / `rest_weight` 两个配置项从未参与任何计算 ——
-    配置文件里存在从未生效的旋钮。
+    若 rest_days 对所有球队相同，则 `rest_weight` 从未参与任何计算 ——
+    配置文件里存在从未生效的旋钮。这正是 2026-10 上半月报警的问题：
+    1359 支球队 rest_days 全为默认值 3，`dixon_coles.py` 里
+    `(home.rest_days - away.rest_days) * cfg.rest_weight` 恒为 0。
+
+    injury 不在判定内：它恒为 0.0 是**有意为之**。伤停信号走的是
+    main.py:390-399 的 attack 惩罚路径（用 DJYY 的缺阵攻击手数，
+    有实测数据支撑），而"缺阵人数 → 单一 injury 标量"这个映射没有
+    证据。把 injury 算进判定会持续诱导出"把 injury_weight 归零"的
+    候选修复 —— 那让一个本来就不生效的旋钮显得被处理过，实际问题
+    （rest_days）原地不动。
+
+    注意：即使 rest_days 已接线，其区分度也依赖结算历史覆盖。
+    从未结算过的球队 rest_days 仍是默认 3，此时应看"取值种数"而非
+    "非默认值球队数"—— 前者 >1 即证明该特征确实在随赛程变化。
     """
     if not ratings:
         return _res("DI-DEAD-FEATURES", True, "ratings 为空，无法检查")
     inj = {round(float(v.get("injury", 0.0)), 6) for v in ratings.values()}
     rest = {int(v.get("rest_days", 3)) for v in ratings.values()}
     n_inj, n_rest = len(inj), len(rest)
-    violated = (n_inj <= 1 and n_rest <= 1)   # 恒为常量 => 从未生效
+    violated = n_rest <= 1   # rest_days 常量 => rest_weight 从未生效
     return _res(
         "DI-DEAD-FEATURES",
         violated,
-        f"injury 取值种数={n_inj} {sorted(inj)[:5]}；"
         f"rest_days 取值种数={n_rest} {sorted(rest)[:5]}；"
-        f"两者均为常量 => injury_weight/rest_weight 从未生效",
+        f"injury 取值种数={n_inj} {sorted(inj)[:5]}（有意不接线，不参与判定）；"
+        + ("rest_days 为常量 => rest_weight 从未生效" if violated
+           else "rest_days 已随赛程变化 => rest_weight 生效"),
         observed={"injury_values": n_inj, "rest_values": n_rest, "n_teams": len(ratings)},
-        expected="injury / rest_days 应随比赛历史变化",
+        expected="rest_days 应随比赛历史变化（injury 恒 0 为有意设计）",
     )
 
 

@@ -1,14 +1,15 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: done　更新: 2026-10-13 16:45（逆向+复核轮收尾 / 全部直接推 main，无排队 PR）
-> 在干什么: NJStats 与 DJYY 两线逆向/复核全部落地：5 注真实提交（配额14/28）、开盘价 8 市场接入、
->           健康阈值/别名/same_odds 列名/snapshot_at 等 **6 个真 bug 修复**，566 tests 全绿
+> 状态: done　更新: 2026-10-14 03:30（死特征修复轮）
+> 在干什么: DEAD-FEATURES-REST-DAYS 已修：rest_days 真正接线（结算写 last_match_date /
+>           预测侧按 kickoff 折算 / 存量 1359 队按历史回填，取值种数 1→12）；
+>           injury 恒 0 改为有意不接线（走 main.py attack 惩罚路径）；
+>           njstats_export 测试 fresh-clone 失败已修（564 全绿）
 > 下一步: ① Air 部署挑战任务（launchd 11:25 + 每日刷 token；README 有全套步骤）
 >          ② 本机会话 token 今日 23:30 过期——Air 部署前先别在本机跑 --submit
 >          ③ 后台归档循环补完 snapshot×12 + 10-14 尾部 4 页（额度每小时自动续，无需人盯）
->          ④ evolution-loop 首跑诊断 DEAD-FEATURES-INJURY-REST——与 manager 已在取 sidelined 矛盾，
->             断点大概率在"enrichment 结果没进特征装配"；要人拍板才动（动=预测层改动）
+>          ④ DJYY 死源：CI 侧 DJYY_PROXY 从未配置（已连续 403 两个月），要么配 secret 要么把名义权重归零
 >          ⑤ main.py god object（2421 行；已核实无重复去水逻辑，属维护性风险）另开一轮
 > 已知坑: ① push 前必 fetch+rebase origin/main（Air 的 hourly 提交和 Actions 自动提交都在推 main）
 >          ② git reset --hard 会清归档文件（发生两次，靠备份救回）——reset 前跑 njstats_safeguard.py
@@ -71,7 +72,8 @@
 - 2026-10-13 **静默吞异常·关键路径第一处**：sporttery（竞彩官方主源）的 fetch_results 完全静默 return []、fetch_fixtures 只 print——被 WAF 拦/代理没配/结构变更三种病因在下游全表现为「今天没赛果」→ 结算静默跳过、账本静默不涨（与 DJYY 静默 3.5 周同病）→ 照 djyy 的 LAST_ERROR 模式接上，blocked_by_waf 与 fetch_failed 可区分；写测试时又当场抓到「成功后旧错误不清会永久挂红」并补上
 - 2026-10-13 same_odds._load() 列名全错：读 match_id/result/league 而 odds.csv 里是 home_score/away_score/competition → 永远加载 0 条 → analyze 恒 0 → find_value_signals 恒空，功能从未真正跑通过且不报错；已改真实列名+比分推导（**0 → 29586 条**）。教训：**评估参数必须用真实数据**——3 个样本测出「容差要 0.15」，92 场真实数据测出 0.015→14%、0.1→91%，结论相反
 - 2026-10-13 死代码终审（7 个「写了从未被调用」逐个实测）：fetch_odds_snapshot 真 bug 已修（1/p 把去水概率转成公平赔率当真实赔率存，偏高 3~4%=抽水量，与 sporttery 口径不一致）；same_odds 两条已修；get_model_probabilities 标注已取代；fetch_match_events 实测正常；sina.get_available_dates 可用未接；sportmonks 三项本机无 token 不可验证（如实标注，不凭文档猜）
-- 2026-10-13 evolution-loop 首跑已验证（手动 dispatch 38365314945，success）：ACCEPT 2 候选走 audit/invariant 事实通道；**auto-fix 补丁 0 个 → 不推分支不开 PR（C1/C2 三道锁行为正确）**。其诊断 DEAD-FEATURES-INJURY-REST（1374 队 injury 全零）与现状矛盾——fetch_match_info 的 sidelined 数据有、manager 也在取 → 断点在 enrichment→feature 一环，记入待办需人拍板
+- 2026-10-13 evolution-loop 首跑已验证（手动 dispatch 38365314945，success）：ACCEPT 2 候选走 audit/invariant 事实通道；**auto-fix 补丁 0 个 → 不推分支不开 PR（C1/C2 三道锁行为正确）**
+- 2026-10-14 **死特征 rest_days 修复**（原 DEAD-FEATURES-INJURY-REST）：真因是 `EloUpdater.update()` 从不写 rest_days，1359 队恒为默认值 3 → `dixon_coles.py:131/143` 的 `(home.rest_days-away.rest_days)*rest_weight` 恒为 0，config 的 `rest_weight` 是从未生效的死旋钮。**不是**"enrichment 没进特征装配"——伤停数据一直通过 main.py:390-399 的 attack 惩罚生效。修法：`update(match_date=...)` 结算侧写 `last_match_date`/`rest_days`（封顶 14 天、只向后推进、乱序不回归）；预测侧新增 `refresh_rest_for(rating, kickoff_date)` 按本场开赛日折算且**不落盘**（否则一次预测就把"上一场"改写成还没踢的比赛）；存量 1359 队按 match_history.db 最后两场间隔回填 → 取值种数 1→12。`invariants.check_dead_features` / `liveness._probe_dead_features` 改为只判 rest_days——**injury 恒 0 是有意不接线**（"缺阵人数→单一 injury 标量"无证据，且与 attack 惩罚路径并存会双重计罚）；`known_issues` 条目改名 DEAD-FEATURES-REST-DAYS 并把候选修复从"两个权重都归零"改成"仅 rest_days 退回常量时才归零"
 - 2026-10-13 全盘复核：① **待办清单陈旧**——4 条早已完成却仍挂在"已知未修"（issue #1/kelly 口径/开盘价/evolution 产物），会让下一个 agent 重做已完成的事，已清理并标注 ② 全仓库扫出 **7 个"写了却从未被调用"的方法**，其中 `DJYYSource.fetch_odds_snapshot` 有真 bug：`1/p` 把去水概率转回的"公平赔率"当成真实赔率存（实测偏高 3~4%=抽水量），与 sporttery 口径不一致 → 已改用 `markets.raw_odds` ③ `main.py` 2421 行（两个 1000+ 行函数）经核实**无重复去水逻辑**，属维护性风险而非正确性漂移
 - 2026-10-13 **挑战任务首次真实提交成功**：真 token 下 5 注全部落库（服务端配额 usedCount 0→14，浏览器直查后端确认）。过程中发现**成功判定写反**——`GMI_SUBMIT` 成功时不返回 `code` 字段（只回 `msg="suc"`），原判定 `code===0` 把成功记成失败、破坏幂等（`scripts/njstats_challenge/submit.js::isSubmitOk`）
 - 2026-10-13 token 有效期实测 **20 小时**（JWT iat→exp=72000s）→ 推翻"搬进 CI"方案：CI 无法无人值守刷新，任务必须留在 7×24 的 Air（`scripts/njstats_challenge/README.md`）

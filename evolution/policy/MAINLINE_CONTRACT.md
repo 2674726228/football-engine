@@ -154,7 +154,7 @@ verdict == "ACCEPT_NONE" ?
 |---|---|---|
 | 语义错 | `DRAW-ANCHOR-JUDGMENT-AS-RATE`（判平精度当平局率） | 先写失败测试证明 bug，修完测试转绿 |
 | 量纲错 | `DC-ATTACK-LOG-DIMENSION`（比例因子进对数域） | 方向/单调性测试 + 分布合理性检查 |
-| 死参数 | `DEAD-FEATURES-INJURY-REST`（方差为 0 的特征） | 不变式：常量特征不应有非零权重 |
+| 死参数 | `DEAD-FEATURES-REST-DAYS`（方差为 0 的特征） | 不变式：常量特征不应有非零权重 |
 | 熵减器 | `COMBO-BOOST-ENTROPY-REDUCTOR`（给 argmax 加分） | 不变式：不给当前最优方向加分 |
 
 这四类在 `known_issues.py` 中标记 `auto_mergeable: true`，

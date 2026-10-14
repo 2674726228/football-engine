@@ -343,6 +343,15 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
         home_rating = elo_updater.get_rating(fixture.home_team)
         away_rating = elo_updater.get_rating(fixture.away_team)
 
+        # 用比赛日刷新 rest_days：rating 里存的是"上一场距今的天数"，
+        # 而上一场可能已经是很久以前。这里按本场开赛日重算，否则
+        # team_ratings.json 里的值永远是结算那天的间隔（DEAD-FEATURES
+        # -INJURY-REST 探针报的就是 rest_days 无区分度这件事）。
+        _kickoff_date = (fixture.kickoff or "")[:10]
+        if _kickoff_date:
+            elo_updater.refresh_rest_for(home_rating, _kickoff_date)
+            elo_updater.refresh_rest_for(away_rating, _kickoff_date)
+
         # DJYY form_xG 修正: 用真实近期xG替代默认ratings
         djyy_pre = djyy_enrichment.get(fixture.match_id, {})
         form_xg = djyy_pre.get("form_xg")
@@ -1659,7 +1668,11 @@ def run_settlement(target_date: date):
     elo_updater = EloUpdater(ROOT / "data" / "models" / "team_ratings.json")
     for n in new_items:
         r = n["r"]
-        elo_updater.update(r.home_team, r.away_team, r.home_score, r.away_score)
+        # match_date 必须传：EloUpdater._refresh(advance=True) 靠它刷新双方
+        # rest_days。不传则 rest_days 永远停在默认值 3，config 里的
+        # rest_weight 是死旋钮（DEAD-FEATURES-REST-DAYS 探针报的问题）。
+        elo_updater.update(r.home_team, r.away_team, r.home_score, r.away_score,
+                           match_date=r.match_date)
         print(f"  {r.home_team} {r.home_score}-{r.away_score} {r.away_team} ✓")
     elo_updater.save()
     print(f"  ✓ Elo 已更新 ({len(new_items)} 场新增)")

@@ -6,7 +6,24 @@ from dataclasses import dataclass
 
 @dataclass
 class TeamRating:
-    """球队评级"""
+    """球队评级
+
+    injury / rest_days 的历史：这两个字段自 2026-07-20 首次提交起就存在，
+    但**从未被任何代码写入过** —— `EloUpdater.update()` 只更新
+    elo/attack/defense/form，于是 team_ratings.json 里 1359 支球队的
+    injury 恒为 0.0、rest_days 恒为 3，`injury_weight` / `rest_weight`
+    两个配置项在 dixon_coles.py:130/131/142/143 里永远乘 0。
+    （evolution 的 DEAD-FEATURES-REST-DAYS 探针报的就是这件事。）
+
+    rest_days 已于 2026-10-14 由 `EloUpdater._refresh()`
+    真正写入（结算时按 match_date 刷新，封顶 14 天）。
+    injury 仍保持 0.0 —— 伤停信号走的是另一条已生效的路径：
+    main.py:390-399 把 DJYY 的缺阵攻击手数乘到 attack 上，那条路径有
+    实测数据支撑；而"缺阵人数 → 单一 injury 标量"这个映射没有证据，
+    不该凭空接线。字段保留是为了不破坏 team_ratings.json 的既有 schema。
+
+    `last_match_date` 是 rest_days 的计算依据（不参与预测，仅落盘）。
+    """
     name: str
     elo: float = 1500.0
     attack: float = 1.0
@@ -14,6 +31,7 @@ class TeamRating:
     form: float = 0.0
     injury: float = 0.0
     rest_days: int = 3
+    last_match_date: str | None = None
 
 
 @dataclass

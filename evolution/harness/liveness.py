@@ -105,7 +105,23 @@ def _probe_league_draw_switch(repo: Path) -> tuple[bool, str]:
 
 
 def _probe_dead_features(repo: Path) -> tuple[bool, str]:
-    """injury / rest_days 是否仍是常量（从未生效的权重）。"""
+    """injury / rest_days 是否仍是常量（从未生效的权重）。
+
+    2026-10-14 起 rest_days 已真正写入（EloUpdater 结算侧写
+    last_match_date、预测侧按 kickoff 折算），存量 1359 支球队也按
+    match_history.db 的最后两场间隔回填过，因此这里改为"分别判定"：
+
+      - rest_days 单值 → 仍是死特征（与历史报警同义）；
+      - injury 单值 → **不再是缺陷**。injury 标量从未接线是有意为之：
+        伤停信号走 main.py:390-399 的 attack 惩罚路径（有实测数据），
+        "缺阵人数 → 单一 injury 标量"这个映射没有证据。把它当死特征
+        报了一年，每次都诱导出"把 injury_weight 归零"的候选 —— 那只会
+        让一个本来就不生效的旋钮显得被处理过，实际问题原地不动。
+        所以 injury 单独为常量时不再报警，只在两者同时为常量时报
+        （那种情况说明回填/接线整体失效）。
+
+    探针只回答"权重是否产生区分度"，不回答"该特征是否应该存在"。
+    """
     tr = _json(repo, "data/models/team_ratings.json")
     if tr is None:
         return False, "无法读取 data/models/team_ratings.json，探针不可用"
@@ -119,14 +135,15 @@ def _probe_dead_features(repo: Path) -> tuple[bool, str]:
                 rest.add(round(float(v["rest_days"]), 6))
     if not inj or not rest:
         return False, "team_ratings 缺少 injury/rest_days 字段，探针不可用"
-    # 常量 = 只有一种取值 → 该特征对所有球队相同 → 权重形同虚设
-    dead = (len(inj) == 1) or (len(rest) == 1)
-    if dead:
+    if len(rest) == 1 and len(inj) == 1:
         return True, (f"injury 取值种数={len(inj)} {sorted(inj)[:3]}；"
                       f"rest_days 取值种数={len(rest)} {sorted(rest)[:3]}；"
-                      f"存在常量特征 → 对应权重从未产生区分度")
-    return False, (f"injury 取值种数={len(inj)}、rest_days 取值种数={len(rest)}，"
-                   f"均非常量，判定为已修复")
+                      f"两者同时为常量 → rest_weight 也失效，回填/接线未落地")
+    if len(rest) == 1:
+        return True, (f"rest_days 取值种数={len(rest)} {sorted(rest)[:3]}；"
+                      f"仍是常量 → rest_weight 从未产生区分度")
+    return False, (f"rest_days 取值种数={len(rest)}，已非常量（injury 恒为 "
+                   f"{sorted(inj)[:3]} 属有意不接线，见 TeamRating 注释）")
 
 
 def _probe_model_replay_fields(repo: Path) -> tuple[bool, str]:
@@ -215,7 +232,7 @@ PROBES = {
     "DRAW-ANCHOR-JUDGMENT-AS-RATE": _probe_draw_baseline,
     "LEAGUE-DRAW-ANCHOR-HARDCODED": _probe_draw_baseline,
     "COMBO-BOOST-ENTROPY-REDUCTOR": _probe_combo_boost,
-    "DEAD-FEATURES-INJURY-REST": _probe_dead_features,
+    "DEAD-FEATURES-REST-DAYS": _probe_dead_features,
     "MODEL-REPLAY-UNREPRODUCIBLE": _probe_model_replay_fields,
     "DC-ATTACK-LOG-DIMENSION": _probe_dc_dimension,
     "LEDGER-MULTI-CHAIN-CONTAMINATION": _probe_ledger_chain,

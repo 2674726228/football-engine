@@ -83,6 +83,7 @@ def bootstrap_elo():
                 elo.update(
                     row["home_team"], row["away_team"],
                     int(row["home_score"]), int(row["away_score"]),
+                    match_date=row.get("date") or None,
                 )
             except (ValueError, KeyError):
                 continue
