@@ -65,6 +65,12 @@ CONVERGE_PAIRS = [
     ("名古屋鲸", "名古屋鲸八"),
     ("女王巡游", "女王公园巡游者"),
     ("米堡", "米德尔斯堡"),
+    # 2026-10-14 实测：挑战池仍 3 场 MISS，且这三支球队的 ratings 已分裂
+    # （皇马 1792 / 皇家马德里 1932 等，见 engine/team_aliases.py 注释）。
+    # 与上面两组的区别：分歧横跨三个源，规范名取历史样本更多的一侧。
+    ("皇马", "皇家马德里"),
+    ("巴黎圣曼", "巴黎圣日耳曼"),
+    ("LASK林茨", "林茨"),
 ]
 
 
@@ -152,3 +158,81 @@ def test_team_key_order_matters():
     k1 = team_key("拜仁", "多特蒙德")
     k2 = team_key("多特蒙德", "拜仁")
     assert k1 != k2, "主客顺序被忽略——会把主客颠倒的比赛匹配到一起"
+
+
+# ---------------------------------------------------------------- 跨源三处收敛（2026-10-14）
+
+def test_cross_source_triples_converge():
+    """皇马/巴黎圣曼/LASK林茨 必须在**所有三个消费方**同时收敛。
+
+    这三条不是"补个简称"那么简单：分歧横跨竞彩赛程、新浪赛果、DJYY 富化、
+    matches.csv 回放、NJStats 池子五处。只改别名表而不看 canon_csv_team，
+    会让 Elo 回放臂（scripts/elo_backfill_replay.py 的 canon()）把历史行
+    丢到默认 rating 上——比不改更糟。
+
+    实测过的事实（2026-10-14 修复前）：
+      - team_ratings.json 里 皇马 1792 / 皇家马德里 1932 两个 key 并存
+      - 巴黎圣曼 1729 / 巴黎圣日耳曼 1649 / 巴黎圣日尔曼 2005 三个 key
+      - LASK林茨 1542 / 林茨 1529 / 林茨竞技 1575 三个 key
+    同一支球队的 elo/攻防被劈成两半各自衰减。
+    """
+    from engine.team_aliases import canon_csv_team
+
+    for fixture_name, settle_name, norm_name, csv_name in [
+        ("皇马", "皇马", "皇家马德里", "皇家马德里"),
+        ("巴黎圣曼", "巴黎圣日耳曼", "巴黎圣日耳曼", "巴黎圣日尔曼"),
+        ("LASK林茨", "林茨", "林茨", "LASK林茨"),
+    ]:
+        n_fix, n_set = normalize_team(fixture_name), normalize_team(settle_name)
+        assert n_fix == n_set, (
+            f"{fixture_name}({n_fix}) 与 {settle_name}({n_set}) 不收敛——"
+            f"赛程与赛果会挂到 team_ratings 的不同 key 上"
+        )
+        assert n_fix == norm_name, (
+            f"{fixture_name} 归一化成 {n_fix!r}，期望 {norm_name!r}——规范名漂移"
+        )
+        # CSV 空间是独立的一套译名：规范名必须能翻过去，且翻过去的名字
+        # 要能在 matches.csv 里真的找到（否则回放臂丢掉全部历史）
+        assert canon_csv_team(norm_name) == csv_name, (
+            f"canon_csv_team({norm_name!r})={canon_csv_team(norm_name)!r} "
+            f"≠ {csv_name!r}——matches.csv 里的行回放时会失配"
+        )
+
+
+def test_linz_canon_roundtrip_is_not_identity():
+    """林茨 是唯一规范名 ≠ CSV 译名的条目，单独锁住。
+
+    matches.csv 的 25 行欧战/欧冠全写作 "LASK林茨"，规范名却是"林茨"。
+    这形成一个不对称映射（规范名 → CSV 名需要翻，CSV 名 → 规范名由
+    normalize_team 自己完成）。若哪天有人把 CSV_NAME_ALIAS 里的
+    "林茨": "LASK林茨" 删掉，Elo 回放臂会静默丢掉这 25 场。
+    """
+    from engine.team_aliases import canon_csv_team
+
+    assert normalize_team("LASK林茨") == "林茨"
+    assert canon_csv_team("林茨") == "LASK林茨"
+    # 反向：CSV 名经 normalize_team 仍要回到规范名
+    assert normalize_team("LASK林茨") == "林茨"
+
+
+def test_alias_does_not_merge_real_madrid_and_atletico():
+    """皇马→皇家马德里 不能顺手把马德里竞技也吞掉。
+
+    这条与上面的别名同一天加，且共用"马德里"二字，是最容易一起写错的
+    地方：若把规范名误设成"马德里"，两支球队会合并成同一个 key，
+    之后每一场马德里德比的 elo 都会互相污染，且没有任何报错。
+    """
+    assert normalize_team("皇马") == "皇家马德里"
+    assert normalize_team("马德里竞技") == "马德里竞技"
+    assert normalize_team("皇马") != normalize_team("马德里竞技")
+
+
+def test_alias_does_not_merge_psg_and_paris_fc():
+    """巴黎圣曼→巴黎圣日耳曼 不能吞掉巴黎FC（同在巴黎，不同俱乐部）。
+
+    loose_normalize("巴黎FC") 已经等于 "巴黎"，再和"巴黎圣日耳曼"合并
+    就会把法乙的巴黎FC 数据挂到欧冠的 PSG 上。
+    """
+    assert normalize_team("巴黎圣曼") == "巴黎圣日耳曼"
+    assert normalize_team("巴黎FC") == "巴黎FC"
+    assert normalize_team("巴黎圣曼") != normalize_team("巴黎FC")

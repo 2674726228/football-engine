@@ -50,6 +50,28 @@ TEAM_ALIASES: dict[str, str] = {
     "多特": "多特蒙德",                    # Dortmund
     "尤文": "尤文图斯",                    # Juventus
     "国竞": "国际米兰",                    # Inter（竞彩另一写法，实测出现过）
+    # 2026-10-14 实测补齐：挑战池匹配仍 3 场 MISS，全在下面这三条。
+    # 复验：`node scripts/njstats_challenge/submit.js --date 2026-10-14`。
+    # 与上面不同的是——这三条的**分歧横跨三个数据源**，不只是"赛程 vs 池子"：
+    #   皇马        竞彩赛程/新浪赛果      → 池子用"皇家马德里"
+    #   LASK林茨    竞彩赛程              → 新浪赛果/DJYY 用"林茨"/"林茨竞技"
+    #   巴黎圣曼    竞彩赛程              → 新浪赛果/DJYY 用"巴黎圣日耳曼"
+    # 队名不合并的代价不只是挑战提不了注：team_ratings.json 的键就是
+    # normalize_team 的输出，同一支队会分裂成多个条目，各自的 elo/攻防
+    # 只拿到一半的真实赛果。实测（2026-10-14）三支球队都已分裂：
+    #   皇马 1792 / 皇家马德里 1932；LASK林茨 1542 / 林茨 1529 / 林茨竞技 1575；
+    #   巴黎圣曼 1729 / 巴黎圣日耳曼 1649 / 巴黎圣日尔曼 2005。
+    # 规范名的选择依据：以**赛果/回放侧**（新浪 + DJYY + matches.csv 的
+    # 主流写法）为准，因为那一侧的名字承载了历史样本与 elo 积累；
+    # 赛程侧的简称映射过去。matches.csv 计数：皇家马德里 715 vs 皇马 19、
+    # 巴黎圣日尔曼 660 vs 巴黎圣曼 7、LASK林茨 25 vs 林茨 0。
+    "皇马": "皇家马德里",                  # Real Madrid（竞彩/新浪赛果用"皇马"）
+    "巴黎圣曼": "巴黎圣日耳曼",            # Paris Saint-Germain（竞彩简称）
+    # LASK林茨 的情况更绕：三个 key 分别来自三个源（竞彩赛程"LASK林茨"、
+    # 新浪赛果"林茨"、DJYY"林茨竞技"），且 loose_normalize("林茨竞技")
+    # 已经等于 "林茨"，所以规范名取"林茨"能同时收编 DJYY 那一支，
+    # 不会新增第四种写法。
+    "LASK林茨": "林茨",                    # LASK Linz（竞彩赛程带俱乐部前缀 LASK）
 
     # ---- DJYY 池译名对齐（2026-10-13 实测补齐）----
     # 背景：DJYY 富化匹配用的是「主队_vs_客队」精确键，任一侧译名不同整场就丢失。
@@ -232,6 +254,11 @@ def team_key(home: str, away: str, loose: bool = False) -> str:
 # 赛程名 → data/historical/matches.csv（lottery-football 冷启动库）译名映射。
 # 仅收录人工确认的同队异译；模糊匹配候选含高危误配（如 新英格兰 Revolution
 # ≠ 英格兰国家队），未经确认一律不入表。用法：canon(name) = get(name) or normalize_team(name)
+#
+# 注意与 TEAM_ALIASES 的关系：TEAM_ALIASES 决定**规范名**，本表只负责把规范名
+# 翻到 matches.csv 的队名空间（CSV 的译名自成一套，且无法改动——它是外部
+# 冷启动库，改动会让历史行失配）。所以规范名若在本表里（如"巴黎圣日耳曼"），
+# 走 CSV 路径时会被再翻一次，这是预期行为，不是重复映射。
 CSV_NAME_ALIAS: dict[str, str] = {
     "利雅得新月": "利雅新月",
     "吉尔维森特": "吉维森特",
@@ -240,9 +267,23 @@ CSV_NAME_ALIAS: dict[str, str] = {
     "萨尔茨堡红牛": "萨尔茨堡",
     "阿马多拉之星": "阿马多拉",
     "帕福斯FC": "帕福斯",
+    # LASK林茨 是唯一一个规范名（林茨）与 CSV 译名（LASK林茨）不一致的：
+    # matches.csv 的 25 行欧战/欧冠全部写作 "LASK林茨"，而规范名 "林茨"
+    # 在 CSV 里查不到。不补这一条，Elo 回放臂（scripts/elo_backfill_replay.py
+    # 的 canon()）会把 LASK 的 25 场历史全部丢到默认 rating 上。
+    "林茨": "LASK林茨",
 }
 
 
 def canon_csv_team(name: str) -> str:
-    """赛程名 → matches.csv 队名空间（先查专表，再走通用归一化）。"""
+    """赛程名 → matches.csv 队名空间（先查专表，再走通用归一化）。
+
+    两步的顺序很重要：先查专表是因为 CSV 的译名自成一套，与规范名
+    可能不同（如规范名"林茨"在 CSV 里叫"LASK林茨"）；查不到才退回
+    通用归一化。若顺序反过来，"林茨"会先被 normalize_team 变成规范名
+    而永远进不了专表的反向映射。
+
+    注意：这里只做**规范名 → CSV 译名**，不做 CSV 译名 → 规范名
+    （EloUpdater 内部对 ratings 键自己会调 normalize_team）。
+    """
     return CSV_NAME_ALIAS.get(name) or normalize_team(name)
