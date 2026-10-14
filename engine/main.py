@@ -346,7 +346,7 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
         # 用比赛日刷新 rest_days：rating 里存的是"上一场距今的天数"，
         # 而上一场可能已经是很久以前。这里按本场开赛日重算，否则
         # team_ratings.json 里的值永远是结算那天的间隔（DEAD-FEATURES
-        # -INJURY-REST 探针报的就是 rest_days 无区分度这件事）。
+        # -REST-DAYS 探针报的就是 rest_days 无区分度这件事）。
         _kickoff_date = (fixture.kickoff or "")[:10]
         if _kickoff_date:
             elo_updater.refresh_rest_for(home_rating, _kickoff_date)
