@@ -345,15 +345,44 @@ class LeagueParamsManager:
         return param
 
     def get_base_goals(self, league: str) -> float:
-        """获取联赛 base_goals（供 DC 模型使用）"""
+        """获取联赛 base_goals（供 DC 模型使用）
+
+        **本 getter 有意保持未接线**（2026-10-14，见 docs/EXPERIMENTS.md E5）。
+        实测：`engine/main.py:268-269` 构造 `DixonColesConfig` 时只用
+        `config/prediction.json` 的全局值，不调这里。原因是功效不划算——
+        联赛参数改的是 `model_raw` 层，而 `model_raw` 进 fusion 时的
+        有效权重只有 0.0625（champion 0.05/0.75/0.20 因 DJYY 死源
+        重新归一化），效应被稀释到检测下限以下 20–50 倍：
+
+            实测 Δ = +0.000191（t=+0.44，n=48 场重放）
+            检出所需 n ≈ 952 场 ≈ 按当前结算速率 3.2 年
+
+        别看到"这里没接"就顺手接上 —— 那不是疏漏，是量化后的决定。
+        重开前提：model 层有效权重显著上升，或回放保真度解决
+        （当前 557 场 v2 里只有 48 场带评级快照）。
+        """
         return self.get_params(league).base_goals
 
     def get_home_adv(self, league: str) -> float:
-        """获取联赛主场优势权重"""
+        """获取联赛主场优势权重
+
+        **本 getter 有意保持未接线**（2026-10-14，见 docs/EXPERIMENTS.md E5
+        与 `get_base_goals` 的说明）。另外注意 `dixon_coles.py:132/142` 里
+        `home_adv_weight` 只进 `log_home` **不进 `log_away`**，所以它天然
+        只影响主队一侧；欧冠存档 0.90 vs 全局 1.0 的差异只让 xG 变 0.990。
+        """
         return self.get_params(league).home_adv_weight
 
     def get_market_blend(self, league: str) -> float:
-        """获取联赛市场混合权重"""
+        """获取联赛市场混合权重
+
+        **本 getter 有意保持未接线**（2026-10-14，见 docs/EXPERIMENTS.md E5
+        与 `get_base_goals` 的说明）。
+
+        易混点：`league_params.json` 存档值与 `LEAGUE_PRIORS` 先验值
+        **不是一回事**（欧冠分别是 0.1 与 0.32）。前者是在线自适应结果，
+        后者是初始化默认值。
+        """
         return self.get_params(league).market_blend_weight
 
     def get_xg_calibration(self, league: str) -> float:
