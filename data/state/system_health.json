@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-10-14T23:25:49",
+  "generated_at": "2026-10-15T01:28:21",
   "summary": {
-    "total": 11,
+    "total": 10,
     "critical": 0,
-    "healed": 0
+    "healed": 1
   },
   "findings": [
     {
       "id": "git/state",
       "layer": "git",
-      "severity": "ok",
-      "detail": "分支状态正常",
-      "healable": false,
-      "healed": false
+      "severity": "warn",
+      "detail": "残留 rebase 状态=False, detached HEAD=True → 已清场对齐远端",
+      "healable": true,
+      "healed": true
     },
     {
       "id": "git/backlog",
@@ -42,23 +42,15 @@
       "id": "data/yesterday",
       "layer": "data",
       "severity": "ok",
-      "detail": "昨日(2026-10-13)已结算",
+      "detail": "昨日(2026-10-14)已结算",
       "healable": false,
       "healed": false
     },
     {
       "id": "source/ci",
       "layer": "source",
-      "severity": "info",
-      "detail": "CI 状态检查跳过（HTTPError）",
-      "healable": false,
-      "healed": false
-    },
-    {
-      "id": "model/draw",
-      "layer": "model",
       "severity": "ok",
-      "detail": "平局均值 23.4% 在先验带内",
+      "detail": "最近 CI 运行 0.3h 前",
       "healable": false,
       "healed": false
     },
@@ -90,7 +82,7 @@
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 170MB",
+      "detail": ".git 体积 166MB",
       "healable": false,
       "healed": false
     }
