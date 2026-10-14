@@ -146,10 +146,17 @@ def test_manifest_shape(tmp_path, monkeypatch):
     monkeypatch.setattr(ne, "FEATURES", tmp_path / "feat")
     (tmp_path / "2026-10-12_prob_draw.json").write_text("{}")
     out = tmp_path / "exported"
+    # 子进程重新 import 模块，父进程的 monkeypatch 对它无效，必须走环境变量
+    # （NJSTATS_ARCHIVE_DIR / NJSTATS_FEATURES_DIR）。否则子进程会用真实的
+    # data/state/njstats_archive/——该目录按政策不入 git，fresh clone 与 CI
+    # 上不存在，于是 n_archive_files=0，测试只在"本地采过归档"的机器上绿。
     r = subprocess.run(
         [sys.executable, str(SCRIPT), "--out", str(out)],
         capture_output=True, text=True, timeout=120,
-        env={**__import__("os").environ, "PYTHONPATH": str(ROOT)},
+        env={**__import__("os").environ,
+             "PYTHONPATH": str(ROOT),
+             "NJSTATS_ARCHIVE_DIR": str(tmp_path),
+             "NJSTATS_FEATURES_DIR": str(tmp_path / "feat")},
     )
     assert r.returncode == 0, r.stderr
     dest_dirs = list(out.iterdir())
@@ -158,3 +165,4 @@ def test_manifest_shape(tmp_path, monkeypatch):
     assert mf["trial_expires"].startswith("2026-10-15")
     assert "source" in mf
     assert mf["n_archive_files"] >= 1
+    assert Path(mf["source"]) == tmp_path, "MANIFEST.source 必须指向被测目录"

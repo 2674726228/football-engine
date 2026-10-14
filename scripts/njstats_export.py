@@ -45,6 +45,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import sys
 import tarfile
@@ -55,8 +56,19 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-ARCHIVE = ROOT / "data" / "state" / "njstats_archive"
-FEATURES = ROOT / "data" / "state" / "njstats_features"
+# 归档/特征目录可用环境变量覆盖。默认目录按 .gitignore 政策不入 git
+# （33MB+ 原始可重抓数据），所以 fresh clone 与 CI 上它不存在——覆盖
+# 能力让导出脚本能对任意归档位置工作，也让测试可以给子进程传一个隔离
+# 的目录。这一点是必需的：测试用 monkeypatch 改的是父进程的模块全局，
+# 而 subprocess 会重新 import 模块、只认环境变量，不认 monkeypatch。
+ARCHIVE = Path(os.environ.get(
+    "NJSTATS_ARCHIVE_DIR",
+    str(ROOT / "data" / "state" / "njstats_archive"),
+))
+FEATURES = Path(os.environ.get(
+    "NJSTATS_FEATURES_DIR",
+    str(ROOT / "data" / "state" / "njstats_features"),
+))
 DEFAULT_OUT = Path.home() / "football-engine-archive"
 
 PROB_ENDPOINTS = ["draw", "over", "under", "btts", "home", "away", "ht-goal", "avg-goal"]
