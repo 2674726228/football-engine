@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-10-15T01:28:21",
+  "generated_at": "2026-10-15T18:55:29",
   "summary": {
-    "total": 10,
-    "critical": 0,
-    "healed": 1
+    "total": 9,
+    "critical": 1,
+    "healed": 0
   },
   "findings": [
     {
       "id": "git/state",
       "layer": "git",
-      "severity": "warn",
-      "detail": "残留 rebase 状态=False, detached HEAD=True → 已清场对齐远端",
-      "healable": true,
-      "healed": true
+      "severity": "ok",
+      "detail": "分支状态正常",
+      "healable": false,
+      "healed": false
     },
     {
       "id": "git/backlog",
@@ -47,14 +47,6 @@
       "healed": false
     },
     {
-      "id": "source/ci",
-      "layer": "source",
-      "severity": "ok",
-      "detail": "最近 CI 运行 0.3h 前",
-      "healable": false,
-      "healed": false
-    },
-    {
       "id": "model/weights",
       "layer": "model",
       "severity": "ok",
@@ -65,24 +57,24 @@
     {
       "id": "env/cron",
       "layer": "env",
-      "severity": "ok",
-      "detail": "crontab 关键任务在",
+      "severity": "critical",
+      "detail": "crontab 缺少关键任务: ['run_realtime_monitor.sh', 'auto_run.sh']（调度层断裂）",
       "healable": false,
       "healed": false
     },
     {
       "id": "env/proxy",
       "layer": "env",
-      "severity": "ok",
-      "detail": "代理 7897 通",
-      "healable": false,
+      "severity": "warn",
+      "detail": "代理 7897 不通（拉起失败）",
+      "healable": true,
       "healed": false
     },
     {
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 166MB",
+      "detail": ".git 体积 17MB",
       "healable": false,
       "healed": false
     }
