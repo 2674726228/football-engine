@@ -29,7 +29,29 @@ from .base import DataSource, Fixture, MatchResult, OddsSnapshot
 #
 # 与 SPORTTERY_PROXY 同一模式：设 DJYY_PROXY 指向自建 Worker 的代理路径即可绕开；
 # 未设置时行为与从前完全一致（直连 djyylive.com），便于灰度与回滚。
-DJYY_BASE = os.environ.get("DJYY_PROXY", "https://djyylive.com").rstrip("/")
+#
+# 2026-10-14：空串必须当"未配置"，不能当"配了个空代理"。
+# GitHub Actions 的 `DJYY_PROXY: ${{ secrets.DJYY_PROXY }}` 在 secret 不存在时
+# 展开成**空字符串**（不是"变量未定义"），旧写法 get(..., default) 拿到 ""，
+# 若直接 rstrip("/") 用就会拼出 "/api/..." 这种无 scheme 的 URL，
+# requests 抛 MissingSchema，在下游表现为 network 错误——
+# 与"Worker 挂了"完全同形，排查时无法区分。真实事故：
+# secret 自 2026-10-11 引入引用后从未配置，CI 侧 DJYY 静默失败两周。
+# 因此显式判空 + 打日志；判定口径与 manager._djyy_proxy_configured() 一致
+# （非空且含 "://" 才算配了）。
+def _resolve_djyy_base() -> str:
+    raw = (os.environ.get("DJYY_PROXY") or "").strip()
+    if not raw:
+        return "https://djyylive.com"
+    if "://" not in raw:
+        print(f"    [djyy] ⚠ DJYY_PROXY={raw!r} 缺少 scheme（http:// 或 https://），"
+              f"已按未配置处理，回退直连。若这是 CI，请检查仓库 "
+              f"secrets.DJYY_PROXY 是否真的设置了值。")
+        return "https://djyylive.com"
+    return raw.rstrip("/")
+
+
+DJYY_BASE = _resolve_djyy_base()
 
 HEADERS = {
     "User-Agent": (

@@ -20,7 +20,14 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
-BASE = os.environ.get("DJYY_PROXY", "https://djyylive.com").rstrip("/")
+# 空串（CI 未配 secret 时展开为空）必须当未配置：旧写法拿 "" 直接
+# rstrip("/") 会用出无 scheme 的 URL，urllib 抛 ValueError，
+# 而 main() 里 "No fixtures found, keeping existing file" 会让人
+# 误以为"今天真的没赛程"——正是 DJYY 死源两周没人发现的路径之一。
+# 口径同 engine/sources/djyy.py:_resolve_djyy_base。
+_raw_base = (os.environ.get("DJYY_PROXY") or "").strip()
+BASE = (_raw_base if _raw_base and "://" in _raw_base
+        else "https://djyylive.com").rstrip("/")
 OUTPUT = ROOT / "data" / "djyy_matches.json"
 
 _SSL_CTX = ssl.create_default_context()

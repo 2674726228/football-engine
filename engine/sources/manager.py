@@ -40,6 +40,28 @@ def djyy_time_budget(n_matches: int) -> float:
     return min(DJYY_ENRICH_MAX_BUDGET, max(DJYY_ENRICH_MIN_BUDGET, need))
 
 
+def _djyy_proxy_configured() -> bool:
+    """DJYY_PROXY 是否**真的**配了代理。
+
+    2026-10-14 新增。为什么不能简单用 `os.environ.get("DJYY_PROXY")`：
+
+    GitHub Actions 里 `DJYY_PROXY: ${{ secrets.DJYY_PROXY }}` 在 secret
+    **不存在**时展开成**空字符串**，而不是"变量未定义"。旧代码
+    `os.environ.get("DJYY_PROXY", "https://djyylive.com")` 拿到 ""，
+    falsy 判断会把 "" 当没配 → 走默认直连，看起来一切正常；
+    而 DJYY_BASE 若直接取 ""（某些调用点），requests 抛
+    MissingSchema("Invalid URL '/api/...': No scheme supplied")，
+    在下游表现为"network 错误"，与 Worker 挂了长得一模一样。
+
+    本项目真实事故：secret 从 2026-10-11 引入引用至今未配置，CI 侧
+    DJYY 富化连续静默失败，直到 10-13 才通过日志异常发现。
+    所以"配了代理"要求**非空且含 scheme**，空串一律算没配，
+    并把这个事实写进 djyy_status.json 供告警区分两种故障。
+    """
+    raw = (os.environ.get("DJYY_PROXY") or "").strip()
+    return bool(raw) and "://" in raw
+
+
 
 def _opening_movement(comparison: dict | None) -> dict | None:
     """提取各市场的开盘→即时盘变动（2026-10-13 全市场版）。
@@ -518,6 +540,13 @@ class SourceManager:
         deadline = time.monotonic() + _budget
         _stats = {"fixtures": 0, "matched": 0, "enriched": 0, "failed": 0,
                   "cache_hit": 0, "budget_exhausted": False}
+        # 2026-10-14: proxy 配置状态。CI 侧 secrets.DJYY_PROXY 未设置时，
+        # GitHub Actions 把空 secret 展开成空字符串 → DJYY_BASE 变 "" →
+        # requests 抛 MissingSchema（"Invalid URL '/api/...': No scheme
+        # supplied"）→ 走 except 分支记 kind=network。这个"没配代理"的
+        # 故障模式与"配了代理但 Worker 挂了"在日志里长得一样，都是
+        # network 错误，排查时要靠这个字段区分。
+        _proxy_cfg = bool(_djyy_proxy_configured())
 
         try:
             djyy_fixtures = self._djyy.fetch_fixtures(target_date)
@@ -525,6 +554,7 @@ class SourceManager:
             # 2026-10-10 诊断: CI 侧 DJYY 无匹配根因定位（本地正常/CI 为0）
             print(f"    [djyy诊断] fetch_fixtures 异常: {type(e).__name__}: {e}")
             _stats["error"] = f"fetch_fixtures:{type(e).__name__}: {e}"
+            _stats["proxy_configured"] = _proxy_cfg
             self._write_djyy_status(target_date, _stats, len(fixtures), _budget)
             return enrichment
 
@@ -541,6 +571,13 @@ class SourceManager:
                 _stats["error"] = _err.get("detail") or "fetch_fixtures_empty"
                 print("    [djyy诊断] fetch_fixtures 返回 0 场"
                       + (f"（{_err.get('detail')}）" if _err else "（当天无赛程）"))
+            _stats["proxy_configured"] = _proxy_cfg
+            # 池子为空 + 没配代理 = 几乎一定是 secret 缺失（而不是上游挂了），
+            # 直接把结论打到日志里，省一次登录 CI 后台翻历史。
+            if _proxy_cfg is False:
+                print("    [djyy诊断] ⚠ DJYY_PROXY 未配置 —— 若这是 CI 运行，"
+                      "检查仓库 secrets.DJYY_PROXY（空 secret 会展开成空串，"
+                      "表现为 network/MissingSchema 错误，与 Worker 挂了无法区分）")
             self._write_djyy_status(target_date, _stats, len(fixtures), _budget)
             return enrichment
         _stats["fixtures"] = len(djyy_fixtures)
@@ -794,6 +831,7 @@ class SourceManager:
             coverage = (covered / n_fixtures) if n_fixtures else 0.0
 
             healthy = enrich_success >= 0.8 and not stats.get("budget_exhausted")
+            proxy_cfg = stats.get("proxy_configured", _djyy_proxy_configured())
             payload = {
                 "date": target_date.isoformat(),
                 "generated_at": datetime.now().isoformat(timespec="seconds"),
@@ -808,10 +846,16 @@ class SourceManager:
                 "budget_s": round(budget, 1),
                 "budget_exhausted": bool(stats.get("budget_exhausted")),
                 "error": stats.get("error"),
+                # 2026-10-14：区分"没配代理"与"代理/上游挂了"两种失败。
+                # CI 的空 secret 会展开成空串，两种故障在日志里都表现为
+                # network 错误，只有这个字段能分清该找谁修。
+                "proxy_configured": bool(proxy_cfg),
                 "detail": stats,
                 "note": ("healthy 由 enrich_success 决定（匹配上的场次里富化成功的比例）；"
                          "league_coverage 低说明我们预测了 DJYY 不覆盖的联赛，"
-                         "属结构性差异而非故障——两者混用会让告警永远为真"),
+                         "属结构性差异而非故障——两者混用会让告警永远为真；"
+                         "proxy_configured=false 时 enrich_success 低几乎一定是 "
+                         "secrets.DJYY_PROXY 未设置，不是上游故障"),
             }
             out = self.data_dir / "djyy_status.json"
             out.parent.mkdir(parents=True, exist_ok=True)

@@ -250,3 +250,143 @@ def test_workflows_inject_djyy_proxy():
               ".github/workflows/api-test.yml"):
         txt = (ROOT / f).read_text(encoding="utf-8")
         assert "secrets.DJYY_PROXY" in txt, f"{f} 未注入 DJYY_PROXY secret"
+
+
+# ---------- 空 secret 必须当"未配置"（2026-10-14 真实事故） ----------
+#
+# GitHub Actions 里 `DJYY_PROXY: ${{ secrets.DJYY_PROXY }}` 在 secret
+# **不存在**时展开成**空字符串**，不是"变量未定义"。旧写法
+# `os.environ.get("DJYY_PROXY", default)` 拿到 ""，falsy 时回退默认值
+# 看似没事，但只要有一处直接 rstrip 使用，就会拼出 "/api/..." 这种
+# 无 scheme 的 URL，requests 抛 MissingSchema / urllib 抛 ValueError。
+#
+# 真实事故：secret 自 2026-10-11（5010daf29）引入引用后从未配置，
+# CI 侧 DJYY 富化连续静默失败两周，djyy_prob 恒 null 无人察觉，
+# 直到 10-13 查日志才发现。空串故障与"Worker 挂了"在下游同形
+# （都是 network 错误），必须在上游就分开。
+
+def _reload_with_env(env_value):
+    """在给定 DJYY_PROXY 值下重新加载 djyy 模块，返回模块。"""
+    import importlib
+    import os
+    if env_value is None:
+        os.environ.pop("DJYY_PROXY", None)
+    else:
+        os.environ["DJYY_PROXY"] = env_value
+    try:
+        return importlib.reload(djyy_mod)
+    finally:
+        importlib.reload(djyy_mod)
+        os.environ.pop("DJYY_PROXY", None)
+
+
+def test_empty_secret_falls_back_to_default(monkeypatch):
+    """空串（CI 未配 secret）必须回退直连，不能拼出无 scheme 的 URL。"""
+    m = _reload_with_env("")
+    assert m.DJYY_BASE == "https://djyylive.com"
+    # 关键：不能出现以 "/" 开头的 BASE（会让 requests 抛 MissingSchema）
+    assert not m.DJYY_BASE.startswith("/")
+    assert "://" in m.DJYY_BASE
+
+
+def test_whitespace_only_secret_also_falls_back():
+    """CI 的 secret 若被误填成空格/换行，同样当未配置。"""
+    m = _reload_with_env("  \n ")
+    assert m.DJYY_BASE == "https://djyylive.com"
+
+
+def test_scheme_less_value_falls_back_and_warns(capsys):
+    """配了值但缺 scheme（如 "proxy.example.com/api/djyy"）→ 回退 + 打日志。"""
+    m = _reload_with_env("proxy.example.com/api/djyy")
+    assert m.DJYY_BASE == "https://djyylive.com"
+    out = capsys.readouterr().out
+    assert "scheme" in out, "缺 scheme 的配置值必须显式告警，不能静默回退"
+    assert "secrets.DJYY_PROXY" in out, "告警要指出该检查哪个 secret"
+
+
+def test_valid_proxy_still_honoured():
+    """回归保护：正常配置仍必须走代理（不能被上面的判空误伤）。"""
+    m = _reload_with_env("https://cf-worker.example.workers.dev/api/djyy")
+    assert m.DJYY_BASE == "https://cf-worker.example.workers.dev/api/djyy"
+
+
+def test_manager_proxy_configured_judgement():
+    """manager 侧判定口径：非空且含 scheme 才算配了。"""
+    from engine.sources.manager import _djyy_proxy_configured
+    import os
+    for raw, expected in (("", False), ("   ", False), ("nope", False),
+                          ("https://x.example/api/djyy", True),
+                          ("http://x.example/api/djyy", True)):
+        old = os.environ.get("DJYY_PROXY")
+        os.environ["DJYY_PROXY"] = raw
+        try:
+            assert _djyy_proxy_configured() is expected, f"DJYY_PROXY={raw!r}"
+        finally:
+            if old is None:
+                os.environ.pop("DJYY_PROXY", None)
+            else:
+                os.environ["DJYY_PROXY"] = old
+
+
+def test_fetch_djyy_ssr_empty_secret_falls_back():
+    """第三个调用点（scripts/fetch_djyy_ssr.py）同样要判空。"""
+    import importlib
+    import os
+    sys.path.insert(0, str(ROOT / "scripts"))
+    try:
+        import fetch_djyy_ssr as fds
+        os.environ["DJYY_PROXY"] = ""
+        try:
+            m = importlib.reload(fds)
+            assert m.BASE == "https://djyylive.com"
+            assert "://" in m.BASE
+        finally:
+            os.environ.pop("DJYY_PROXY", None)
+            importlib.reload(fds)
+    finally:
+        sys.path.remove(str(ROOT / "scripts"))
+
+
+def test_djyy_status_records_proxy_flag(tmp_path, monkeypatch):
+    """djyy_status.json 必须带 proxy_configured，供告警区分两种故障。
+
+    场景：CI 侧没配 secret → DJYY 池返回 0 → enrich_success=0（不健康）。
+    只看 enrich_success 会以为上游挂了；有 proxy_configured=false
+    才知道该去补 secret。这正是 2026-10-14 要修的可观测性缺口。
+    """
+    from datetime import date
+    from engine.sources.manager import SourceManager
+
+    dm = SourceManager(data_dir=tmp_path)
+    dm._djyy = None  # 不需要真数据源
+
+    stats = {"fixtures": 0, "matched": 0, "enriched": 0, "failed": 0,
+             "cache_hit": 0, "budget_exhausted": False,
+             "proxy_configured": False}
+    dm._write_djyy_status(date(2026, 10, 14), stats, 12, 180.0)
+
+    payload = json.loads((tmp_path / "djyy_status.json").read_text(encoding="utf-8"))
+    assert payload["proxy_configured"] is False
+    assert payload["healthy"] is False, "池子为空 = 上游没给赛程 = 故障，必须不健康"
+    assert payload["enrich_success"] == 0.0
+    assert "proxy_configured" in payload["note"]
+
+
+def test_djyy_status_proxy_configured_pool_empty(tmp_path):
+    """对照场景：代理配了但池子仍为空 → healthy=false 但 proxy_configured=true。
+
+    两者必须能区分，否则"补 secret"与"查 Worker"这两种处置会被混为一谈。
+    """
+    from datetime import date
+    from engine.sources.manager import SourceManager
+
+    dm = SourceManager(data_dir=tmp_path)
+    dm._djyy = None
+    stats = {"fixtures": 0, "matched": 0, "enriched": 0, "failed": 0,
+             "cache_hit": 0, "budget_exhausted": False,
+             "proxy_configured": True}
+    dm._write_djyy_status(date(2026, 10, 14), stats, 12, 180.0)
+
+    payload = json.loads((tmp_path / "djyy_status.json").read_text(encoding="utf-8"))
+    assert payload["proxy_configured"] is True
+    assert payload["healthy"] is False

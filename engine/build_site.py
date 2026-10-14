@@ -100,9 +100,15 @@ def build_site():
     if _need_refresh:
         try:
             import urllib.request
+            # 空串（CI 未配 secret 时展开为空）必须当未配置，否则拼出
+            # "/data/league-matrix.json" 这种无 scheme 的 URL → ValueError，
+            # 被 except Exception 吞掉，联赛矩阵静默不刷新。
+            # 口径同 engine/sources/djyy.py:_resolve_djyy_base。
+            _djyy_base = (os.environ.get("DJYY_PROXY") or "").strip()
+            if not _djyy_base or "://" not in _djyy_base:
+                _djyy_base = "https://djyylive.com"
             req = urllib.request.Request(
-                os.environ.get("DJYY_PROXY", "https://djyylive.com").rstrip("/")
-                + "/data/league-matrix.json",
+                _djyy_base + "/data/league-matrix.json",
                 headers={"User-Agent": "football-engine/1.0"}
             )
             with urllib.request.urlopen(req, timeout=15) as resp:
