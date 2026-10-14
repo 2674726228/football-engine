@@ -39,7 +39,7 @@ def _node(script: str) -> str:
     // ROOT 的基准：submit.js 优先用 process.argv[1]，被 new Function 载入时
     // argv[1] 是 node -e 的占位符，所以这里显式喂真实路径进去。
     process.argv[1] = {str(SUBMIT_JS)!r};
-    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, isSubmitOk, PLAY_TYPE, LIST_TYPE}};')();
+    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, isSubmitOk, isYouth, PLAY_TYPE, LIST_TYPE}};')();
     {script}
     """
     p = subprocess.run(["node", "-e", src], capture_output=True, text=True, timeout=60)
@@ -519,3 +519,74 @@ def test_failure_reports_reason():
     d = json.loads(out)
     assert d["ok"] is False
     assert "登录" in d["msg"]
+
+
+# ---------------------------------------------------------------- 青年队误配防护（2026-10-14）
+
+def test_youth_squad_names_are_detected():
+    """U19/U21/Under-19 必须判青年队；普通队名不能误判。
+
+    2026-10-14 实测背景：开放池里欧冠比赛同时存在**成年队与 U19 两个版本**
+    （U19 版通常早 7 小时开赛）。我们只预测成年队，若匹配到 U19 的
+    guessingId，提交照样成功（protobuf 不校验），注就静默提到错误的场次。
+    """
+    out = _node("""
+    console.log(JSON.stringify({
+      u19:      mod.isYouth('马德里竞技U19'),
+      u21:      mod.isYouth('托特纳姆热刺U21'),
+      under19: mod.isYouth('Racing Club Lens Under 19'),
+      under21: mod.isYouth('AS Roma Under 21'),
+      hyphen:   mod.isYouth('拜仁慕尼黑U-19'),
+      senior1:  mod.isYouth('马德里竞技'),
+      senior2:  mod.isYouth('曼彻斯特联'),
+      senior3:  mod.isYouth('纽卡斯尔喷气机'),
+      senior4:  mod.isYouth('维京'),
+      empty:    mod.isYouth(''),
+      loneU:    mod.isYouth('U'),
+    }));
+    """)
+    d = json.loads(out)
+    for key in ("u19", "u21", "under19", "under21", "hyphen"):
+        assert d[key] is True, f"{key} 必须判为青年队"
+    for key in ("senior1", "senior2", "senior3", "senior4", "empty", "loneU"):
+        assert d[key] is False, f"{key} 不能误判为青年队"
+
+
+def test_matchpool_never_matches_youth_squad():
+    """候选不得匹配到池内青年队的 guessingId（哪怕队名完全相同）。
+
+    2026-10-14 实测：池内欧冠同时有成年队与 U19 两版（U19 早 7 小时开赛）。
+    三级索引当前都区分得了（normalize/loose/normName 都不删 "U19" 后缀），
+    所以这是**防御性**用例——锁的是"万一哪天 loose 规则把后缀删了"或
+    "池子改名成等价写法"时不会静默提错场次。真实数据里 U19 与成年队
+    的名字永远不同，本条测的是最坏情况（候选名 = 池内青年队名）。
+    """
+    out = _node("""
+    const pool = [
+      {guessingId:'youth-1', weekId:1, league:'欧青联', home:'阿森纳U19', away:'里尔U19', kickoff:'2026-10-13T20:00:00Z', odds:{'1':{'3':'2.10'}}},
+    ];
+    const cands = [{match_id:'y', home:'阿森纳U19', away:'里尔U19', market:'1x2', model_prob:0.4, odds:1.8}];
+    const r = mod.matchPool(cands, pool);
+    console.log(JSON.stringify({matched: r.matched.length, unmatched: r.unmatched}));
+    """)
+    d = json.loads(out)
+    assert d["matched"] == 0, "青年队候选不得匹配成功"
+    assert len(d["unmatched"]) == 1
+    assert d["unmatched"][0]["reason"] == "pool_match_is_youth_squad"
+
+
+def test_matchpool_prefers_senior_over_youth_when_both_present():
+    """成年队与青年队同时在池内时，必须命中成年队那条。"""
+    out = _node("""
+    const pool = [
+      {guessingId:'youth-1', weekId:1, league:'欧青联', home:'阿森纳U19', away:'里尔U19', kickoff:'2026-10-13T20:00:00Z', odds:{'1':{'3':'2.10'}}},
+      {guessingId:'senior-1', weekId:1, league:'欧冠', home:'阿森纳', away:'里尔', kickoff:'2026-10-13T19:00:00Z', odds:{'1':{'3':'1.78'}}},
+    ];
+    const cands = [{match_id:'2026-10-13_周二006', home:'阿森纳', away:'里尔', market:'1x2', model_prob:0.4, odds:1.8}];
+    const r = mod.matchPool(cands, pool);
+    console.log(JSON.stringify({n: r.matched.length, gid: r.matched[0] && r.matched[0].guessingId, league: r.matched[0] && r.matched[0].pool_league}));
+    """)
+    d = json.loads(out)
+    assert d["n"] == 1, "只应命中一场"
+    assert d["gid"] == "senior-1", "必须命中成年队，不能是青年队"
+    assert d["league"] == "欧冠"

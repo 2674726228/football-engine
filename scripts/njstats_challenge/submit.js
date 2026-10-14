@@ -358,6 +358,21 @@ function normName(s) {
   return String(s || '').toLowerCase().replace(/[^0-9a-z\u4e00-\u9fff]/g, '');
 }
 
+/**
+ * 是否青年队（U19/U21/Under-19/Under 19/U-19…）。
+ *
+ * 2026-10-14 实测的必要防护：开放池里欧冠比赛同时有成年队和 U19 两个
+ * 版本，且**同一天都可能开赛**（U19 版通常早 7 小时）。我们的 predictions
+ * 只有成年队，若匹配到 U19 的 guessingId，提交照样成功（protobuf 不校验），
+ * 注就静默提到错误的场次上，事后对账才发现。
+ *
+ * 注意：不能靠 normalize_team / loose_normalize 区分 —— "阿森纳U19" 和
+ * "阿森纳" 是两个不同字符串，loose 规则也不会把 "U19" 删掉。
+ */
+function isYouth(name) {
+  return /(^|[^a-z])u[-_ ]?\d{2}([^a-z]|$)|under[-_ ]?\d{2}|U\d{2}$/i.test(String(name || ''));
+}
+
 /** 从 engine.team_aliases 拿归一化结果（批量，一次子进程）。 */
 function normalizeTeamNames(names) {
   const { execFileSync } = require('child_process');
@@ -422,6 +437,17 @@ function matchPool(cands, pool) {
     if (!hit) { hit = idx2.get(`${lh}|${la}`); via = 'loose'; }
     if (!hit) { hit = idx3.get(`${normName(c.home)}|${normName(c.away)}`); via = 'raw'; }
     if (!hit) { unmatched.push(c); continue; }
+
+    // 2026-10-14 实测：池子里欧冠比赛同时存在**成年队与 U19 两个版本**
+    // （10-13 晚开赛的是欧青联 U19：阿森纳U19vs里尔U19 20:00；
+    // 成年队版在 10-14 03:00）。两级队名经 normalize_team / loose_normalize
+    // 后完全相同（"阿森纳U19" 与 "阿森纳" 是两个不同字符串，loose 也不会
+    // 互相收敛），所以这里必须显式排除，否则我们预测成年队时会静默匹配到
+    // 青年队的 guessingId —— protobuf 提交不校验，注就提到错误的场次上。
+    if (isYouth(hit.home) || isYouth(hit.away)) {
+      unmatched.push({ ...c, reason: 'pool_match_is_youth_squad' });
+      continue;
+    }
 
     const odds = hit.odds || {};
     const hasJcSpf = !!odds['4'], hasJcRq = !!odds['5'];
@@ -575,7 +601,14 @@ async function main() {
   const { matched, unmatched } = matchPool(picked, pool.rows);
   log(`开放池 ${pool.rows.length} 场；命中 ${matched.length}，未命中 ${unmatched.length}`);
   if (unmatched.length) {
-    log(`未命中（联赛不在 NJStats 开放池）: ${unmatched.slice(0, 8).map(c => `${c.competition}:${c.home}vs${c.away}`).join('  ')}${unmatched.length > 8 ? ' …' : ''}`);
+    const youth = unmatched.filter(c => c.reason === 'pool_match_is_youth_squad');
+    const rest = unmatched.filter(c => c.reason !== 'pool_match_is_youth_squad');
+    if (rest.length) {
+      log(`未命中（联赛不在 NJStats 开放池）: ${rest.slice(0, 8).map(c => `${c.competition}:${c.home}vs${c.away}`).join('  ')}${rest.length > 8 ? ' …' : ''}`);
+    }
+    if (youth.length) {
+      log(`未命中（池内只有同名青年队，成年队未开售）: ${youth.slice(0, 8).map(c => `${c.home}vs${c.away}`).join('  ')}${youth.length > 8 ? ' …' : ''}`);
+    }
   }
 
   if (matched.length === 0) {
