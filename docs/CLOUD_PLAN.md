@@ -7,7 +7,7 @@ CI 侧当时仅预测+结算+Pages+ci-sync+归档(已过期仍在撞墙：23/50 
 ## 已完成的迁移（本次）
 | 能力 | 原来 | 现在 |
 |---|---|---|
-| 挑战 1x2 提交 | Mac ZCode 提示词 | **CI challenge.yml 每小时:35 + scripts/challenge_hourly.py 确定性代码** |
+| 挑战 1x2 提交 | Mac ZCode 提示词 | **确定性代码 challenge_hourly.py；云 challenge.yml:35 与 Mac 值守同码互备**（云遇 runner IP 封锁时 Mac 兜底，恢复即自动切换，零人工） |
 | 挑战 让球提交 | 同上混跑 | Mac 值守（弹窗线路/水位需浏览器），与 CI 共用 repo state |
 | JWT 凭据链 | 不存在 | Mac 每小时检测续推 GH secret（云端零浏览器依赖） |
 | 周一深度体检 | Mac ZCode cron | **CI weekly-deep-check.yml**（六份评测 JSON 回仓+摘要页）；Mac 已改退役占位 |
@@ -22,7 +22,7 @@ CI 侧当时仅预测+结算+Pages+ci-sync+归档(已过期仍在撞墙：23/50 
 ## 路线图（该做/该修/该优化/该升级）
 **该修（本周）**
 - [ ] Evolution Loop 上云首验：确认云端 checkout 能自取 DJYY 富化（SSR 已通，engine 批量仍被 CF 速率限→分片节流优化）
-- [ ] challenge_hourly 让球缺口：CI 需线路/水位 → 已用 Mac 补位；观察两周后决定是否给 openApi dialog 端点做纯 API 版（协议已在 vault，可行）
+- [x] challenge_hourly 让球缺口：已用 Mac 补位；**新发现：njstats.cn 对 GitHub runner IP 的列表请求失败（疑墙），与 djyylive 同族**——已定双端同码互备：Mac(:35) 先兜 1x2+让球，云 challenge.yml 保留调度，连续 3 天云成功再降级 Mac 为只管让球（降级条件写进 Mac cron 简报）
 - [ ] git 历史端点清洗决策（用户）：force-push 打断并行 agent 风险 vs 历史泄露面；建议维持现状（HEAD 已净+端点本身半公开）
 
 **该优化（两周内）**
