@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-15",
+  "n_matches": 5,
+  "hit_rate": 0.8,
+  "hits": 4,
+  "source_brier": {
+    "model": 0.5138,
+    "market": 0.3823,
+    "djyy": 0.5883,
+    "final": 0.3773
+  },
+  "by_league": {
+    "欧罗巴": {
+      "n": 5,
+      "hit_rate": 0.8,
+      "wilson_lower": 0.3755,
+      "avg_brier": 0.3773
+    }
+  },
+  "by_confidence_tier": {
+    "mid": {
+      "n": 3,
+      "hit_rate": 0.6667,
+      "wilson_lower": 0.2077,
+      "avg_brier": 0.5591
+    },
+    "high": {
+      "n": 2,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.3424,
+      "avg_brier": 0.1045
+    }
+  },
+  "by_odds_band": {
+    "L4 冷(2.2-3.0)": {
+      "n": 2,
+      "hit_rate": 0.5,
+      "wilson_lower": 0.0945,
+      "avg_brier": 0.6847
+    },
+    "L1 大热(<1.5)": {
+      "n": 2,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.3424,
+      "avg_brier": 0.1045
+    },
+    "L2 热(1.5-1.8)": {
+      "n": 1,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.2065,
+      "avg_brier": 0.308
+    }
+  },
+  "score_stats": {
+    "top1": 0,
+    "top3": 1,
+    "top5": 1,
+    "top8": 2,
+    "any": 2
+  },
+  "score_rank_hist": {
+    "3": 1,
+    "8": 1
+  },
+  "score_source_stats": {
+    "djyy": {
+      "n": 0,
+      "hits": 0
+    },
+    "mc": {
+      "n": 2,
+      "hits": 1
+    }
+  },
+  "market_signal_stats": {
+    "n": 0,
+    "hits": 0
+  },
+  "layered": {
+    "log_loss_final": 0.6955,
+    "rps_final": 0.116,
+    "rps_market": 0.1191,
+    "goal_framework": {
+      "n": 5,
+      "hits": 2
+    },
+    "prob_bands": {
+      "40-50%": {
+        "n": 2,
+        "hit_rate": 0.5
+      },
+      "50-60%": {
+        "n": 1,
+        "hit_rate": 1.0
+      },
+      "60%+": {
+        "n": 2,
+        "hit_rate": 1.0
+      }
+    },
+    "freshness_groups": {
+      "alert": {
+        "n": 1,
+        "hit_rate": 0.0
+      },
+      "ok": {
+        "n": 2,
+        "hit_rate": 1.0
+      },
+      "watch": {
+        "n": 2,
+        "hit_rate": 1.0
+      }
+    }
+  },
+  "biases": [],
+  "total_pnl": 0.0,
+  "generated_at": "2026-10-16T03:25:47.173873",
+  "sha256": "dac51fa5609f53e3fac37106d72c3c2a"
+}
