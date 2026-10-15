@@ -46,11 +46,14 @@ def main():
         at_floor.append((rec["odds"] - 1) if win else -1)
         at_close.append((close - 1) if win else -1)
         stats["matched"] += 1
-    print(json.dumps({"stats": stats,
+    summary = {"stats": stats,
         "roi_at_floor": round(sum(at_floor) / len(at_floor), 4),
         "roi_at_close": round(sum(at_close) / len(at_close), 4),
-        "live": d.get("live"), "recent30": d.get("recent30")},
-        ensure_ascii=False, indent=1))
+        "matched": stats["matched"],
+        "live": d.get("live"), "recent30": d.get("recent30")}
+    (ROOT / "data" / "state" / "djyy_audit_latest.json").write_text(
+        json.dumps(summary, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(json.dumps(summary, ensure_ascii=False, indent=1))
 
 if __name__ == "__main__":
     main()
