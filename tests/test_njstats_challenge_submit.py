@@ -39,7 +39,7 @@ def _node(script: str) -> str:
     // ROOT 的基准：submit.js 优先用 process.argv[1]，被 new Function 载入时
     // argv[1] 是 node -e 的占位符，所以这里显式喂真实路径进去。
     process.argv[1] = {str(SUBMIT_JS)!r};
-    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, isSubmitOk, isYouth, PLAY_TYPE, LIST_TYPE}};')();
+    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, handicapProb, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, isSubmitOk, isYouth, PLAY_TYPE, LIST_TYPE}};')();
     {script}
     """
     p = subprocess.run(["node", "-e", src], capture_output=True, text=True, timeout=60)
@@ -138,6 +138,101 @@ def test_loadcandidates_on_real_data():
     d = json.loads(out)
     assert d["n"] > 0, f"{d['day']} 无候选——predictions.json 字段路径可能已变"
     assert set(d["markets"]) <= {"1x2", "handicap"}
+
+
+def test_handicap_prob_uses_fused_not_raw():
+    """让球候选必须用融合后概率，不能退回原始模型概率。
+
+    2026-10-15 修复的直接回归：首批 5 注结算后复盘发现
+    莱比锡红牛 vs 埃因霍温（让球 -1）的提交用的是
+    `handicap_away_prob`（raw p=0.7951），而不是
+    `handicap_ev.probs.away`（融合后 0.4062）——相差近一倍。
+
+    raw 算出 EV=+0.6896 排到当日第一，比赛 1:0 走盘记 0 分。
+    而 `handicap_ev.recommended` 对这场是 False（best_edge 0.0032），
+    投注层根本没推荐它，是提交器自建口径把它排上去的。
+    """
+    out = _node("""
+    const p = {
+      match_id: 'M1', home_team: '莱比锡红牛', away_team: '埃因霍温',
+      handicap: -1,
+      handicap_home_odds: 2.03, handicap_away_odds: 2.03,
+      handicap_home_prob: 0.0886, handicap_away_prob: 0.7951,
+      handicap_ev: {probs: {home: 0.3683, draw: 0.2256, away: 0.4062},
+                    best_edge: 0.0032, recommended: false},
+    };
+    const cands = mod.loadCandidates ? null : null;
+    console.log(JSON.stringify({
+      fused: mod.handicapProb(p, 'away'),
+      raw_would_be: p.handicap_away_prob,
+    }));
+    """)
+    d = json.loads(out)
+    assert abs(d["fused"] - 0.4062) < 1e-9, (
+        f"让球概率应取 handicap_ev.probs.away=0.4062，实得 {d['fused']}；"
+        f"raw 值 0.7951 会把 EV 从 +0.075 抬到 +0.6896"
+    )
+
+
+def test_handicap_prob_falls_back_to_raw_when_no_ev():
+    """老预测文件没有 handicap_ev 时必须退回 raw（不能让候选凭空消失）。
+
+    否则历史 predictions.json 一跑 loadCandidates 就 0 候选，
+    报错信息指向"无预测文件"，而真实原因是概率来源字段缺失。
+    """
+    out = _node("""
+    const p = {match_id: 'M1', handicap: 1,
+      handicap_home_odds: 1.9, handicap_away_odds: 1.9,
+      handicap_home_prob: 0.55, handicap_away_prob: 0.60};
+    console.log(JSON.stringify({
+      home: mod.handicapProb(p, 'home'), away: mod.handicapProb(p, 'away'),
+      ev_no_probs: mod.handicapProb({handicap_home_prob: 0.3,
+          handicap_ev: {best_edge: 0.01}}, 'home'),
+    }));
+    """)
+    d = json.loads(out)
+    assert d["home"] == 0.55 and d["away"] == 0.60
+    assert d["ev_no_probs"] == 0.3, "handicap_ev 存在但 probs 缺失时应回退"
+
+
+def test_loadcandidates_handicap_uses_fused_prob_end_to_end():
+    """端到端：真实 predictions.json 跑 loadCandidates，让球概率必须来自融合。
+
+    莱比锡红牛 vs 埃因霍温（2026-10-13，让球 -1）是这次修复的实证样本：
+    融合后 p(away)=0.4062，raw=0.7951。这个测试若挂，说明概率又退回
+    原始模型值了——正是走盘丢分那一注的成因。
+    """
+    day = "2026-10-13"
+    f = ROOT / "data" / "daily" / day / "predictions.json"
+    if not f.exists():
+        pytest.skip(f"无 {day}/predictions.json")
+    preds = json.loads(f.read_text(encoding="utf-8"))
+    hc = [p for p in preds
+          if p.get("handicap") is not None
+          and p.get("handicap_away_odds") and p.get("handicap_away_prob")]
+    if not hc:
+        pytest.skip(f"{day} 无让球候选")
+    out = _node(f"""
+    const cands = mod.loadCandidates({day!r});
+    console.log(JSON.stringify({{
+      handicap: cands.filter(c => c.market === 'handicap')
+                    .map(c => ({{id: c.match_id, sel: c.sel, model_prob: c.model_prob}})),
+    }}));
+    """)
+    d = json.loads(out)
+    by_id = {p["match_id"]: p for p in hc}
+    for c in d["handicap"]:
+        p = by_id.get(c["id"])
+        if p is None:
+            continue
+        ev = (p.get("handicap_ev") or {}).get("probs") or {}
+        want = ev.get(c["sel"])
+        if want is None:
+            continue
+        assert abs(c["model_prob"] - want) < 1e-9, (
+            f"{c['id']} {c['sel']}：让球概率应取 handicap_ev.probs.{c['sel']}={want}，"
+            f"实得 {c['model_prob']}（raw 会让 EV 虚高一倍）"
+        )
 
 
 def test_root_points_at_repo_root():

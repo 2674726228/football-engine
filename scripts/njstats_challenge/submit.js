@@ -288,6 +288,37 @@ async function fetchQuota(apikey, weekId, token) {
  *
  * ⚠️ 本函数只产**我们的**候选；与 NJStats 池的匹配在 matchPool() 里做。
  */
+/**
+ * 让球候选用的概率：优先取 `p.handicap_ev.probs`（市场主导融合后），
+ * 缺失时才退回 `p.handicap_home_prob` / `p.handicap_away_prob`（原始模型概率）。
+ *
+ * 2026-10-15 修复——这个错位在首批 5 注结算后才暴露：
+ *   莱比锡红牛 vs 埃因霍温（让球 -1），提交器用 raw p(away)=0.7951 算出
+ *   EV=+0.6896，排到当日第一；而融合后 p(away)=0.4062，EV 只有 +0.075。
+ *   比赛 1:0 —— 走盘，按挑战规则记 0 分。EV 最高的一注恰好是走盘。
+ *
+ * 为什么不只是"概率不准"，而是**纪律被绕过**：
+ *   `engine/strategy/handicap_ev.py:88-90` 与 `engine/main.py:855-857`
+ *   都明确要求让球概率必须市场主导融合——纯模型比分矩阵在让球回测
+ *   83 场 ROI −18.1%。这条纪律在 1X2 分支和 handicap_ev.py 里都执行了，
+ *   唯独挑战提交器读的是 handicap_home_prob/handicap_away_prob，
+ *   即未校准未融合的原始模型值。
+ *
+ * 顺带一个佐证：`handicap_ev.recommended` 对这场是 False
+ *   （best_edge=0.0032 < 0.03 门槛），投注层根本没推荐它——是提交器
+ *   自建口径把它排到了第一。修完之后两个择优器口径一致。
+ *
+ * 1X2 分支不受影响：那里用的 p.home_win_prob/draw_prob/away_win_prob
+ * 本身就是融合后的 final_prob。
+ */
+function handicapProb(p, sel) {
+  const ev = p.handicap_ev;
+  if (ev && ev.probs && Number.isFinite(Number(ev.probs[sel]))) {
+    return Number(ev.probs[sel]);
+  }
+  return sel === 'home' ? p.handicap_home_prob : p.handicap_away_prob;
+}
+
 function loadCandidates(dateStr) {
   const f = path.join(ROOT, 'data', 'daily', dateStr, 'predictions.json');
   if (!fs.existsSync(f)) throw new Error(`无预测文件: ${f}（先跑 daily-forecast）`);
@@ -309,12 +340,12 @@ function loadCandidates(dateStr) {
     if (p.handicap != null && p.handicap_home_odds && p.handicap_away_odds) {
       if (p.handicap_home_prob) out.push({
         match_id: p.match_id, market: 'handicap', sel: 'home',
-        odds: Number(p.handicap_home_odds), model_prob: Number(p.handicap_home_prob),
+        odds: Number(p.handicap_home_odds), model_prob: handicapProb(p, 'home'),
         line: Number(p.handicap), home: p.home_team, away: p.away_team, competition: p.competition,
       });
       if (p.handicap_away_prob) out.push({
         match_id: p.match_id, market: 'handicap', sel: 'away',
-        odds: Number(p.handicap_away_odds), model_prob: Number(p.handicap_away_prob),
+        odds: Number(p.handicap_away_odds), model_prob: handicapProb(p, 'away'),
         line: Number(p.handicap), home: p.home_team, away: p.away_team, competition: p.competition,
       });
     }
