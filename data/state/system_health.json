@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-15T23:25:52",
+  "generated_at": "2026-10-16T00:26:42",
   "summary": {
     "total": 11,
     "critical": 0,
-    "healed": 0
+    "healed": 1
   },
   "findings": [
     {
@@ -33,24 +33,24 @@
     {
       "id": "data/results",
       "layer": "data",
-      "severity": "ok",
-      "detail": "昨日赛果文件在",
-      "healable": false,
-      "healed": false
+      "severity": "warn",
+      "detail": "昨日(2026-10-15)缺 results_sina.json→ 已补抓",
+      "healable": true,
+      "healed": true
     },
     {
       "id": "data/yesterday",
       "layer": "data",
-      "severity": "ok",
-      "detail": "昨日(2026-10-14)已结算",
+      "severity": "info",
+      "detail": "昨日(2026-10-15)无预测或无赛果，跳过结算检查",
       "healable": false,
       "healed": false
     },
     {
       "id": "source/ci",
       "layer": "source",
-      "severity": "info",
-      "detail": "CI 状态检查跳过（HTTPError）",
+      "severity": "ok",
+      "detail": "最近 CI 运行 3.6h 前",
       "healable": false,
       "healed": false
     },
@@ -58,7 +58,7 @@
       "id": "model/draw",
       "layer": "model",
       "severity": "ok",
-      "detail": "平局均值 25.2% 在先验带内",
+      "detail": "平局均值 23.7% 在先验带内",
       "healable": false,
       "healed": false
     },
@@ -90,7 +90,7 @@
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 176MB",
+      "detail": ".git 体积 170MB",
       "healable": false,
       "healed": false
     }
