@@ -212,6 +212,14 @@ def main(argv: list[str] | None = None) -> int:
         if dest.exists() and dest.stat().st_size > 200:
             done.add(keyid)
             continue
+        # 守卫（2026-10-15 事故复盘）：开赛前抓的"未开赛"快照会把赛后带比分的
+        # 历史文件覆成空壳——日期已滚出窗口的任务直接标记完成不再重抓
+        try:
+            if (datetime.strptime(d, "%Y-%m-%d") - datetime.strptime(beijing_today(), "%Y-%m-%d")).days < -2:
+                done.add(keyid)
+                continue
+        except ValueError:
+            pass
         resp = api_get(path, key, params)
         used += 1
         if not resp or resp.get("_stop"):
