@@ -1,22 +1,19 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: done　更新: 2026-10-14 03:30（死特征修复轮）
-> 在干什么: DEAD-FEATURES-REST-DAYS 已修：rest_days 真正接线（结算写 last_match_date /
->           预测侧按 kickoff 折算 / 存量 1359 队按历史回填，取值种数 1→12）；
->           injury 恒 0 改为有意不接线（走 main.py attack 惩罚路径）；
->           njstats_export 测试 fresh-clone 失败已修（564 全绿）
-> 下一步: ① Air 部署挑战任务（launchd 11:25 + 每日刷 token；README 有全套步骤）
->          ② 本机会话 token 今日 23:30 过期——Air 部署前先别在本机跑 --submit
->          ③ 后台归档循环补完 snapshot×12 + 10-14 尾部 4 页（额度每小时自动续，无需人盯）
->          ④ DJYY 死源：CI 侧 DJYY_PROXY 从未配置（已连续 403 两个月），要么配 secret 要么把名义权重归零
->          ⑤ main.py god object（2421 行；已核实无重复去水逻辑，属维护性风险）另开一轮
-> 已知坑: ① push 前必 fetch+rebase origin/main（Air 的 hourly 提交和 Actions 自动提交都在推 main）
->          ② git reset --hard 会清归档文件（发生两次，靠备份救回）——reset 前跑 njstats_safeguard.py
->          ③ prob 归档 label ≠ 市场快照时刻（已用 snapshot_at 透传；下游时序以它为准）
-> 待验证: ① 让球票「真实给分」（10-13 凌晨已结算——看 NJStats 段位/给分即可校准 EV 排序）
->          ② 巴甲平局回升（10-11 后无巴甲结算样本，有样本后看 draw 概率是否离开 0.5025）
->          ③ 静默吞异常还有 ~96 处（关键路径已修 sporttery/djyy 两源；其余按触碰即修）
+> 状态: doing　更新: 2026-10-15 11:05（首批 5 注结算取回 + 归档收官）
+> 在干什么: 挑战首批 5 注结算已取回（40% 命中 / 排位分 +454.8 / 本周 #4 进升级区）；
+>           归档随试用到期收官（319 文件），CI 归档 workflow 已退役
+> 下一步: ① Air 部署挑战任务（launchd 11:25 + 每日刷 token；README 全套步骤）← 价值兑付唯一卡点
+>          ② 按 docs/CHALLENGE_FIRST_SETTLEMENT_20261015.md 复核 handicap_ev 的走盘口径
+>             （实测：挑战规则下走盘=0 分，非保本；若 EV 按保本算会高估让球票）
+>          ③ JC_SPF/JC_RQ 的模型概率口径差（欧赔训练 vs 竞彩水位 ~7pp）——需拍板
+> 已知坑: ① token 20h 过期，Air 上每日刷；本机非常开不能承担定时任务
+>          ② git reset --hard 会清归档（发生两次）；reset 前跑 njstats_safeguard.py
+>          ③ prob 归档 label ≠ 快照时刻，下游时序以 snapshot_at 为准
+> 待验证: ① 让球走盘口径已实测（走盘=0 分），待改 handicap_ev ← 见下一步②
+>          ② 巴甲平局回升（仍无 10-11 后巴甲结算样本）
+>          ③ 本周剩 14 注配额，若 Air 持续提交有晋级 Elite 可能（现竞争者 #4）
 
 - 更新: 2026-10-13（主线 agent 统一入口轮）
 
