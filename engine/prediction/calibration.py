@@ -16,6 +16,34 @@ def devig_shin(odds: list[float]) -> list[float]:
     Shin (1993) 去水模型。
     考虑内幕交易者对赔率的影响，求解参数 z。
     比简单 1/odds 归一化更准确地还原真实概率。
+
+    ## 2026-10-15 修复：二分上限写错，Shin 从未生效过
+
+    原代码 `hi = 1.0 - 1.0 / max(implied)`。当 max(implied) > 0.5 时
+    这个上界为负，而 lo=0，二分区间 [0, 负数] 里的中点 z 全为负 →
+    `inner = z² + 4(1-z)·imp²/overround` 里 z² 项主导、整体算出复数 →
+    valid=False → 循环只会不断把 hi 推向更负，100 轮后必然走
+    fallback（= 比例归一化）。
+
+    实测影响面（不是理论顾虑）：
+      - 仓库 951 场竞彩 predictions.json：**100% 走 fallback**
+      - football-data 的 Pinnacle 欧赔抽样 1520 场：**100% 走 fallback**
+    即 `select_devig_method()`（main.py:451 给 market_fair 用的入口）
+    从来就是乘法归一化，docstring 里"最精确"三个字没有兑现过。
+
+    为什么 1X2 必然触发：overround>1 时热门隐含概率几乎总 >0.5。
+    竞彩 overround≈1.129，热门 implied≈0.80 → 归一化后 0.71 > 0.5。
+
+    正确上界：z∈(0,1) 是 Shin 参数的合法域，故取 `1 - eps`。
+    收敛后 z 通常落在 0.02~0.08（与 engine/backtest/historical_replay.py
+    里那份固定 z=0.02 的实现量级一致，可作为交叉验证）。
+
+    影响评估（实测 1065 场最大分量差）：
+      比例法 vs 真 Shin：mean 0.00577，max 0.01482
+    即修好后 market_fair 会变，但幅度 <1.5pp——这是**正确性修复**，
+    不是效果优化。融合层以 market 为 93.75% 权重，该偏差会传导到
+    final_prob；但方向上 Shin 更信任热门（z>0 时热门概率被抬高、
+    冷门被压低），与"市场主导"的既定结论同向，不会翻转任何实验结论。
     """
     implied = [1.0 / o for o in odds]
     overround = sum(implied)
@@ -23,8 +51,8 @@ def devig_shin(odds: list[float]) -> list[float]:
     if overround <= 1.0:
         return implied  # 无 vig
 
-    # 二分法求解 z (Shin 参数)
-    lo, hi = 0.0, 1.0 - 1.0 / max(implied)
+    # 二分法求解 z (Shin 参数)。合法域 z∈(0,1)，取开区间避免 1-z=0 除零。
+    lo, hi = 0.0, 1.0 - 1e-12
     for _ in range(100):
         z = (lo + hi) / 2
         probs = []

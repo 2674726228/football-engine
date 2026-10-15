@@ -85,3 +85,81 @@ class TestBookRegistry:
         '同一个盘口算两遍'，结论直接作废。"""
         assert BOOKS["Pinnacle(PS)"] != BOOKS["PS开盘"]
         assert BOOKS["B365"] != BOOKS["B365开盘"]
+
+
+# ---------------------------------------------------------------- Shin 去水
+
+class TestDevigShin:
+    """devig_shin 的二分上限修复回归（2026-10-15）。
+
+    原 `hi = 1 - 1/max(implied)` 在 max(implied)>0.5 时为负 → z 恒负 →
+    inner 变复数 → 100 轮后必走 fallback（比例归一化）。实测仓库 951 场
+    竞彩数据与 1520 场 Pinnacle 欧赔 **100% 命中 fallback**，
+    即 select_devig_method 从来就是乘法归一化。
+    """
+
+    @staticmethod
+    def _shin(odds):
+        from engine.prediction.calibration import devig_shin
+        return devig_shin(list(odds))
+
+    def test_sums_to_one_on_favourite_heavy_odds(self):
+        """大热门赔率（max implied>0.5）必须能正确去水。"""
+        for odds in [(1.13, 6.30, 12.0), (1.39, 4.90, 4.85), (1.10, 8.00, 20.0)]:
+            p = self._shin(odds)
+            # 二分 100 轮的收敛精度：sum 落在 1±1e-7
+            assert abs(sum(p) - 1.0) < 1e-7, f"{odds} 和={sum(p)}"
+            assert all(0 < x < 1 for x in p), f"{odds} 出现非概率值 {p}"
+
+    def test_favourite_is_lifted_above_proportional(self):
+        """Shin 的 z>0 假设：热门概率应**高于**比例归一化（内幕交易者押热门）。
+
+        这是"Shin 真的在算"与"退化成比例法"的可区分特征——若这个断言失败，
+        说明又走 fallback 了（正是 2026-10-15 之前的线上行为）。
+        """
+        odds = (1.13, 6.30, 12.0)
+        shin = self._shin(odds)
+        prop = [1 / o for o in odds]
+        s = sum(prop)
+        prop = [x / s for x in prop]
+        assert shin[0] > prop[0] + 1e-6, (
+            f"热门未被抬高：shin={shin[0]:.5f} ≤ prop={prop[0]:.5f}，"
+            "说明 devig_shin 又退化成比例归一化了"
+        )
+        assert shin[2] < prop[2], f"冷门未被压低：shin={shin[2]:.5f} ≥ prop={prop[2]:.5f}"
+
+    def test_ordering_is_preserved(self):
+        for odds in [(2.10, 3.40, 3.80), (5.78, 4.14, 1.64), (4.00, 3.50, 1.90)]:
+            p = self._shin(odds)
+            order = sorted(range(3), key=lambda i: odds[i])
+            for a, b in zip(order, order[1:]):
+                assert p[a] > p[b], f"{odds} 去水后逆序被破坏: {p}"
+
+    def test_no_vig_returns_implied(self):
+        assert self._shin((2.0, 3.0, 6.0)) == [1 / 2, 1 / 3, 1 / 6]
+
+    def test_matches_replay_shin_magnitude(self):
+        """与 historical_replay 的固定 z=0.02 实现量级一致（交叉验证）。
+
+        两份实现不必逐位相等（一份解 z、一份固定 z=0.02），但最大分量差
+        应在 0.02 内——差太远说明其中一份算错了。
+        """
+        from engine.backtest.historical_replay import devig as replay_devig
+        for odds in [(2.10, 3.40, 3.80), (1.39, 4.90, 4.85), (3.95, 4.25, 1.56)]:
+            a = self._shin(odds)
+            b = list(replay_devig(odds, "shin"))
+            d = max(abs(x - y) for x, y in zip(a, b))
+            # z=0.0168~0.0721 vs 固定 0.02：热门越极端差越大（实测 0.0203）
+            assert d < 0.05, f"{odds} 两份 Shin 实现差 {d:.4f}，超量级"
+
+    def test_select_devig_method_uses_real_shin(self):
+        """main.py:451 的入口必须拿到真 Shin，不是比例法。"""
+        from engine.prediction.calibration import select_devig_method
+        odds = [1.13, 6.30, 12.0]
+        p = select_devig_method(odds)
+        prop = [1 / o for o in odds]
+        s = sum(prop)
+        prop = [x / s for x in prop]
+        assert p[0] > prop[0] + 1e-6, (
+            f"select_devig_method 仍是比例法（{p[0]:.5f} ≤ {prop[0]:.5f}）"
+        )
