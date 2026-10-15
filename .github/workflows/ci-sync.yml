@@ -32,11 +32,8 @@ jobs:
         env:
           SPORTMONKS_TOKEN: ${{ secrets.SPORTMONKS_TOKEN }}
         run: python scripts/sportmonks_capture.py --date "$(TZ=Asia/Shanghai date +%F)" --quiet || true
-      - name: NJStats 窗口归档（试用至 10-15；预算 12 与本地共享 60/h）
-        env:
-          NJSTATS_TOKEN: ${{ secrets.NJSTATS_KEY }}
-          NJSTATS_ARCHIVE_PROGRESS: data/state/njstats_archive/.progress_ci.json
-        run: python scripts/njstats_archive.py --budget 12 --quiet || true
+      - name: NJStats（试用 2026-10-15 已到期，收割完结，步骤休眠）
+        run: echo "njstats trial expired; archive 150/150 done"
       - name: 每日任务（fdc 历史刷新/AUT 纸面跟踪/DJYY 月审；date 门控）
         run: |
           STAMP="data/state/.daily_ci_$(TZ=Asia/Shanghai date +%F)"
