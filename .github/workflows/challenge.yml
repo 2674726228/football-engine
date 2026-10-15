@@ -1,0 +1,28 @@
+# 预测挑战 CI 端（1x2 市场，每小时:35）。让球市场留 Mac（需浏览器弹窗线路/水位）。
+# JWT ~20h：Mac 端每日 08:15 自动续推 secret（ZCode cron）；过期本流程静默跳过零噪音。
+name: Challenge (1x2)
+on:
+  schedule:
+    - cron: '35 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install requests --quiet
+      - name: 提交（门槛/预登记/状态见脚本头注释）
+        env:
+          NJSTATS_JWT: ${{ secrets.NJSTATS_JWT }}
+        run: python scripts/challenge_hourly.py
+      - name: 状态回仓
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/wlrwx/football-engine.git"
+          git add data/state/challenge_state.json || true
+          git diff --cached --quiet || (git pull --rebase origin main || git rebase --abort; git push origin HEAD:main)
