@@ -5,7 +5,9 @@
 name: NJStats Archive
 on:
   schedule:
-    - cron: '23 * * * *'   # 每小时第 23 分（避开 daily-forecast 的 :15/:45 峰值）
+    # 已退役（2026-10-15）：试用 2026-10-15 00:08 到期，端点不再可写。
+    # 保留文件作为「窗口期收割方案」记录；若未来重新订阅，把 cron 取消注释即可。
+    # - cron: '23 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -27,6 +29,12 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
-          git add data/state/njstats_archive
-          git diff --cached --quiet || git commit -m "archive(njstats): CI 窗口归档 $(date +%F\ %H:%M)"
-          git push
+          # 2026-10-13 起 njstats_archive/ 已移出 git（原始可重抓数据，
+          # 33MB+/轮，与 odds_sina.json 同政策）。本 job 只剩"取数并写盘"职责，
+          # 不再提交——否则 `git add` 被 .gitignore 拒绝会 exit 1，
+          # 整个 Archive job 失败（实测 2026-10-15T00:35Z 那次失败正是此因）。
+          #
+          # 数据落在 runner 工作区，下一轮 checkout 时丢弃。
+          # 长期保存由本机/导出管线负责（scripts/njstats_export.py），
+          # 试用到期后该端点也不可再得——归档使命随窗口期结束而终止。
+          echo "归档已写盘（不入 git）；本 job 无提交职责"
