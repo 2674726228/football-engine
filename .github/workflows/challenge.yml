@@ -18,6 +18,7 @@ jobs:
       - name: 提交（门槛/预登记/状态见脚本头注释）
         env:
           NJSTATS_JWT: ${{ secrets.NJSTATS_JWT }}
+          NJSTATS_PROXY: "0"
         run: python scripts/challenge_hourly.py
       - name: 状态回仓
         run: |
