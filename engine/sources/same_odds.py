@@ -18,12 +18,52 @@ from pathlib import Path
 
 @dataclass
 class SameOddsConfig:
-    """同赔分析参数"""
-    tolerance: float = 0.015       # 赔率匹配容差
+    """同赔分析参数
+
+    ## 2026-10-15 实测：这条链路对最终概率的影响 <0.7pp，且 84% 的场次
+    ## 连门槛都过不了。参数全部保留（消融回放要能翻开关），但**不要
+    ## 以为调 tolerance 能救活它**——量化见下。
+
+    ### 为什么实际扰动这么小（全链路 1065 场实测）
+
+    传导链：bias → ×(max_adjust 0.05 × confidence) → 概率扰动
+
+      - confidence 中位数 0.0，均值 0.027，**最大 0.2592**
+        （公式 min(1, n/50)×(1-1.96/(2√n))，n=20 才 0.31、
+         n=5 只有 0.056；而 tolerance=0.015 下匹配数中位只有 3）
+      - 门槛 same_odds_min_confidence=0.3 → **1065 场中 0 场通过**
+        （有匹配 602 场 = 56.5%，但 confidence 全 < 0.3）
+      - 即使降到 0，扰动 = 0.05 × 0.2592 × 0.55(bias 极值) ≈ 0.0072
+
+    ### 放大 tolerance 的代价（实测）
+
+      tol=0.015 → 中位匹配 3，过闸 0 场
+      tol=0.030 → 中位匹配 7，过闸 96 场
+      tol=0.050 → 中位匹配 23，过闸 493 场
+      tol=0.080 → 中位匹配 45，过闸 627 场
+
+    能过闸，但那时"同赔"已经名不副实：容差 5% 意味着一场 1.80 和
+    一场 1.89 被算作"同一赔率"，而 bias 的 sd 高达 0.16（极值
+    ±0.55）——那是赔率结构差异带来的噪声，不是历史同形的信号。
+
+    ### 结论
+
+    `same_odds_bias` 是 fusion 链上唯一开着的开关
+    （config/prediction.json post_fusion 其余 9 个全 false），
+    但 ablation 实证 delta_brier=0.0、t=0.0、n=426 → 中性。
+    保留它不是因为它有用，而是因为**关掉它要动 fusion 链**
+    （AGENTS.md：每一步都是配置开关，keep/kill 只由消融回放裁决）。
+    在拿到能推翻 426 场零效应的证据之前，维持现状。
+    """
+    tolerance: float = 0.015       # 赔率匹配容差（见上方 docstring：放大即失真）
     min_matches: int = 5           # 最少匹配场次才出结论
     max_matches: int = 200         # 最多使用匹配数
-    weight_recent: bool = True     # 是否对近期比赛加权
-    recent_half_life_days: int = 365  # 时间衰减半衰期
+    weight_recent: bool = True     # 是否对近期比赛加权（未接线，见下）
+    recent_half_life_days: int = 365  # 时间衰减半衰期（未接线，见下）
+
+    # weight_recent / recent_half_life_days 从未被读取：analyze() 里只按
+    # date 倒序截断 max_matches，没有任何按半衰期加权的代码。留着是因为
+    # tests/test_same_odds.py 会构造 SameOddsConfig，删字段会破坏构造签名。
 
 
 @dataclass
