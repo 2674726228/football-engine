@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-16T00:26:42",
+  "generated_at": "2026-10-16T17:26:54",
   "summary": {
-    "total": 11,
-    "critical": 0,
-    "healed": 1
+    "total": 10,
+    "critical": 1,
+    "healed": 0
   },
   "findings": [
     {
@@ -34,23 +34,15 @@
       "id": "data/results",
       "layer": "data",
       "severity": "warn",
-      "detail": "昨日(2026-10-15)缺 results_sina.json→ 已补抓",
+      "detail": "昨日(2026-10-15)缺 results_sina.json（补抓失败）",
       "healable": true,
-      "healed": true
+      "healed": false
     },
     {
       "id": "data/yesterday",
       "layer": "data",
       "severity": "info",
       "detail": "昨日(2026-10-15)无预测或无赛果，跳过结算检查",
-      "healable": false,
-      "healed": false
-    },
-    {
-      "id": "source/ci",
-      "layer": "source",
-      "severity": "ok",
-      "detail": "最近 CI 运行 3.6h 前",
       "healable": false,
       "healed": false
     },
@@ -73,24 +65,24 @@
     {
       "id": "env/cron",
       "layer": "env",
-      "severity": "ok",
-      "detail": "crontab 关键任务在",
+      "severity": "critical",
+      "detail": "crontab 缺少关键任务: ['run_realtime_monitor.sh', 'auto_run.sh']（调度层断裂）",
       "healable": false,
       "healed": false
     },
     {
       "id": "env/proxy",
       "layer": "env",
-      "severity": "ok",
-      "detail": "代理 7897 通",
-      "healable": false,
+      "severity": "warn",
+      "detail": "代理 7897 不通（拉起失败）",
+      "healable": true,
       "healed": false
     },
     {
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 170MB",
+      "detail": ".git 体积 18MB",
       "healable": false,
       "healed": false
     }
