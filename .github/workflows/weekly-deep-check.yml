@@ -1,0 +1,44 @@
+# 周一深度体检上云（北京时间周一 03:30 = UTC 周日 19:30）。
+# 与 Mac 端旧 ZCode cron 的差别：代理自愈/凭据都不需要——CI 原生直连。
+# 产出：六份评测 JSON 回仓 + 工作流摘要页呈现评委席/挑战/CLV 全量简报。
+name: Weekly Deep Check
+on:
+  schedule:
+    - cron: '30 19 * * 0'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  deep-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r requirements.txt --quiet
+      - name: 升级判定（配对 vs 基线/市场）
+        run: python scripts/upgrade_tracker.py
+      - name: EV 分桶校准
+        run: python scripts/edge_calibration.py
+      - name: 挑战预登记复盘（含策略建议）
+        run: python scripts/challenge_review.py || true
+      - name: 下注级 CLV
+        run: python -m engine.review.clv --days 30
+      - name: 评委席点检
+        run: python scripts/eval_plane.py
+      - name: 数据完整性自检
+        run: python -m engine.selfcheck --fail-on-critical || echo "::warning::selfcheck 报 critical"
+      - name: 汇总进摘要
+        run: |
+          {
+            echo "## 评委席"; python -c "import json;d=json.load(open('data/state/eval_registry.json'));[print(f'- {k}: {v[\"status\"]} samples={v[\"samples\"]} verdict={v[\"verdict\"]}') for k,v in d['judges'].items()]"
+            echo "## 升级判定"; python -c "import json;d=json.load(open('data/state/upgrade_tracker.json'));print('vs自身:',d.get('verdict'),'| vs市场:',d.get('verdict_vs_market','—'))"
+            echo "## CLV"; python -c "import json;d=json.load(open('data/state/clv_report.json'));o=d['overall'];print('n:',o.get('n'),'均值:',o.get('clv_fair_mean'),'判定:',o.get('verdict'))"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: 回仓
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/wlrwx/football-engine.git"
+          git add data/state/upgrade_tracker.json data/state/edge_calibration.json data/state/clv_report.json data/state/eval_registry.json data/state/challenge_review.json data/state/challenge_policy.json data/state/system_health.json 2>/dev/null || true
+          git diff --cached --quiet || (git pull --rebase origin main || git rebase --abort; git commit -m "tracker: 周度体检(云) $(date +%F)"; git push origin HEAD:main)
