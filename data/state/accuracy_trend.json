@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-10-16",
-  "total_matches": 1053,
+  "generated_at": "2026-10-15",
+  "total_matches": 1054,
   "date_range": [
     "2026-07-19",
     "2026-10-15"
   ],
   "overall": {
-    "hit_rate": 0.5423,
-    "brier_final": 0.578,
+    "hit_rate": 0.5417,
+    "brier_final": 0.5782,
     "brier_model": 0.6151,
-    "brier_market": 0.5667,
+    "brier_market": 0.5669,
     "brier_djyy": 0.6318
   },
   "daily": [
@@ -1023,21 +1023,21 @@
     },
     {
       "date": "2026-10-15",
-      "n": 5,
+      "n": 6,
       "hits": 4,
-      "hit_rate": 0.8,
-      "cum_hit_rate": 0.5423,
-      "brier_final": 0.3773,
-      "brier_model": 0.5138,
-      "brier_market": 0.3823,
+      "hit_rate": 0.6667,
+      "cum_hit_rate": 0.5417,
+      "brier_final": 0.4355,
+      "brier_model": 0.546,
+      "brier_market": 0.4402,
       "brier_djyy": 0.5883,
       "pnl": 0.0
     }
   ],
   "rolling7": {
-    "n": 110,
-    "hit_rate": 0.5909,
-    "brier_final": 0.5188,
+    "n": 111,
+    "hit_rate": 0.5856,
+    "brier_final": 0.5271,
     "pnl": 0.0
   },
   "prev7": {
@@ -1046,7 +1046,7 @@
     "brier_final": 0.5164,
     "pnl": 0.0
   },
-  "verdict": "命中率下降 -3pt",
+  "verdict": "命中率下降 -4pt",
   "by_league": [
     {
       "layer": "西甲",
@@ -1305,6 +1305,12 @@
       "n": 1,
       "hit_rate": 1.0,
       "brier_final": 0.4852
+    },
+    {
+      "layer": "欧协联",
+      "n": 1,
+      "hit_rate": 0.0,
+      "brier_final": 0.7268
     }
   ],
   "by_odds_band": [
@@ -1346,9 +1352,9 @@
     },
     {
       "layer": "L4 冷(2.2-3.0)",
-      "n": 9,
-      "hit_rate": 0.3333,
-      "brier_final": 0.6665
+      "n": 10,
+      "hit_rate": 0.3,
+      "brier_final": 0.6726
     },
     {
       "layer": "L2 热(1.5-1.8)",
@@ -1372,9 +1378,9 @@
     },
     {
       "layer": "low",
-      "n": 150,
-      "hit_rate": 0.42,
-      "brier_final": 0.6608
+      "n": 151,
+      "hit_rate": 0.4172,
+      "brier_final": 0.6613
     }
   ]
 }
