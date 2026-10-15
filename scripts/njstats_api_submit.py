@@ -127,6 +127,63 @@ def _post(mod_id: str, msg_id: str, body: bytes, timeout: int = 20):
     return r.status_code, r.content
 
 
+def _hdrs_with(jwt: str, mod_id: str, msg_id: str) -> dict:
+    return {"Authorization": f"Bearer {jwt}", "Content-Type": "application/x-protobuf",
+            "modId": mod_id, "msgId": msg_id}
+
+
+def _post_jwt(jwt: str, mod_id: str, msg_id: str, body: bytes):
+    r = requests.post(API, headers=_hdrs_with(jwt, mod_id, msg_id), data=body,
+                      proxies=PROXY, timeout=20)
+    return r.status_code, r.content
+
+
+def list_items(jwt: str | None = None, page: int = 1, size: int = 60):
+    """可导入：[{sid,home,away,kick_ts}] 或 None。"""
+    jwt = jwt or (JWT_FILE.read_text().strip() if JWT_FILE.exists() else "")
+    if not jwt:
+        return None
+    body = _field(2, _field_v(1, page) + _field_v(2, size))
+    st, raw = _post_jwt(jwt, "1012", "11", body)
+    if st != 200:
+        return None
+    top = decode_msg(raw)
+    container = _get(top, 5)
+    if not container:
+        return None
+    out = []
+    for m in decode_msg(container):
+        if m[0] != 1 or m[1] != 's':
+            continue
+        e = decode_msg(m[2])
+        match = _get(e, 1)
+        if not match:
+            continue
+        mf = decode_msg(match)
+        def team(fn):
+            t = _get(mf, fn)
+            if not t:
+                return None
+            tf = decode_msg(t)
+            sb = _get(tf, 3)
+            return sb.decode('utf-8', 'ignore') if sb else None
+        ts = None
+        t6 = _get(mf, 6)
+        if t6:
+            try:
+                ts = int(t6.decode())
+            except Exception:
+                ts = None
+        out.append({"sid": (_get(e, 3) or b"").decode(), "home": team(3),
+                    "away": team(4), "kick_ts": ts})
+    return out
+
+
+def submit(jwt: str, sid: str, mkt: int, pick: int) -> bool:
+    st, raw = _post_jwt(jwt, "1012", "2", encode_submit(sid, mkt, pick))
+    return st == 200 and b"suc" in raw
+
+
 def cmd_list(page: int = 1, size: int = 60) -> int:
     body = _field(2, _field_v(1, page) + _field_v(2, size))
     st, raw = _post("1012", "11", body)
