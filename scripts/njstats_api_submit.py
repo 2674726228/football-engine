@@ -30,9 +30,9 @@ import requests
 
 API = "https://www.njstats.cn/njserver/openApi/"
 JWT_FILE = Path.home() / ".football-engine" / "njstats_jwt"
-PROXY = {"https": os.environ.get("NJSTATS_PROXY", "http://127.0.0.1:7897")}
-if os.environ.get("NJSTATS_NOPROXY"):
-    PROXY = {}
+# NJSTATS_NOPROXY=1（CI 端）：显式 None 屏蔽 runner 任何代理环境；Mac 默认走 Clash 7897
+PROXY = {"http": None, "https": None} if os.environ.get("NJSTATS_NOPROXY") \
+    else {"https": os.environ.get("NJSTATS_PROXY", "http://127.0.0.1:7897")}
 
 
 # ---------- 最小 protobuf wire 编解码（仅 varint / length-delimited） ----------
