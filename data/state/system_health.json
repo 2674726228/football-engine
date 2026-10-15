@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-15T16:42:23",
+  "generated_at": "2026-10-15T17:25:44",
   "summary": {
-    "total": 10,
+    "total": 11,
     "critical": 0,
     "healed": 0
   },
@@ -47,10 +47,18 @@
       "healed": false
     },
     {
+      "id": "source/ci",
+      "layer": "source",
+      "severity": "ok",
+      "detail": "最近 CI 运行 2.0h 前",
+      "healable": false,
+      "healed": false
+    },
+    {
       "id": "model/draw",
       "layer": "model",
       "severity": "ok",
-      "detail": "平局均值 25.1% 在先验带内",
+      "detail": "平局均值 25.2% 在先验带内",
       "healable": false,
       "healed": false
     },
@@ -82,7 +90,7 @@
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 181MB",
+      "detail": ".git 体积 182MB",
       "healable": false,
       "healed": false
     }
