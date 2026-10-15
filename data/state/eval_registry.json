@@ -1,0 +1,71 @@
+{
+ "generated_at": "2026-10-15 15:39:01",
+ "panel": {
+  "total": 6,
+  "live": 6,
+  "offline": 0,
+  "doctrine": "评模型的与喂模型的是两条独立管道，各自多源冗余；任何单席失联只降级不崩溃"
+ },
+ "judges": {
+  "ledger_clv": {
+   "kind": "permanent",
+   "file": "clv_report.json",
+   "status": "live",
+   "age_days": 0.0,
+   "samples": 697,
+   "verdict": "NEGATIVE_CLV（下注价格系统性输给收盘）"
+  },
+  "tracker": {
+   "kind": "permanent",
+   "file": "upgrade_tracker.json",
+   "status": "live",
+   "age_days": 0.0,
+   "samples": 602,
+   "verdict": "IMPROVED/TIED"
+  },
+  "edge_calib": {
+   "kind": "permanent",
+   "file": "edge_calibration.json",
+   "status": "live",
+   "age_days": 0.0,
+   "samples": 950,
+   "verdict": null
+  },
+  "aut_paper": {
+   "kind": "permanent",
+   "file": "paper_track_draw.json",
+   "status": "live",
+   "age_days": 0.5,
+   "samples": 1022,
+   "verdict": "ROI 0.0464"
+  },
+  "challenge": {
+   "kind": "temporary",
+   "file": "challenge_review.json",
+   "status": "live",
+   "age_days": 0.0,
+   "samples": 8,
+   "verdict": "3/8"
+  },
+  "djyy_panel": {
+   "kind": "temporary",
+   "file": "djyy_audit_latest.json",
+   "status": "live",
+   "age_days": 0.0,
+   "samples": 588,
+   "verdict": null
+  }
+ },
+ "quorums": [
+  {
+   "judge": "tracker",
+   "delta": null,
+   "significant": false
+  },
+  {
+   "judge": "ledger_clv",
+   "mean_clv": -0.126,
+   "significant": true
+  }
+ ]
+}
