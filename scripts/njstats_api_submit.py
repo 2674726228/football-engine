@@ -23,7 +23,6 @@ from __future__ import annotations
 import base64
 import json
 import os
-import struct
 import sys
 from pathlib import Path
 
@@ -161,7 +160,6 @@ def cmd_list(page: int = 1, size: int = 60) -> int:
             line = _get(sf, 7)
             picked = {"market": m1, "pick": p2, "odds": o3.decode() if o3 else None,
                       "line": line.decode() if line else None}
-        ks = _get(mf, 6, 'v') or _get(mf, 6)
         ts = None
         t6 = _get(mf, 6)
         if t6:
