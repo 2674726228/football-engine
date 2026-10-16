@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-10-17T17:07:16",
+  "generated_at": "2026-10-17T01:28:40",
   "summary": {
-    "total": 11,
-    "critical": 1,
-    "healed": 0
+    "total": 12,
+    "critical": 0,
+    "healed": 1
   },
   "findings": [
     {
       "id": "git/state",
       "layer": "git",
-      "severity": "ok",
-      "detail": "分支状态正常",
-      "healable": false,
-      "healed": false
+      "severity": "warn",
+      "detail": "残留 rebase 状态=False, detached HEAD=True → 已清场对齐远端",
+      "healable": true,
+      "healed": true
     },
     {
       "id": "git/backlog",
@@ -33,16 +33,16 @@
     {
       "id": "data/results",
       "layer": "data",
-      "severity": "warn",
-      "detail": "昨日(2026-10-16)缺 results_sina.json（补抓失败）",
-      "healable": true,
+      "severity": "ok",
+      "detail": "昨日赛果文件在",
+      "healable": false,
       "healed": false
     },
     {
       "id": "data/yesterday",
       "layer": "data",
-      "severity": "info",
-      "detail": "昨日(2026-10-16)无预测或无赛果，跳过结算检查",
+      "severity": "ok",
+      "detail": "昨日(2026-10-16)已结算",
       "healable": false,
       "healed": false
     },
@@ -55,10 +55,18 @@
       "healed": false
     },
     {
+      "id": "source/ci",
+      "layer": "source",
+      "severity": "ok",
+      "detail": "最近 CI 运行 0.4h 前",
+      "healable": false,
+      "healed": false
+    },
+    {
       "id": "model/draw",
       "layer": "model",
       "severity": "ok",
-      "detail": "平局均值 21.3% 在先验带内",
+      "detail": "平局均值 21.1% 在先验带内",
       "healable": false,
       "healed": false
     },
@@ -73,24 +81,24 @@
     {
       "id": "env/cron",
       "layer": "env",
-      "severity": "critical",
-      "detail": "crontab 缺少关键任务: ['run_realtime_monitor.sh', 'auto_run.sh']（调度层断裂）",
+      "severity": "ok",
+      "detail": "crontab 关键任务在",
       "healable": false,
       "healed": false
     },
     {
       "id": "env/proxy",
       "layer": "env",
-      "severity": "warn",
-      "detail": "代理 7897 不通（拉起失败）",
-      "healable": true,
+      "severity": "ok",
+      "detail": "代理 7897 通",
+      "healable": false,
       "healed": false
     },
     {
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 22MB",
+      "detail": ".git 体积 180MB",
       "healable": false,
       "healed": false
     }
