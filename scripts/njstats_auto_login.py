@@ -93,9 +93,13 @@ def login_once(acct: str, pw: str, ocr, tries: int) -> str | None:
             img = base64.b64decode(cap["image"].split(",")[-1])
             code = solve(img, ocr)
             enc = base64.b64encode(rsa.encrypt(pw.encode(), padding.PKCS1v15())).decode()
-            r = s.post(BASE + "/api/login", headers={**hdr, "Content-Type": "application/json"},
-                       json={"username": acct, "password": enc, "captcha": code,
-                             "captchaIndex": cap.get("index"), "remember-me": True}, timeout=15)
+            # ⚠️ 2026-10-16 实测定稿：必须 form-urlencoded（Spring 风格），JSON 会走
+            # 另一错误分支（"Captcha validate failed"）永远失败。且连错 ~4 次触发限流。
+            # 验证码 OCR 成功率过低，本脚本仅作协议存档；续期正道 = 浏览器 session 调
+            # /api/user/current mint（免验证码）；session 死了须人工登录一次。
+            r = s.post(BASE + "/api/login", headers=hdr,
+                       data={"username": acct, "password": enc, "captcha": code,
+                             "captchaIndex": str(cap.get("index")), "remember-me": "true"}, timeout=15)
             j = r.json()
             tok = (j.get("data") or {}).get("token") if isinstance(j.get("data"), dict) else None
             if tok:

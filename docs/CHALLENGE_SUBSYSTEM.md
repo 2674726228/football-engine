@@ -48,4 +48,6 @@ tests/test_challenge_firewall.py 在 CI 强制此边界（engine/ 出现 challen
 ## JWT 续期机制（2026-10-16 逆向定稿）
 - **正道（免验证码）**：浏览器登录 session 调 `GET /api/user/current`（credentials:include）→ `data.token` 返回全新 20h JWT。Mac :35 值守每次 mint 后写文件 + 推 GitHub secret `NJSTATS_JWT`。只要登录时勾了"自动登录"（Spring SESSION cookie 长期有效），即可无限续命，无需再碰验证码。
 - **兜底（命令行重登）**：`scripts/njstats_auto_login.py` 已逆向完整登录链——`GET /api/public_key` → `GET /api/captcha`（三层 AES-CBC，密钥硬编码前端）→ `POST /api/login`（RSA-PKCS1 密码 + captcha + captchaIndex）。但验证码含算术型（"2×6=?"→答 12）与叠字干扰型，ddddocr 识别 + 一次性 TTL 使其不可靠，仅留作协议存档；真到浏览器 session 也死时优先人工登录一次再 mint。
+- 登录 POST 必须 **form-urlencoded**（JSON 会走另一错误分支永败）；连错约 4 次触发限流（响应变空），勿连打。
+- 站方 Spring session 约 **60 分钟空闲即死**——值守 :35 单频恰好踩边界，需 :05/:35 双频或人工登录时先刷一下页面。
 - 凭据 `~/.football-engine/njstats_account`（0600，仓库外）。
