@@ -44,3 +44,8 @@ tests/test_challenge_firewall.py 在 CI 强制此边界（engine/ 出现 challen
 - 2026-10-12 上线（UI 模拟）→ 10-15 纯 API + 预登记纪律 v5.2
 - W42 特例（本周）：填仓模式——门槛 edge>0、K=剩余配额/剩余天数，目标周日 28/28
 - W43 起（常规）：周一~四 ≥1.5pp / 周五~日 ≥0.8pp，K=max(2,⌈剩余/天⌉)，上限 6
+
+## JWT 续期机制（2026-10-16 逆向定稿）
+- **正道（免验证码）**：浏览器登录 session 调 `GET /api/user/current`（credentials:include）→ `data.token` 返回全新 20h JWT。Mac :35 值守每次 mint 后写文件 + 推 GitHub secret `NJSTATS_JWT`。只要登录时勾了"自动登录"（Spring SESSION cookie 长期有效），即可无限续命，无需再碰验证码。
+- **兜底（命令行重登）**：`scripts/njstats_auto_login.py` 已逆向完整登录链——`GET /api/public_key` → `GET /api/captcha`（三层 AES-CBC，密钥硬编码前端）→ `POST /api/login`（RSA-PKCS1 密码 + captcha + captchaIndex）。但验证码含算术型（"2×6=?"→答 12）与叠字干扰型，ddddocr 识别 + 一次性 TTL 使其不可靠，仅留作协议存档；真到浏览器 session 也死时优先人工登录一次再 mint。
+- 凭据 `~/.football-engine/njstats_account`（0600，仓库外）。
