@@ -82,7 +82,6 @@ def solve(img: bytes, ocr) -> str:
 
 
 def login_once(acct: str, pw: str, ocr, tries: int) -> str | None:
-    from cryptography.hazmat.primitives.serialization import load_der_public_key
     s = requests.Session()
     s.proxies = PROXY
     hdr = {"User-Agent": UA, "Accept": "application/json", "Origin": BASE, "Referer": BASE + "/login"}
@@ -114,7 +113,7 @@ def push_secret(jwt: str) -> None:
         from nacl.public import PublicKey, SealedBox
     except ImportError:
         print("[auto-login] 无 pynacl，跳过推 secret"); return
-    cred = subprocess.run(["git", "credential", "fill"], input="protocol=https\nhost=github.com\n\n",
+    cred = subprocess.run(["git", "credential", "fill"], check=False, input="protocol=https\nhost=github.com\n\n",
                           capture_output=True, text=True, cwd=REPO).stdout
     tok = next((l.split("=", 1)[1] for l in cred.splitlines() if l.startswith("password=")), "")
     if not tok:
