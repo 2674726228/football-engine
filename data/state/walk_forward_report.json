@@ -1,21 +1,21 @@
 {
-  "total_matches": 1061,
+  "total_matches": 1062,
   "date_range": [
     "2026-07-19",
-    "2026-10-15"
+    "2026-10-16"
   ],
   "metrics": {
-    "brier": 0.5782,
-    "weighted_brier": 0.5746,
+    "brier": 0.5785,
+    "weighted_brier": 0.5749,
     "rps": 0.1981,
     "weighted_rps": 0.1969,
-    "log_loss": 0.9727,
-    "hit_rate": 0.5438,
-    "ece": 0.0882
+    "log_loss": 0.9731,
+    "hit_rate": 0.5433,
+    "ece": 0.0872
   },
   "draw_analysis": {
-    "actual_draws": 257,
-    "actual_draw_rate": 0.2422,
+    "actual_draws": 258,
+    "actual_draw_rate": 0.2429,
     "predicted_draws": 38,
     "predicted_draw_rate": 0.0358,
     "max_draw_prob": 0.5025,
@@ -27,20 +27,20 @@
   },
   "strategy_comparison": {
     "model": {
-      "hit_rate": 0.541,
-      "n": 1061
+      "hit_rate": 0.5405,
+      "n": 1062
     },
     "market": {
-      "hit_rate": 0.5565,
-      "n": 947
+      "hit_rate": 0.5559,
+      "n": 948
     },
     "hybrid_v2": {
-      "hit_rate": 0.5005,
-      "n": 947
+      "hit_rate": 0.5,
+      "n": 948
     },
     "market_d28": {
-      "hit_rate": 0.5195,
-      "n": 947
+      "hit_rate": 0.519,
+      "n": 948
     }
   },
   "by_league": {
