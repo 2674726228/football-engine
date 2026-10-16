@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-10-16T20:25:54",
+  "generated_at": "2026-10-16T22:28:53",
   "summary": {
     "total": 11,
     "critical": 0,
-    "healed": 0
+    "healed": 1
   },
   "findings": [
     {
       "id": "git/state",
       "layer": "git",
-      "severity": "ok",
-      "detail": "分支状态正常",
-      "healable": false,
-      "healed": false
+      "severity": "warn",
+      "detail": "残留 rebase 状态=False, detached HEAD=True → 已清场对齐远端",
+      "healable": true,
+      "healed": true
     },
     {
       "id": "git/backlog",
@@ -50,7 +50,7 @@
       "id": "source/ci",
       "layer": "source",
       "severity": "ok",
-      "detail": "最近 CI 运行 3.1h 前",
+      "detail": "最近 CI 运行 0.2h 前",
       "healable": false,
       "healed": false
     },
@@ -90,7 +90,7 @@
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 185MB",
+      "detail": ".git 体积 180MB",
       "healable": false,
       "healed": false
     }
