@@ -1,23 +1,301 @@
 {
   "stable": [],
   "value": [],
-  "lottery": [
-    {
-      "match": "2026-10-17_周六008#ttg",
-      "sel": "ttg_1",
-      "odds": 4.6,
-      "stake": 50.0,
-      "prob": 0.23
-    }
-  ],
-  "total_stake": 50.0,
-  "expected_roi": 0.0585,
+  "lottery": [],
+  "total_stake": 0,
+  "expected_roi": 0.0,
   "bankroll": 3844.2710999999995,
   "breaker_multiplier": 0.5,
-  "parlay": [],
-  "score_parlay": [],
-  "parlay_stake": 0,
-  "total_exposure": 50.0,
+  "parlay": [
+    {
+      "type": "2串1",
+      "legs": [
+        {
+          "match": "2026-10-17_周六011",
+          "home": "威尼斯",
+          "away": "那不勒斯",
+          "league": "意甲",
+          "sel": "away",
+          "odds": 1.54,
+          "prob": 0.604,
+          "cal_prob": 0.698,
+          "market_prob": 0.575,
+          "source": "fusion",
+          "hit_prob": 0.698
+        },
+        {
+          "match": "2026-10-17_周六030",
+          "home": "新英格兰",
+          "away": "芝加哥火焰",
+          "league": "美职",
+          "sel": "home",
+          "odds": 2.17,
+          "prob": 0.424,
+          "cal_prob": 0.488,
+          "market_prob": 0.408,
+          "source": "fusion",
+          "hit_prob": 0.488
+        }
+      ],
+      "total_odds": 3.34,
+      "model_ev": -0.29,
+      "cal_ev": 0.6,
+      "cal_roi": 0.1387,
+      "market_ev": -0.43,
+      "market_roi": -0.2162,
+      "hit_prob_cal": 0.341,
+      "recommended": true,
+      "stake": 4.3,
+      "n_bets": 1,
+      "potential": 14.37,
+      "worst_win": 0.0,
+      "note": "两场全中才赢",
+      "source": "calibrated"
+    },
+    {
+      "type": "2串1",
+      "legs": [
+        {
+          "match": "2026-10-17_周六014",
+          "home": "不来梅",
+          "away": "帕德博恩",
+          "league": "德甲",
+          "sel": "home",
+          "odds": 1.51,
+          "prob": 0.605,
+          "cal_prob": 0.698,
+          "market_prob": 0.586,
+          "source": "fusion",
+          "hit_prob": 0.698
+        },
+        {
+          "match": "2026-10-17_周六011",
+          "home": "威尼斯",
+          "away": "那不勒斯",
+          "league": "意甲",
+          "sel": "away",
+          "odds": 1.54,
+          "prob": 0.604,
+          "cal_prob": 0.698,
+          "market_prob": 0.575,
+          "source": "fusion",
+          "hit_prob": 0.698
+        }
+      ],
+      "total_odds": 2.33,
+      "model_ev": -0.3,
+      "cal_ev": 0.95,
+      "cal_roi": 0.132,
+      "market_ev": -0.43,
+      "market_roi": -0.2163,
+      "hit_prob_cal": 0.487,
+      "recommended": true,
+      "stake": 7.22,
+      "n_bets": 1,
+      "potential": 16.79,
+      "worst_win": 0.0,
+      "note": "两场全中才赢",
+      "source": "calibrated"
+    },
+    {
+      "type": "2串1",
+      "legs": [
+        {
+          "match": "2026-10-17_周六014",
+          "home": "不来梅",
+          "away": "帕德博恩",
+          "league": "德甲",
+          "sel": "home",
+          "odds": 1.51,
+          "prob": 0.605,
+          "cal_prob": 0.698,
+          "market_prob": 0.586,
+          "source": "fusion",
+          "hit_prob": 0.698
+        },
+        {
+          "match": "2026-10-17_周六030",
+          "home": "新英格兰",
+          "away": "芝加哥火焰",
+          "league": "美职",
+          "sel": "home",
+          "odds": 2.17,
+          "prob": 0.424,
+          "cal_prob": 0.488,
+          "market_prob": 0.408,
+          "source": "fusion",
+          "hit_prob": 0.488
+        }
+      ],
+      "total_odds": 3.28,
+      "model_ev": -0.32,
+      "cal_ev": 0.43,
+      "cal_roi": 0.1166,
+      "market_ev": -0.43,
+      "market_roi": -0.2162,
+      "hit_prob_cal": 0.341,
+      "recommended": true,
+      "stake": 3.71,
+      "n_bets": 1,
+      "potential": 12.16,
+      "worst_win": 0.0,
+      "note": "两场全中才赢",
+      "source": "calibrated"
+    },
+    {
+      "type": "3串1",
+      "legs": [
+        {
+          "match": "2026-10-17_周六014",
+          "home": "不来梅",
+          "away": "帕德博恩",
+          "league": "德甲",
+          "sel": "home",
+          "odds": 1.51,
+          "prob": 0.605,
+          "cal_prob": 0.698,
+          "market_prob": 0.586,
+          "source": "fusion",
+          "hit_prob": 0.698
+        },
+        {
+          "match": "2026-10-17_周六011",
+          "home": "威尼斯",
+          "away": "那不勒斯",
+          "league": "意甲",
+          "sel": "away",
+          "odds": 1.54,
+          "prob": 0.604,
+          "cal_prob": 0.698,
+          "market_prob": 0.575,
+          "source": "fusion",
+          "hit_prob": 0.698
+        },
+        {
+          "match": "2026-10-17_周六030",
+          "home": "新英格兰",
+          "away": "芝加哥火焰",
+          "league": "美职",
+          "sel": "home",
+          "odds": 2.17,
+          "prob": 0.424,
+          "cal_prob": 0.488,
+          "market_prob": 0.408,
+          "source": "fusion",
+          "hit_prob": 0.488
+        }
+      ],
+      "total_odds": 5.05,
+      "model_ev": -0.44,
+      "cal_ev": 0.71,
+      "cal_roi": 0.1997,
+      "market_ev": -0.61,
+      "market_roi": -0.3061,
+      "hit_prob_cal": 0.238,
+      "recommended": true,
+      "stake": 3.58,
+      "n_bets": 1,
+      "potential": 18.07,
+      "worst_win": 0.0,
+      "note": "三场全中才赢",
+      "source": "calibrated"
+    },
+    {
+      "type": "3串4",
+      "legs": [
+        {
+          "match": "2026-10-17_周六014",
+          "home": "不来梅",
+          "away": "帕德博恩",
+          "league": "德甲",
+          "sel": "home",
+          "odds": 1.51,
+          "prob": 0.605,
+          "cal_prob": 0.698,
+          "market_prob": 0.586,
+          "source": "fusion",
+          "hit_prob": 0.698
+        },
+        {
+          "match": "2026-10-17_周六011",
+          "home": "威尼斯",
+          "away": "那不勒斯",
+          "league": "意甲",
+          "sel": "away",
+          "odds": 1.54,
+          "prob": 0.604,
+          "cal_prob": 0.698,
+          "market_prob": 0.575,
+          "source": "fusion",
+          "hit_prob": 0.698
+        },
+        {
+          "match": "2026-10-17_周六030",
+          "home": "新英格兰",
+          "away": "芝加哥火焰",
+          "league": "美职",
+          "sel": "home",
+          "odds": 2.17,
+          "prob": 0.424,
+          "cal_prob": 0.488,
+          "market_prob": 0.408,
+          "source": "fusion",
+          "hit_prob": 0.488
+        }
+      ],
+      "total_odds": 3.5,
+      "model_ev": null,
+      "cal_ev": 0.63,
+      "cal_roi": 0.1467,
+      "market_ev": -1.91,
+      "market_roi": -0.2387,
+      "hit_prob_cal": 0.238,
+      "recommended": true,
+      "stake": 4.26,
+      "n_bets": 4,
+      "potential": 14.9,
+      "worst_win": 4.65,
+      "note": "容错：错 1 场仍中 1 注 2串1（回 ¥5），全中 ¥28",
+      "source": "calibrated"
+    }
+  ],
+  "score_parlay": [
+    {
+      "type": "比分2串1",
+      "legs": [
+        {
+          "match": "2026-10-17_周六018",
+          "home": "布伦特福德",
+          "away": "利物浦",
+          "league": "英超",
+          "score": "1-0",
+          "prob": 0.196,
+          "cal_prob": 0.0943,
+          "odds": 11.5
+        },
+        {
+          "match": "2026-10-17_周六030",
+          "home": "新英格兰",
+          "away": "芝加哥火焰",
+          "league": "美职",
+          "score": "1-0",
+          "prob": 0.272,
+          "cal_prob": 0.0943,
+          "odds": 13.0
+        }
+      ],
+      "total_odds": 149.5,
+      "hit_prob": 0.0089,
+      "stake": 2.0,
+      "potential": 299.0,
+      "worst_win": 0.0,
+      "n_bets": 1,
+      "odds_source": "official",
+      "note": "两场比分都中才赢（校准命中 0.9% × 赔率 150 倍 = EV +33%）"
+    }
+  ],
+  "parlay_stake": 25.07,
+  "total_exposure": 25.07,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5429,
