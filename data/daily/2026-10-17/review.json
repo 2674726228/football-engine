@@ -1,13 +1,13 @@
 {
   "date": "2026-10-17",
-  "n_matches": 26,
-  "hit_rate": 0.6154,
-  "hits": 16,
+  "n_matches": 29,
+  "hit_rate": 0.6207,
+  "hits": 18,
   "source_brier": {
-    "model": 0.5901,
-    "market": 0.5704,
-    "djyy": 0.6135,
-    "final": 0.5324
+    "model": 0.5663,
+    "market": 0.5423,
+    "djyy": 0.5873,
+    "final": 0.5118
   },
   "by_league": {
     "澳超": {
@@ -47,10 +47,10 @@
       "avg_brier": 0.9487
     },
     "西甲": {
-      "n": 3,
-      "hit_rate": 0.6667,
-      "wilson_lower": 0.2077,
-      "avg_brier": 0.5066
+      "n": 4,
+      "hit_rate": 0.5,
+      "wilson_lower": 0.15,
+      "avg_brier": 0.56
     },
     "挪超": {
       "n": 1,
@@ -59,10 +59,10 @@
       "avg_brier": 0.1184
     },
     "意甲": {
-      "n": 2,
-      "hit_rate": 0.5,
-      "wilson_lower": 0.0945,
-      "avg_brier": 0.632
+      "n": 3,
+      "hit_rate": 0.6667,
+      "wilson_lower": 0.2077,
+      "avg_brier": 0.4781
     },
     "芬超": {
       "n": 1,
@@ -81,20 +81,26 @@
       "hit_rate": 1.0,
       "wilson_lower": 0.2065,
       "avg_brier": 0.1027
+    },
+    "荷甲": {
+      "n": 1,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.2065,
+      "avg_brier": 0.1103
     }
   },
   "by_confidence_tier": {
     "mid": {
-      "n": 4,
-      "hit_rate": 0.75,
-      "wilson_lower": 0.3006,
-      "avg_brier": 0.5544
+      "n": 5,
+      "hit_rate": 0.6,
+      "wilson_lower": 0.2307,
+      "avg_brier": 0.5876
     },
     "high": {
-      "n": 18,
-      "hit_rate": 0.6111,
-      "wilson_lower": 0.3862,
-      "avg_brier": 0.5046
+      "n": 20,
+      "hit_rate": 0.65,
+      "wilson_lower": 0.4329,
+      "avg_brier": 0.4681
     },
     "low": {
       "n": 4,
@@ -111,10 +117,10 @@
       "avg_brier": 0.8695
     },
     "L1 大热(<1.5)": {
-      "n": 15,
-      "hit_rate": 0.7333,
-      "wilson_lower": 0.4805,
-      "avg_brier": 0.4015
+      "n": 17,
+      "hit_rate": 0.7647,
+      "wilson_lower": 0.5274,
+      "avg_brier": 0.3708
     },
     "L4 冷(2.2-3.0)": {
       "n": 4,
@@ -123,26 +129,26 @@
       "avg_brier": 0.6358
     },
     "L3 中(1.8-2.2)": {
-      "n": 2,
-      "hit_rate": 1.0,
-      "wilson_lower": 0.3424,
-      "avg_brier": 0.4647
+      "n": 3,
+      "hit_rate": 0.6667,
+      "wilson_lower": 0.2077,
+      "avg_brier": 0.5498
     }
   },
   "score_stats": {
-    "top1": 3,
-    "top3": 7,
-    "top5": 9,
-    "top8": 17,
-    "any": 17
+    "top1": 4,
+    "top3": 9,
+    "top5": 11,
+    "top8": 19,
+    "any": 19
   },
   "score_rank_hist": {
     "4": 2,
     "8": 5,
     "7": 1,
     "6": 2,
-    "3": 1,
-    "1": 3,
+    "3": 2,
+    "1": 4,
     "2": 3
   },
   "score_source_stats": {
@@ -151,8 +157,8 @@
       "hits": 0
     },
     "mc": {
-      "n": 17,
-      "hits": 9
+      "n": 19,
+      "hits": 11
     }
   },
   "market_signal_stats": {
@@ -160,25 +166,25 @@
     "hits": 4
   },
   "layered": {
-    "log_loss_final": 0.9005,
-    "rps_final": 0.1792,
-    "rps_market": 0.1914,
+    "log_loss_final": 0.872,
+    "rps_final": 0.1686,
+    "rps_market": 0.178,
     "goal_framework": {
-      "n": 26,
-      "hits": 17
+      "n": 29,
+      "hits": 20
     },
     "prob_bands": {
       "40-50%": {
-        "n": 2,
-        "hit_rate": 1.0
+        "n": 3,
+        "hit_rate": 0.6667
       },
       "50-60%": {
         "n": 4,
         "hit_rate": 0.25
       },
       "60%+": {
-        "n": 16,
-        "hit_rate": 0.6875
+        "n": 18,
+        "hit_rate": 0.7222
       },
       "<40%": {
         "n": 4,
@@ -191,12 +197,12 @@
         "hit_rate": 1.0
       },
       "ok": {
-        "n": 15,
-        "hit_rate": 0.6
+        "n": 17,
+        "hit_rate": 0.5882
       },
       "watch": {
-        "n": 10,
-        "hit_rate": 0.6
+        "n": 11,
+        "hit_rate": 0.6364
       }
     }
   },
@@ -214,6 +220,6 @@
     }
   ],
   "total_pnl": 0.0,
-  "generated_at": "2026-10-17T18:51:35.220025",
-  "sha256": "a48cd647daa4e5d345f631304c8219db"
+  "generated_at": "2026-10-17T21:28:43.218120",
+  "sha256": "ad2150983a7b05fd5c813145b331ec9b"
 }
