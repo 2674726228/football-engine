@@ -1,13 +1,13 @@
 {
   "date": "2026-10-16",
-  "n_matches": 10,
-  "hit_rate": 0.7,
-  "hits": 7,
+  "n_matches": 11,
+  "hit_rate": 0.7273,
+  "hits": 8,
   "source_brier": {
-    "model": 0.6476,
-    "market": 0.4948,
-    "djyy": 0.6857,
-    "final": 0.4962
+    "model": 0.6606,
+    "market": 0.4914,
+    "djyy": 0.6493,
+    "final": 0.4941
   },
   "by_league": {
     "澳超": {
@@ -69,14 +69,20 @@
       "hit_rate": 0.0,
       "wilson_lower": 0.0,
       "avg_brier": 0.7865
+    },
+    "巴甲": {
+      "n": 1,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.2065,
+      "avg_brier": 0.4731
     }
   },
   "by_confidence_tier": {
     "mid": {
-      "n": 6,
-      "hit_rate": 0.6667,
-      "wilson_lower": 0.3,
-      "avg_brier": 0.5655
+      "n": 7,
+      "hit_rate": 0.7143,
+      "wilson_lower": 0.3589,
+      "avg_brier": 0.5523
     },
     "high": {
       "n": 4,
@@ -87,10 +93,10 @@
   },
   "by_odds_band": {
     "L3 中(1.8-2.2)": {
-      "n": 5,
-      "hit_rate": 0.6,
-      "wilson_lower": 0.2307,
-      "avg_brier": 0.6165
+      "n": 6,
+      "hit_rate": 0.6667,
+      "wilson_lower": 0.3,
+      "avg_brier": 0.5926
     },
     "L2 热(1.5-1.8)": {
       "n": 2,
@@ -108,9 +114,9 @@
   "score_stats": {
     "top1": 0,
     "top3": 3,
-    "top5": 5,
-    "top8": 7,
-    "any": 7
+    "top5": 6,
+    "top8": 8,
+    "any": 8
   },
   "score_rank_hist": {
     "7": 1,
@@ -118,7 +124,7 @@
     "3": 1,
     "6": 1,
     "5": 1,
-    "4": 1
+    "4": 2
   },
   "score_source_stats": {
     "djyy": {
@@ -126,8 +132,8 @@
       "hits": 0
     },
     "mc": {
-      "n": 7,
-      "hits": 5
+      "n": 8,
+      "hits": 6
     }
   },
   "market_signal_stats": {
@@ -135,17 +141,17 @@
     "hits": 0
   },
   "layered": {
-    "log_loss_final": 0.8675,
-    "rps_final": 0.1427,
-    "rps_market": 0.1419,
+    "log_loss_final": 0.8634,
+    "rps_final": 0.1468,
+    "rps_market": 0.1458,
     "goal_framework": {
-      "n": 10,
-      "hits": 4
+      "n": 11,
+      "hits": 5
     },
     "prob_bands": {
       "40-50%": {
-        "n": 5,
-        "hit_rate": 0.6
+        "n": 6,
+        "hit_rate": 0.6667
       },
       "50-60%": {
         "n": 2,
@@ -162,8 +168,8 @@
         "hit_rate": 1.0
       },
       "ok": {
-        "n": 3,
-        "hit_rate": 0.6667
+        "n": 4,
+        "hit_rate": 0.75
       },
       "watch": {
         "n": 5,
@@ -173,6 +179,6 @@
   },
   "biases": [],
   "total_pnl": 0.0,
-  "generated_at": "2026-10-16T23:56:36.475012",
-  "sha256": "7273d352ed292b61ab1a52074f4b6416"
+  "generated_at": "2026-10-17T02:01:22.329612",
+  "sha256": "69fe145fee9f4b57edd48725e94c5c44"
 }
