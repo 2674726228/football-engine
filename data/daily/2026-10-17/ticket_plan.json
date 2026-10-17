@@ -7,43 +7,9 @@
   "bankroll": 3844.2710999999995,
   "breaker_multiplier": 0.5,
   "parlay": [],
-  "score_parlay": [
-    {
-      "type": "比分2串1",
-      "legs": [
-        {
-          "match": "2026-10-17_周六018",
-          "home": "布伦特福德",
-          "away": "利物浦",
-          "league": "英超",
-          "score": "1-0",
-          "prob": 0.196,
-          "cal_prob": 0.0943,
-          "odds": 13.0
-        },
-        {
-          "match": "2026-10-17_周六030",
-          "home": "新英格兰",
-          "away": "芝加哥火焰",
-          "league": "美职",
-          "score": "1-0",
-          "prob": 0.273,
-          "cal_prob": 0.0943,
-          "odds": 13.0
-        }
-      ],
-      "total_odds": 169.0,
-      "hit_prob": 0.0089,
-      "stake": 2.0,
-      "potential": 338.0,
-      "worst_win": 0.0,
-      "n_bets": 1,
-      "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 0.9% × 赔率 169 倍 = EV +50%）"
-    }
-  ],
-  "parlay_stake": 2.0,
-  "total_exposure": 2.0,
+  "score_parlay": [],
+  "parlay_stake": 0,
+  "total_exposure": 0.0,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5429,
