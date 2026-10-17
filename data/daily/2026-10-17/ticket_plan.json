@@ -6,53 +6,7 @@
   "expected_roi": 0.0,
   "bankroll": 3844.2710999999995,
   "breaker_multiplier": 0.5,
-  "parlay": [
-    {
-      "type": "2串1",
-      "legs": [
-        {
-          "match": "2026-10-17_周六011",
-          "home": "威尼斯",
-          "away": "那不勒斯",
-          "league": "意甲",
-          "sel": "away",
-          "odds": 1.51,
-          "prob": 0.616,
-          "cal_prob": 0.698,
-          "market_prob": 0.586,
-          "source": "fusion",
-          "hit_prob": 0.698
-        },
-        {
-          "match": "2026-10-17_周六006",
-          "home": "宫崎牛鸟",
-          "away": "磐田喜悦",
-          "league": "日乙",
-          "sel": "home",
-          "odds": 2.55,
-          "prob": 0.346,
-          "cal_prob": 0.543,
-          "market_prob": 0.347,
-          "source": "fusion",
-          "hit_prob": 0.543
-        }
-      ],
-      "total_odds": 3.85,
-      "model_ev": -0.36,
-      "cal_ev": 6.35,
-      "cal_roi": 0.4585,
-      "market_ev": -0.43,
-      "market_roi": -0.216,
-      "hit_prob_cal": 0.379,
-      "recommended": true,
-      "stake": 13.84,
-      "n_bets": 1,
-      "potential": 53.29,
-      "worst_win": 0.0,
-      "note": "两场全中才赢",
-      "source": "calibrated"
-    }
-  ],
+  "parlay": [],
   "score_parlay": [
     {
       "type": "比分2串1",
@@ -63,7 +17,7 @@
           "away": "切尔西",
           "league": "英超",
           "score": "1-0",
-          "prob": 0.191,
+          "prob": 0.192,
           "cal_prob": 0.0943,
           "odds": 11.5
         },
@@ -73,7 +27,7 @@
           "away": "芝加哥火焰",
           "league": "美职",
           "score": "1-0",
-          "prob": 0.267,
+          "prob": 0.274,
           "cal_prob": 0.0943,
           "odds": 12.5
         }
@@ -88,8 +42,8 @@
       "note": "两场比分都中才赢（校准命中 0.9% × 赔率 144 倍 = EV +28%）"
     }
   ],
-  "parlay_stake": 15.84,
-  "total_exposure": 15.84,
+  "parlay_stake": 2.0,
+  "total_exposure": 2.0,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5429,
