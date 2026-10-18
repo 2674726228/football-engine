@@ -1,16 +1,16 @@
 {
   "generated_at": "2026-10-18",
-  "total_matches": 1101,
+  "total_matches": 1102,
   "date_range": [
     "2026-07-19",
     "2026-10-17"
   ],
   "overall": {
-    "hit_rate": 0.545,
-    "brier_final": 0.5756,
-    "brier_model": 0.6131,
-    "brier_market": 0.5654,
-    "brier_djyy": 0.6226
+    "hit_rate": 0.5454,
+    "brier_final": 0.5755,
+    "brier_model": 0.6129,
+    "brier_market": 0.5653,
+    "brier_djyy": 0.6225
   },
   "daily": [
     {
@@ -1047,20 +1047,20 @@
     },
     {
       "date": "2026-10-17",
-      "n": 29,
-      "hits": 18,
-      "hit_rate": 0.6207,
-      "cum_hit_rate": 0.545,
-      "brier_final": 0.5118,
-      "brier_model": 0.5663,
-      "brier_market": 0.5423,
-      "brier_djyy": 0.5873,
+      "n": 30,
+      "hits": 19,
+      "hit_rate": 0.6333,
+      "cum_hit_rate": 0.5454,
+      "brier_final": 0.5119,
+      "brier_model": 0.5575,
+      "brier_market": 0.5419,
+      "brier_djyy": 0.5874,
       "pnl": 0.0
     }
   ],
   "rolling7": {
-    "n": 117,
-    "hit_rate": 0.5983,
+    "n": 118,
+    "hit_rate": 0.6017,
     "brier_final": 0.5224,
     "pnl": 0.0
   },
@@ -1182,9 +1182,9 @@
     },
     {
       "layer": "美职",
-      "n": 23,
-      "hit_rate": 0.4348,
-      "brier_final": 0.6096
+      "n": 24,
+      "hit_rate": 0.4583,
+      "brier_final": 0.6056
     },
     {
       "layer": "解放者杯",
@@ -1381,24 +1381,24 @@
       "brier_final": 0.6327
     },
     {
+      "layer": "L4 冷(2.2-3.0)",
+      "n": 17,
+      "hit_rate": 0.4118,
+      "brier_final": 0.652
+    },
+    {
       "layer": "L2 热(1.5-1.8)",
       "n": 16,
       "hit_rate": 0.5,
       "brier_final": 0.6502
-    },
-    {
-      "layer": "L4 冷(2.2-3.0)",
-      "n": 16,
-      "hit_rate": 0.375,
-      "brier_final": 0.6607
     }
   ],
   "by_conf_tier": [
     {
       "layer": "mid",
-      "n": 571,
-      "hit_rate": 0.4886,
-      "brier_final": 0.6222
+      "n": 572,
+      "hit_rate": 0.4895,
+      "brier_final": 0.622
     },
     {
       "layer": "high",
