@@ -6,10 +6,56 @@
   "expected_roi": 0.0,
   "bankroll": 3844.2710999999995,
   "breaker_multiplier": 1.0,
-  "parlay": [],
+  "parlay": [
+    {
+      "type": "2串1",
+      "legs": [
+        {
+          "match": "2026-10-18_周日025",
+          "home": "弗鲁米嫩塞",
+          "away": "桑托斯",
+          "league": "巴甲",
+          "sel": "home",
+          "odds": 2.15,
+          "prob": 0.446,
+          "cal_prob": 0.491,
+          "market_prob": 0.412,
+          "source": "fusion",
+          "hit_prob": 0.491
+        },
+        {
+          "match": "2026-10-18_周日009",
+          "home": "萨普斯堡08",
+          "away": "罗森博格",
+          "league": "挪超",
+          "sel": "away",
+          "odds": 2.28,
+          "prob": 0.409,
+          "cal_prob": 0.491,
+          "market_prob": 0.388,
+          "source": "fusion",
+          "hit_prob": 0.491
+        }
+      ],
+      "total_odds": 4.9,
+      "model_ev": -0.21,
+      "cal_ev": 2.5,
+      "cal_roi": 0.1808,
+      "market_ev": -0.43,
+      "market_roi": -0.2161,
+      "hit_prob_cal": 0.241,
+      "recommended": true,
+      "stake": 13.84,
+      "n_bets": 1,
+      "potential": 67.84,
+      "worst_win": 0.0,
+      "note": "两场全中才赢",
+      "source": "calibrated"
+    }
+  ],
   "score_parlay": [],
-  "parlay_stake": 0,
-  "total_exposure": 0.0,
+  "parlay_stake": 13.84,
+  "total_exposure": 13.84,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5454,
