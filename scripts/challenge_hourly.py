@@ -89,6 +89,7 @@ def main() -> int:
     done = {r.get("match", "") for r in st.get("records", [])}
 
     cands = []
+    near = []  # 临时灌仓通道：-0.5pp ≤ edge < 门槛（CHALLENGE_TOPFILL 启用时按 EV 补足）
     for it in items:
         sid, h, a = it.get("sid"), it.get("home"), it.get("away")
         kts = it.get("kick_ts")
@@ -114,13 +115,28 @@ def main() -> int:
         if not o or o < 1.60:
             continue
         e = P - mf[sel]
-        if e < g:
-            continue
-        cands.append({"sid": sid, "match": match, "dir": sel, "p": P, "mkt_p": mf[sel],
-                      "edge": e, "odds": o, "ev": P * 100 * mult(o)})
+        rec = {"sid": sid, "match": match, "dir": sel, "p": P, "mkt_p": mf[sel],
+               "edge": e, "odds": o, "ev": P * 100 * mult(o)}
+        if e >= g:
+            cands.append(rec)
+        elif e >= float(os.environ.get("CHALLENGE_TOPFILL_FLOOR", "-0.005")):
+            near.append(rec)
     cands.sort(key=lambda c: -c["ev"])
     K = min(8 if fill else 6, remaining)
     picked = cands[:K]
+    try:
+        topfill = min(int(os.environ.get("CHALLENGE_TOPFILL", "0") or 0), remaining)
+    except ValueError:
+        topfill = 0
+    if topfill > len(picked):
+        have = {c["sid"] for c in picked}
+        for c in sorted(near, key=lambda c: -c["ev"]):
+            if len(picked) >= topfill:
+                break
+            if c["sid"] in have:
+                continue
+            c["fill"] = True
+            picked.append(c)
     if not picked:
         print(f"challenge: 零合格（门槛{g:.1%}/池{len(items)}）——正常")
         return 0
@@ -132,7 +148,8 @@ def main() -> int:
                                   "market": "1x2", "sid": c["sid"], "p": round(c["p"], 4),
                                   "mkt_p": round(c["mkt_p"], 4), "edge": round(c["edge"], 4),
                                   "line": None, "ev": round(c["ev"], 1), "via": "api-ci",
-                                  "mode": st.get("mode") or "normal", "submitted_at": now.strftime("%F %T")})
+                                  "mode": "临时灌仓1018(实验注)" if c.get("fill") else (st.get("mode") or "normal"),
+                                  "submitted_at": now.strftime("%F %T")})
     st["used"] += ok_n
     STATE.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"challenge: 提交 {ok_n} 注 → {st['used']}/{st['quota']} 门槛{g:.1%}")
