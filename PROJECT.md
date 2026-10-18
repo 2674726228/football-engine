@@ -1,19 +1,29 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-15 11:05（首批 5 注结算取回 + 归档收官）
-> 在干什么: 挑战首批 5 注结算已取回（40% 命中 / 排位分 +454.8 / 本周 #4 进升级区）；
->           归档随试用到期收官（319 文件），CI 归档 workflow 已退役
-> 下一步: ① Air 部署挑战任务（launchd 11:25 + 每日刷 token；README 全套步骤）← 价值兑付唯一卡点
->          ② 按 docs/CHALLENGE_FIRST_SETTLEMENT_20261015.md 复核 handicap_ev 的走盘口径
->             （实测：挑战规则下走盘=0 分，非保本；若 EV 按保本算会高估让球票）
->          ③ JC_SPF/JC_RQ 的模型概率口径差（欧赔训练 vs 竞彩水位 ~7pp）——需拍板
+> 状态: doing　更新: 2026-10-19 02:48（Air 值守接管首夜：三项修复上分支 + state 对齐）
+> 在干什么: 由 Air 上的 agent 接手 7×24 值守（替代原 ZCode 人工）。今夜处置：
+>           ① W42→W43 周翻转未落盘（state 冻在 W42/27/fill）→ 已人工对齐 + 分支修根因
+>           ② 复盘器读 _vault 快照 → 云端复盘从未真跑过 → 分支改读入库 state
+>           ③ 本机 cron 与 CI 抢写 → 已删 cron + doctor 检查反转 + djyy 缺文件显式跳过
+> 下一步: ① 主线 Mac 审合 3 个分支：fix/challenge-state-rollover、
+>             fix/challenge-review-state-path、fix/doctor-cron-inverted、fix/djyy-audit-skip
+>          ② **GitHub token 失效未修**：keychain 里 ghp_ 凭据打 api.github.com 返 401
+>             （Bearer/token 两种头都试过）；影响 push_secret 推 NJSTATS_JWT，
+>             云端 CI 的 1x2 会在 secret 过期后静默停摆。需用户在 GitHub 重签 PAT，
+>             写入 ~/.football-engine/github_token（600）
+>          ③ 早前汇报的「W42 1x2 2/7」作废——那是 _vault 陈旧快照的产物；
+>             真值是跨周累计 22 注 11 中（50%），单周口径需 records 带 week 字段才能算
 > 已知坑: ① token 20h 过期，Air 上每日刷；本机非常开不能承担定时任务
 >          ② git reset --hard 会清归档（发生两次）；reset 前跑 njstats_safeguard.py
 >          ③ prob 归档 label ≠ 快照时刻，下游时序以 snapshot_at 为准
-> 待验证: ① 让球走盘口径已实测（走盘=0 分），待改 handicap_ev ← 见下一步②
+>          ④ challenge_hourly 的 STATE.write_text 只在「有注提交成功」时执行，
+>             零合格轮不落盘（已由 fix/challenge-state-rollover 修，未合入前仍存在）
+>          ⑤ weekly-deep-check 的 `|| true` 曾长期掩盖复盘器的 FileNotFoundError——
+>             同类「失败被吞」的 step 值得逐个复查
+> 待验证: ① 让球走盘口径已实测（走盘=0 分），待改 handicap_ev ← 见下方既有条目
 >          ② 巴甲平局回升（仍无 10-11 后巴甲结算样本）
->          ③ 本周剩 14 注配额，若 Air 持续提交有晋级 Elite 可能（现竞争者 #4）
+>          ③ rsync/自动灌仓遗留开关已清（CHALLENGE_TOPFILL 无 env 残留，W42-fill 已关）
 
 - 更新: 2026-10-13（主线 agent 统一入口轮）
 
