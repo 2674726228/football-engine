@@ -69,7 +69,7 @@ def main() -> int:
     except Exception:
         pass
 
-    items = api.list_items(jwt)
+    items = api.board_items(jwt)
     if items is None:
         print("challenge: 列表失败（JWT 过期？），本轮跳过，明日 Mac 续期自愈")
         return 0

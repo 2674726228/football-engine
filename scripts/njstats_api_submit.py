@@ -254,3 +254,48 @@ if __name__ == "__main__":
         sys.exit(cmd_check())
     print(__doc__)
     sys.exit(1)
+
+
+def parse_board(raw: bytes) -> list[dict]:
+    """msgId=1 全板响应 → [{sid,home,away,kick_ts}]（中文名在队子消息 f3）。纯函数可测。"""
+    top = decode_msg(raw)
+    cont = _get(top, 5)
+    if not cont:
+        return []
+    out = []
+    for m in decode_msg(cont):
+        if m[0] != 1 or m[1] != 's':
+            continue
+        e = decode_msg(m[2])
+        sid = (_get(e, 7) or b"").decode("utf-8", "ignore")
+        f1b = _get(e, 1)
+        if not sid or not f1b:
+            continue
+        f1 = decode_msg(f1b)
+        kt = _get(f1, 6)
+        try:
+            ts = int(kt)
+        except (TypeError, ValueError):
+            continue
+        def nm(fn):
+            b = _get(f1, fn)
+            if not b:
+                return None
+            tf = decode_msg(b)
+            cn = (_get(tf, 3) or b"").decode("utf-8", "ignore")
+            return cn or (_get(tf, 2) or b"").decode("utf-8", "ignore")
+        h, a = nm(3), nm(4)
+        if h and a:
+            out.append({"sid": sid, "home": h, "away": a, "kick_ts": ts})
+    return out
+
+
+def board_items(jwt: str | None = None) -> list[dict] | None:
+    """可提交全板（345 场级），替代已死掉的 msgId=11 周列表。"""
+    jwt = jwt or (JWT_FILE.read_text().strip() if JWT_FILE.exists() else "")
+    if not jwt:
+        return None
+    st, raw = _post_jwt(jwt, "1012", "1", _field(3, b""))
+    if st != 200:
+        return None
+    return parse_board(raw)
