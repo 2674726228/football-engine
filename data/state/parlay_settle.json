@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-10-18T16:25:44.682089+00:00",
+  "generated_at": "2026-10-18T17:25:39.970125+00:00",
   "parlay": {
-    "n_tickets": 120,
-    "n_pending": 0,
+    "n_tickets": 121,
+    "n_pending": 1,
     "n_settled": 120,
     "n_won": 31,
     "hit_rate": 0.2583,
     "stake": 660.8,
-    "stake_committed": 660.8,
-    "stake_pending": 0,
+    "stake_committed": 674.64,
+    "stake_pending": 13.84,
     "return": 748.38,
     "roi": 0.1325,
     "avg_odds": 6.86,
@@ -4781,6 +4781,42 @@
             "score": null,
             "odds": 2.38,
             "hit": true
+          }
+        ]
+      },
+      {
+        "date": "2026-10-19",
+        "type": "2串1",
+        "stake": 13.84,
+        "potential": 81.59,
+        "total_odds": 5.9,
+        "odds_source": null,
+        "note": "待赛",
+        "won": false,
+        "pending": true,
+        "leg_results": [
+          null,
+          null
+        ],
+        "return": 0.0,
+        "legs": [
+          {
+            "match": "2026-10-19_周一003",
+            "home": "帕尔马",
+            "away": "都灵",
+            "sel": "away",
+            "score": null,
+            "odds": 2.25,
+            "hit": null
+          },
+          {
+            "match": "2026-10-19_周一006",
+            "home": "赫塔费",
+            "away": "巴列卡诺",
+            "sel": "away",
+            "score": null,
+            "odds": 2.62,
+            "hit": null
           }
         ]
       }
@@ -29365,6 +29401,66 @@
             ]
           }
         ]
+      }
+    },
+    "2026-10-19": {
+      "parlay": {
+        "stats": {
+          "n_tickets": 1,
+          "n_pending": 1,
+          "n_settled": 0,
+          "n_won": 0,
+          "hit_rate": null,
+          "stake": 0,
+          "stake_committed": 13.84,
+          "stake_pending": 13.84,
+          "return": 0,
+          "roi": null,
+          "avg_odds": null,
+          "by_type": {}
+        },
+        "tickets": [
+          {
+            "date": "2026-10-19",
+            "type": "2串1",
+            "stake": 13.84,
+            "potential": 81.59,
+            "total_odds": 5.9,
+            "odds_source": null,
+            "note": "待赛",
+            "won": false,
+            "pending": true,
+            "leg_results": [
+              null,
+              null
+            ],
+            "return": 0.0,
+            "legs": [
+              {
+                "match": "2026-10-19_周一003",
+                "home": "帕尔马",
+                "away": "都灵",
+                "sel": "away",
+                "score": null,
+                "odds": 2.25,
+                "hit": null
+              },
+              {
+                "match": "2026-10-19_周一006",
+                "home": "赫塔费",
+                "away": "巴列卡诺",
+                "sel": "away",
+                "score": null,
+                "odds": 2.62,
+                "hit": null
+              }
+            ]
+          }
+        ]
+      },
+      "score_parlay": {
+        "stats": null,
+        "tickets": []
       }
     }
   }

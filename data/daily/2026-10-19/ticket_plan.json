@@ -6,23 +6,69 @@
   "expected_roi": 0.0,
   "bankroll": 3844.2710999999995,
   "breaker_multiplier": 1.0,
-  "parlay": [],
+  "parlay": [
+    {
+      "type": "2串1",
+      "legs": [
+        {
+          "match": "2026-10-19_周一003",
+          "home": "帕尔马",
+          "away": "都灵",
+          "league": "意甲",
+          "sel": "away",
+          "odds": 2.25,
+          "prob": 0.402,
+          "cal_prob": 0.491,
+          "market_prob": 0.394,
+          "source": "fusion",
+          "hit_prob": 0.491
+        },
+        {
+          "match": "2026-10-19_周一006",
+          "home": "赫塔费",
+          "away": "巴列卡诺",
+          "league": "西甲",
+          "sel": "away",
+          "odds": 2.62,
+          "prob": 0.337,
+          "cal_prob": 0.546,
+          "market_prob": 0.338,
+          "source": "fusion",
+          "hit_prob": 0.546
+        }
+      ],
+      "total_odds": 5.9,
+      "model_ev": -0.4,
+      "cal_ev": 8.03,
+      "cal_roi": 0.5803,
+      "market_ev": -0.43,
+      "market_roi": -0.2157,
+      "hit_prob_cal": 0.268,
+      "recommended": true,
+      "stake": 13.84,
+      "n_bets": 1,
+      "potential": 81.59,
+      "worst_win": 0.0,
+      "note": "两场全中才赢",
+      "source": "calibrated"
+    }
+  ],
   "score_parlay": [],
-  "parlay_stake": 0,
-  "total_exposure": 0.0,
+  "parlay_stake": 13.84,
+  "total_exposure": 13.84,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
-    "overall": 0.5454,
-    "n": 1102,
+    "overall": 0.5461,
+    "n": 1117,
     "table": {
-      "0.35": 0.4194,
-      "0.4": 0.4908,
-      "0.45": 0.4847,
-      "0.5": 0.5097,
-      "0.55": 0.4952,
-      "0.6": 0.6739,
-      "0.65": 0.7606,
-      "0.7": 0.8208
+      "0.35": 0.4204,
+      "0.4": 0.4909,
+      "0.45": 0.4848,
+      "0.5": 0.5159,
+      "0.55": 0.4954,
+      "0.6": 0.6774,
+      "0.65": 0.7639,
+      "0.7": 0.8131
     },
     "note": "串关 EV 用账本校准命中率（模型概率高估，0.55-0.60 段仅 31.6% 命中）；推荐=校准EV>0"
   }
