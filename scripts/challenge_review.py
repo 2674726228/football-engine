@@ -7,24 +7,36 @@
 3. 市场对比：让球 vs 胜平负 两池分别统计（让球走比分分布，是独立信息源）
 4. 挑战积分流水（若 records 带 points 字段，来自站点结算回读）
 
-用法: challenge_review.py [--week 2026-W42]
+用法: challenge_review.py
+（无参数：records 不带周字段，统计的是 state 里全部记录的跨周累计结算。）
 """
 import json, sys
 from datetime import datetime
 from collections import defaultdict
+from pathlib import Path
 
-ROOT = "."
+# 仓库根：按脚本位置推导，不依赖调用时的 CWD（CI 与手工跑都稳）
+ROOT = str(Path(__file__).resolve().parent.parent)
+# 线上唯一真值：challenge_hourly.py / submit.js 写的就是这个文件，且它入库、
+# CI 可读。此前这里指向 _vault/challenge_state.json——那是 2026-10-15 的
+# 本地快照（9 条记录），且 .gitignore 排除了 _vault/，于是：
+#   · 本地跑复盘到的是两周前的冻结数据（W42 那份 "2/7" 就是这么来的）；
+#   · CI 上必抛 FileNotFoundError，被 weekly-deep-check.yml 的 `|| true` 吞掉，
+#     云端一直假装跑过复盘。
+STATE_FILE = f'{ROOT}/data/state/challenge_state.json'
 
 def load_state():
-    return json.load(open(f'{ROOT}/_vault/challenge_state.json'))
+    p = Path(STATE_FILE)
+    if not p.exists():
+        # 显式失败，别静默给空数据——复盘产物会进账本级审计
+        sys.exit(f"challenge_review: 缺 {STATE_FILE}（应已入库，检查 checkout 是否完整）")
+    return json.loads(p.read_text(encoding='utf-8'))
 
 def main():
-    week = None
-    if '--week' in sys.argv:
-        week = sys.argv[sys.argv.index('--week') + 1]
     st = load_state()
-    if week and st.get('week') != week:
-        pass
+    # 注：records 条目本身不带 week 字段，无法按周切分；settled 是 state 里
+    # 全部记录的结算结果（跨周累计）。--week 此前只做了一次空转的比较
+    # （`if ... : pass`），实际不过滤任何东西——已移除该假开关，避免误导。
     recs = st.get('records', [])
     ledger = {}
     for line in open(f'{ROOT}/data/state/review_ledger.jsonl'):
@@ -64,7 +76,8 @@ def main():
             'brier_final': lr.get('brier_final'), 'brier_market': lr.get('brier_market'),
         })
     n = len(settled); hits = sum(1 for s in settled if s['hit'])
-    print(f"=== 挑战复盘 {st['week']}：{n} 注已结算，{hits} 中（{(hits/n if n else 0):.0%}）===")
+    print(f"=== 挑战复盘：{n} 注已结算，{hits} 中（{(hits/n if n else 0):.0%}）"
+          f"——跨周累计，state 当前周为 {st['week']} ===")
     for s in settled:
         print(f"  {'✅' if s['hit'] else '❌'} {s['match'][:22]:22s} {s['pick'][:14]:14s} 实际{s['actual']} "
               f"edge={s['edge'] if s['edge'] is not None else '-'} brier(我/市场)={s['brier_final']}/{s['brier_market']}")

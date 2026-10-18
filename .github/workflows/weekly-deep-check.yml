@@ -21,7 +21,10 @@ jobs:
       - name: EV 分桶校准
         run: python scripts/edge_calibration.py
       - name: 挑战预登记复盘（含策略建议）
-        run: python scripts/challenge_review.py || true
+        # 不再 `|| true`：此前它吞掉的正是 load_state() 读 _vault 快照的
+        # FileNotFoundError（_vault/ 被 gitignore），云端整个复盘从未真跑过。
+        # 现改读已入库的 data/state/challenge_state.json，失败就该让 CI 红。
+        run: python scripts/challenge_review.py
       - name: 下注级 CLV
         run: python -m engine.review.clv --days 30
       - name: 评委席点检
