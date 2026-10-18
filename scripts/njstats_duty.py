@@ -76,6 +76,10 @@ def push_secret(jwt: str) -> None:
     p = subprocess.run(["git", "credential", "fill"], input="protocol=https\nhost=github.com\n\n",
                        capture_output=True, text=True, cwd=ROOT, check=False)
     tok = next((l.split("=", 1)[1] for l in p.stdout.splitlines() if l.startswith("password=")), "")
+    # launchd 环境可能碰不到 keychain：文件 token 优先
+    ftok = HOME / ".football-engine" / "github_token"
+    if ftok.exists():
+        tok = ftok.read_text().strip() or tok
     if not tok:
         log("无 GitHub token，跳过推 secret"); return
     h = {"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json"}

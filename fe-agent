@@ -4,12 +4,15 @@
 #   ./fe-agent seed     → 弹出浏览器播种登录（cookie 过期/失效时跑一次）
 #   ./fe-agent duty     → 手动触发一轮值守（launchd 每小时 :05/:35 自动跑的同款）
 #   ./fe-agent key sk-x → 保存 DeepSeek API key
+#   ./fe-agent ghtoken ghp_x → 保存 GitHub PAT（推云端 secret 用，classic+repo 范围）
 cd "$(dirname "$0")" || exit 1
 KEYF=~/.football-engine/deepseek_key
 SESSF=~/.football-engine/njstats_session.json
 case "$1" in
   key)
-    echo "$2" > "$KEYF" && chmod 600 "$KEYF" && echo "✅ key 已存" ;;
+    echo "$2" > "$KEYF" && chmod 600 "$KEYF" && echo "✅ DeepSeek key 已存" ;;
+  ghtoken)
+    echo "$2" > ~/.football-engine/github_token && chmod 600 ~/.football-engine/github_token && echo "✅ GitHub token 已存（launchd 推 secret 用）" ;;
   seed)
     ./.venv/bin/python3 scripts/njstats_seed_login.py ;;
   duty)
