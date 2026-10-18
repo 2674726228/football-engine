@@ -55,7 +55,11 @@ def main() -> int:
     if not task:
         print("给个任务"); return 2
     h = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-    msgs = [{"role": "system", "content": "你是 football-engine 的运维 agent。工作目录 ~/football-engine。用 bash 工具完成任务，最后用中文简报结论。"}]
+    sys_prompt = "你是 football-engine 的运维 agent。工作目录 ~/football-engine。用 bash 工具完成任务，最后用中文简报结论。"
+    brief = ROOT / "harness" / "BRIEF.md"
+    if brief.exists():
+        sys_prompt += "\n\n" + brief.read_text(encoding="utf-8")
+    msgs = [{"role": "system", "content": sys_prompt}]
 
     def turn(user_text: str, budget: int = 25) -> bool:
         """一轮对话：喂用户输入，跑工具循环直到模型给出纯文本答复。返回 False=致命错误。"""
