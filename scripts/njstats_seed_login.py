@@ -37,7 +37,7 @@ def main() -> int:
             except Exception:
                 tok = None
             if tok:
-                cookies = {c["name"]: c["value"] for c in ctx.cookies(BASE) if c["domain"].endswith("njstats.cn")}
+                cookies = {c["name"]: c["value"] for c in ctx.cookies([BASE]) if c["domain"].endswith("njstats.cn")}
                 if "SESSION" in cookies:
                     OUT.write_text(json.dumps({"SESSION": cookies["SESSION"], "seeded_at": time.strftime("%F %T")}))
                     OUT.chmod(0o600)
