@@ -18,10 +18,10 @@
           "sel": "away",
           "odds": 2.25,
           "prob": 0.402,
-          "cal_prob": 0.491,
+          "cal_prob": 0.493,
           "market_prob": 0.394,
           "source": "fusion",
-          "hit_prob": 0.491
+          "hit_prob": 0.493
         },
         {
           "match": "2026-10-19_周一006",
@@ -31,19 +31,19 @@
           "sel": "away",
           "odds": 2.62,
           "prob": 0.337,
-          "cal_prob": 0.546,
+          "cal_prob": 0.547,
           "market_prob": 0.338,
           "source": "fusion",
-          "hit_prob": 0.546
+          "hit_prob": 0.547
         }
       ],
       "total_odds": 5.9,
       "model_ev": -0.4,
-      "cal_ev": 8.03,
-      "cal_roi": 0.5803,
+      "cal_ev": 8.18,
+      "cal_roi": 0.5909,
       "market_ev": -0.43,
       "market_roi": -0.2157,
-      "hit_prob_cal": 0.268,
+      "hit_prob_cal": 0.27,
       "recommended": true,
       "stake": 13.84,
       "n_bets": 1,
@@ -58,16 +58,16 @@
   "total_exposure": 13.84,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
-    "overall": 0.5461,
-    "n": 1117,
+    "overall": 0.5472,
+    "n": 1122,
     "table": {
       "0.35": 0.4204,
-      "0.4": 0.4909,
+      "0.4": 0.4932,
       "0.45": 0.4848,
-      "0.5": 0.5159,
-      "0.55": 0.4954,
-      "0.6": 0.6774,
-      "0.65": 0.7639,
+      "0.5": 0.5127,
+      "0.55": 0.5,
+      "0.6": 0.6809,
+      "0.65": 0.7671,
       "0.7": 0.8131
     },
     "note": "串关 EV 用账本校准命中率（模型概率高估，0.55-0.60 段仅 31.6% 命中）；推荐=校准EV>0"
