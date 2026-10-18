@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-19T00:26:58",
+  "generated_at": "2026-10-19T18:17:05",
   "summary": {
-    "total": 12,
-    "critical": 0,
-    "healed": 2
+    "total": 11,
+    "critical": 1,
+    "healed": 0
   },
   "findings": [
     {
@@ -33,18 +33,18 @@
     {
       "id": "data/results",
       "layer": "data",
-      "severity": "warn",
-      "detail": "昨日(2026-10-18)缺 results_sina.json→ 已补抓",
-      "healable": true,
-      "healed": true
+      "severity": "ok",
+      "detail": "昨日赛果文件在",
+      "healable": false,
+      "healed": false
     },
     {
       "id": "data/yesterday",
       "layer": "data",
-      "severity": "warn",
-      "detail": "昨日(2026-10-18) 25 场有赛果但账本未结算→ 已触发补结算",
-      "healable": true,
-      "healed": true
+      "severity": "ok",
+      "detail": "昨日(2026-10-18)已结算",
+      "healable": false,
+      "healed": false
     },
     {
       "id": "source/djyy",
@@ -55,18 +55,10 @@
       "healed": false
     },
     {
-      "id": "source/ci",
-      "layer": "source",
-      "severity": "ok",
-      "detail": "最近 CI 运行 1.6h 前",
-      "healable": false,
-      "healed": false
-    },
-    {
       "id": "model/draw",
       "layer": "model",
       "severity": "ok",
-      "detail": "平局均值 27.0% 在先验带内",
+      "detail": "平局均值 27.1% 在先验带内",
       "healable": false,
       "healed": false
     },
@@ -81,24 +73,24 @@
     {
       "id": "env/cron",
       "layer": "env",
-      "severity": "ok",
-      "detail": "crontab 关键任务在",
+      "severity": "critical",
+      "detail": "crontab 缺少关键任务: ['run_realtime_monitor.sh', 'auto_run.sh']（调度层断裂）",
       "healable": false,
       "healed": false
     },
     {
       "id": "env/proxy",
       "layer": "env",
-      "severity": "ok",
-      "detail": "代理 7897 通",
-      "healable": false,
+      "severity": "warn",
+      "detail": "代理 7897 不通（拉起失败）",
+      "healable": true,
       "healed": false
     },
     {
       "id": "env/repo",
       "layer": "env",
       "severity": "ok",
-      "detail": ".git 体积 204MB",
+      "detail": ".git 体积 17MB",
       "healable": false,
       "healed": false
     }

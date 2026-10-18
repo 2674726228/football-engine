@@ -1,0 +1,19 @@
+下载 CSV ...
+  ✗ 2526_SW1 不可用（跳过）
+  ✗ 2627_SW1 不可用（跳过）
+缓存 43 个文件
+归一化 60912 行 → /home/runner/work/football-engine/football-engine/data/state/fdc/parsed.jsonl
+纸面跟踪: 1022 注, 中 236 (0.2309) ROI 0.0464
+Traceback (most recent call last):
+  File "/home/runner/work/football-engine/football-engine/scripts/djyy_audit.py", line 59, in <module>
+    main()
+  File "/home/runner/work/football-engine/football-engine/scripts/djyy_audit.py", line 26, in main
+    d = json.loads(SRC.read_text())
+                   ^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/football-engine/football-engine/_vault/djyy_value_model.json'
