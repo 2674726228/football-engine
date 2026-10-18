@@ -46,6 +46,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("task", nargs="?", default="")
     ap.add_argument("--duty", action="store_true", help="使用值守任务提示")
+    ap.add_argument("--chat", action="store_true", help="交互式对话模式（开个对话直接告诉它）")
     a = ap.parse_args()
     key = os.environ.get("DEEPSEEK_API_KEY") or (KEY_FILE.read_text().strip() if KEY_FILE.exists() else "")
     if not key:
@@ -54,25 +55,43 @@ def main() -> int:
     if not task:
         print("给个任务"); return 2
     h = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-    msgs = [{"role": "system", "content": "你是 football-engine 的运维 agent。工作目录 ~/football-engine。用 bash 工具完成任务，最后用中文简报结论。"},
-            {"role": "user", "content": task}]
-    for i in range(25):
-        body = {"model": MODEL, "messages": msgs, "tools": TOOLS, "tool_choice": "auto"}
-        r = requests.post(API, headers=h, json=body, timeout=120, proxies={"http": None, "https": None})
-        if r.status_code != 200:
-            print("API", r.status_code, r.text[:200]); return 1
-        msg = r.json()["choices"][0]["message"]
-        msgs.append(msg)
-        calls = msg.get("tool_calls") or []
-        if not calls:
-            print(f"\n[完成·{i+1}轮]\n{msg.get('content','')}")
-            return 0
-        for c in calls:
-            cmd = json.loads(c["function"]["arguments"])["cmd"]
-            print(f"$ {cmd[:120]}")
-            out = run_bash(cmd)
-            msgs.append({"role": "tool", "tool_call_id": c["id"], "content": out})
-    print("达到轮次上限"); return 1
+    msgs = [{"role": "system", "content": "你是 football-engine 的运维 agent。工作目录 ~/football-engine。用 bash 工具完成任务，最后用中文简报结论。"}]
+
+    def turn(user_text: str, budget: int = 25) -> bool:
+        """一轮对话：喂用户输入，跑工具循环直到模型给出纯文本答复。返回 False=致命错误。"""
+        msgs.append({"role": "user", "content": user_text})
+        for _ in range(budget):
+            body = {"model": MODEL, "messages": msgs, "tools": TOOLS, "tool_choice": "auto"}
+            r = requests.post(API, headers=h, json=body, timeout=120, proxies={"http": None, "https": None})
+            if r.status_code != 200:
+                print("API", r.status_code, r.text[:200]); return False
+            msg = r.json()["choices"][0]["message"]
+            msgs.append(msg)
+            calls = msg.get("tool_calls") or []
+            if not calls:
+                print(msg.get("content", ""))
+                return True
+            for c in calls:
+                cmd = json.loads(c["function"]["arguments"])["cmd"]
+                print(f"$ {cmd[:120]}")
+                msgs.append({"role": "tool", "tool_call_id": c["id"], "content": run_bash(cmd)})
+        print("达到轮次上限")
+        return True
+
+    if a.chat:
+        print("DeepSeek agent 对话模式（ctrl-d 退出）")
+        while True:
+            try:
+                line = input("\n你> ").strip()
+            except EOFError:
+                return 0
+            if line:
+                print("agent> ", end="", flush=True)
+                if not turn(line):
+                    return 1
+        return 0
+    ok = turn(task)
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
