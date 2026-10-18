@@ -1,0 +1,28 @@
+#!/bin/zsh
+# football-engine 值守 agent 统一入口（替代 ZCode 的全部日常交互）
+#   ./fe-agent          → 和 DeepSeek agent 对话（等价于在 ZCode 里跟助手说话）
+#   ./fe-agent seed     → 弹出浏览器播种登录（cookie 过期/失效时跑一次）
+#   ./fe-agent duty     → 手动触发一轮值守（launchd 每小时 :05/:35 自动跑的同款）
+#   ./fe-agent key sk-x → 保存 DeepSeek API key
+cd "$(dirname "$0")" || exit 1
+KEYF=~/.football-engine/deepseek_key
+SESSF=~/.football-engine/njstats_session.json
+case "$1" in
+  key)
+    echo "$2" > "$KEYF" && chmod 600 "$KEYF" && echo "✅ key 已存" ;;
+  seed)
+    ./.venv/bin/python3 scripts/njstats_seed_login.py ;;
+  duty)
+    ./.venv/bin/python3 scripts/njstats_duty.py ;;
+  *)
+    if [[ ! -s $KEYF && -z $DEEPSEEK_API_KEY ]]; then
+      echo "缺 DeepSeek key。两步开机："
+      echo "  1) platform.deepseek.com 建 API key，然后 ./fe-agent key sk-xxxx"
+      echo "  2) 若 mint 报 session 死：./fe-agent seed（弹窗登录一次）"
+      exit 1
+    fi
+    if [[ ! -s $SESSF ]]; then
+      echo "⚠ 还没播种登录——值守的 mint 链会报'需播种'。建议先 ./fe-agent seed"
+    fi
+    ./.venv/bin/python3 harness/deepseek_agent.py --chat "$@" ;;
+esac
