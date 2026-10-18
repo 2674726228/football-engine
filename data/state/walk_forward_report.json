@@ -1,54 +1,54 @@
 {
-  "total_matches": 1125,
+  "total_matches": 1127,
   "date_range": [
     "2026-07-19",
     "2026-10-18"
   ],
   "metrics": {
-    "brier": 0.575,
-    "weighted_brier": 0.5711,
+    "brier": 0.5748,
+    "weighted_brier": 0.5709,
     "rps": 0.197,
     "weighted_rps": 0.1957,
-    "log_loss": 0.9682,
-    "hit_rate": 0.5502,
-    "ece": 0.0909
+    "log_loss": 0.968,
+    "hit_rate": 0.5501,
+    "ece": 0.0902
   },
   "draw_analysis": {
     "actual_draws": 271,
-    "actual_draw_rate": 0.2409,
+    "actual_draw_rate": 0.2405,
     "predicted_draws": 38,
-    "predicted_draw_rate": 0.0338,
+    "predicted_draw_rate": 0.0337,
     "max_draw_prob": 0.5025,
     "avg_draw_prob": 0.2552,
-    "avg_market_draw": 0.2403,
-    "market_high_draw_n": 212,
+    "avg_market_draw": 0.2404,
+    "market_high_draw_n": 213,
     "market_high_draw_actual": 74,
-    "market_high_draw_rate": 0.3491
+    "market_high_draw_rate": 0.3474
   },
   "strategy_comparison": {
     "model": {
-      "hit_rate": 0.5476,
-      "n": 1125
+      "hit_rate": 0.5475,
+      "n": 1127
     },
     "market": {
-      "hit_rate": 0.561,
-      "n": 1009
+      "hit_rate": 0.5604,
+      "n": 1010
     },
     "hybrid_v2": {
-      "hit_rate": 0.5084,
-      "n": 1009
+      "hit_rate": 0.5079,
+      "n": 1010
     },
     "market_d28": {
-      "hit_rate": 0.5282,
-      "n": 1009
+      "hit_rate": 0.5277,
+      "n": 1010
     }
   },
   "by_league": {
     "西甲": {
-      "n": 86,
-      "hit_rate": 0.5581,
-      "brier": 0.5568,
-      "rps": 0.1833
+      "n": 87,
+      "hit_rate": 0.5632,
+      "brier": 0.5516,
+      "rps": 0.1817
     },
     "意甲": {
       "n": 68,
@@ -110,17 +110,17 @@
       "brier": 0.6736,
       "rps": 0.2313
     },
+    "巴甲": {
+      "n": 43,
+      "hit_rate": 0.3023,
+      "brier": 0.6481,
+      "rps": 0.1877
+    },
     "葡超": {
       "n": 43,
       "hit_rate": 0.5814,
       "brier": 0.5242,
       "rps": 0.1663
-    },
-    "巴甲": {
-      "n": 42,
-      "hit_rate": 0.3095,
-      "brier": 0.6438,
-      "rps": 0.1835
     },
     "法甲": {
       "n": 39,
