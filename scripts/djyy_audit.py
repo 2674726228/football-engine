@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """DJYY Value Model 审计（2026-10-12）：用 football-data 的 Pinnacle 收盘
-审计 djyydata.com 公开战绩（1,667 注）。数据源 data/state/djyy_value_model.json
-（= （端点见 _vault/recon_djyy.md，已从公开文档移除））。
+审计 djyydata.com 公开战绩（1,667 注）。数据源 _vault/djyy_value_model.json
+（端点见 _vault/recon_djyy.md，已从公开文档移除）。
+
+本脚本只在**本地**可跑：数据与侦察笔记同属 _vault/，被 .gitignore 排除，
+云端 CI 上该文件不存在。这是 0e1447d93（2026-10-12）的刻意设计——数据口子
+不进公开仓库，免被站点封堵。此前 ci-sync 的 `|| true` 会吞掉 FileNotFoundError，
+让人误以为月审在云端正常跑（实际从未跑过）。故显式判定：缺文件→打印一行跳过、
+退 0，并在 ci-sync 里把该步骤标注为「本地跑」。
 
 结论（2026-10-12 跑）: 底价口径 ROI +13.57%（复现其回测），按市场收盘 +7.21%
 （历史真实存在过价差）；但其自 2026-07-17 实盘 222 注 -8.7% ROI——edge 已衰减。
-建议每月重跑监控其 live 恢复情况（免费信号源的可选跟随项）。
+建议每月在本地重跑监控其 live 恢复情况（免费信号源的可选跟随项）。
 """
-import json, re
+import json, re, sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -20,6 +26,11 @@ def toks(s):
     return {t for t in re.sub(r"[^a-z ]", " ", s).split() if len(t) > 2}
 
 def main():
+    if not SRC.exists():
+        # _vault/ 不入公开仓库：云端 CI 必然走到这里。显式跳过而非抛栈，
+        # 免得又被 `|| true` 吞成「跑了但没输出」的假象。
+        print(f"djyy_audit: 跳过——{SRC.relative_to(ROOT)} 不存在（_vault 仅本地，CI 上不参与）")
+        return 0
     fdc = defaultdict(list)
     for line in open(FDC):
         r = json.loads(line); fdc[r["date"]].append(r)
@@ -56,4 +67,4 @@ def main():
     print(json.dumps(summary, ensure_ascii=False, indent=1))
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

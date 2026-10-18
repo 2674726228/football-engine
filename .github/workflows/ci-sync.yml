@@ -34,13 +34,16 @@ jobs:
         run: python scripts/sportmonks_capture.py --date "$(TZ=Asia/Shanghai date +%F)" --quiet || true
       - name: NJStats（试用 2026-10-15 已到期，收割完结，步骤休眠）
         run: echo "njstats trial expired; archive 150/150 done"
-      - name: 每日任务（fdc 历史刷新/AUT 纸面跟踪/DJYY 月审；date 门控）
+      - name: 每日任务（fdc 历史刷新/AUT 纸面跟踪；date 门控）
+        # DJYY 月审已移出本步骤：它读 _vault/djyy_value_model.json，而 _vault/ 被
+        # .gitignore 排除（0e1447d93 的刻意安全设计，免数据口子被站点封堵）——
+        # runner 上该文件不存在，以前靠 `|| true` 吞掉 FileNotFoundError，
+        # 步骤名却让人以为云端在跑月审。现仅在本地手工跑：python scripts/djyy_audit.py
         run: |
           STAMP="data/state/.daily_ci_$(TZ=Asia/Shanghai date +%F)"
           if [ ! -f "$STAMP" ]; then
             python scripts/fetch_football_data.py >> "$STAMP" 2>&1 || true
             python scripts/paper_track_draw.py >> "$STAMP" 2>&1 || true
-            python scripts/djyy_audit.py >> "$STAMP" 2>&1 || true
             touch "$STAMP"
           fi
       - name: 刷新 CLV 与体检报告
