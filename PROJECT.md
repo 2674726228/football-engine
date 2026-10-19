@@ -1,26 +1,34 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-19 02:48（Air 值守接管首夜：三项修复上分支 + state 对齐）
-> 在干什么: 由 Air 上的 agent 接手 7×24 值守（替代原 ZCode 人工）。今夜处置：
->           ① W42→W43 周翻转未落盘（state 冻在 W42/27/fill）→ 已人工对齐 + 分支修根因
->           ② 复盘器读 _vault 快照 → 云端复盘从未真跑过 → 分支改读入库 state
->           ③ 本机 cron 与 CI 抢写 → 已删 cron + doctor 检查反转 + djyy 缺文件显式跳过
-> 下一步: ① 主线 Mac 审合 3 个分支：fix/challenge-state-rollover、
->             fix/challenge-review-state-path、fix/doctor-cron-inverted、fix/djyy-audit-skip
->          ② **GitHub token 失效未修**：keychain 里 ghp_ 凭据打 api.github.com 返 401
->             （Bearer/token 两种头都试过）；影响 push_secret 推 NJSTATS_JWT，
->             云端 CI 的 1x2 会在 secret 过期后静默停摆。需用户在 GitHub 重签 PAT，
->             写入 ~/.football-engine/github_token（600）
+> 状态: doing　更新: 2026-10-19 08:45（Air 值守：四项修复已合入 main 并推送）
+> 在干什么: 由 Air 上的 agent 接手 7×24 值守（替代原 ZCode 人工）。已合入 main（6a1570e8b）：
+>           ① W42→W43 周翻转未落盘 → challenge_hourly.py:55-67 翻转即落盘（+3 例回归测试）
+>           ② 复盘器读 _vault 快照 → 云端复盘从未真跑过 → 改读入库 data/state/，去掉 `|| true`
+>           ③ 本机 cron 与 CI 抢写 → 已删 cron + doctor 检查反转为「不许有」+ djyy 缺文件显式跳过
+>           ④ 文档一致性：docs/CHALLENGE_SUBSYSTEM.md:15/16/39、STATUS.md:258 里指
+>              _vault/challenge_state.json 的过时描述一并对齐到 data/state/
+> 下一步: ① **rho 自进化在 CI 上一直失效（待定，属模型参数禁触区）**：engine/main.py:2320-2327
+>             每轮把 rho 写回 config/prediction.json，而 daily-forecast.yml:193 只
+>             `git add data/ web/`（不含 config/）→ 写进工作区无人提交，被
+>             `git pull --rebase --autostash`(:220) 卷成 stash 残渣（已清掉 2 个）。
+>             现状 rho=-0.0748（10-12 起未变），实测当前拟合为 -0.0705（n=1111）。两条修法待选：
+>             让 daily-forecast 提交 config/，或确认 rho 只该在 backtest-weekly 那周更
+>             （但上一轮 6d0a22d1f 跑完 rho 仍是 -0.0748，说明那条路也没真写）。
+>          ② duty 与 launchd 并发无锁（scripts/njstats_duty.py 与 harness/run_duty.sh 均无 flock）：
+>             同一分钟手动跑 + launchd 跑会并发 `git pull --rebase` 与写 njstats_jwt。修法待定。
 >          ③ 早前汇报的「W42 1x2 2/7」作废——那是 _vault 陈旧快照的产物；
 >             真值是跨周累计 22 注 11 中（50%），单周口径需 records 带 week 字段才能算
+>          ④ GitHub PAT 已装（~/.football-engine/github_token，600，scope repo，已验证推 secret 204）；
+>             仓库 deploy key 曾整条消失（API 查 deploy keys: 0）导致 SSH 全断，
+>             已用 API 重新添加（id 166885983），fetch/push 已复验通过
 > 已知坑: ① token 20h 过期，Air 上每日刷；本机非常开不能承担定时任务
 >          ② git reset --hard 会清归档（发生两次）；reset 前跑 njstats_safeguard.py
 >          ③ prob 归档 label ≠ 快照时刻，下游时序以 snapshot_at 为准
->          ④ challenge_hourly 的 STATE.write_text 只在「有注提交成功」时执行，
->             零合格轮不落盘（已由 fix/challenge-state-rollover 修，未合入前仍存在）
+>          ④ challenge_hourly 的 STATE.write_text 原先只在「有注提交成功」时执行，
+>             零合格轮不落盘——已由 6a1570e8b 修复，此后翻转即落盘
 >          ⑤ weekly-deep-check 的 `|| true` 曾长期掩盖复盘器的 FileNotFoundError——
->             同类「失败被吞」的 step 值得逐个复查
+>             同类「失败被吞」的 step 值得逐个复查（已复查 djyy_audit，同样问题）
 > 待验证: ① 让球走盘口径已实测（走盘=0 分），待改 handicap_ev ← 见下方既有条目
 >          ② 巴甲平局回升（仍无 10-11 后巴甲结算样本）
 >          ③ rsync/自动灌仓遗留开关已清（CHALLENGE_TOPFILL 无 env 残留，W42-fill 已关）
