@@ -10,7 +10,12 @@
 >           `remember-me`（长 cookie，11-03 到期）+ `SESSION`，无头启动即 HTTP 200，
 >           直接重抓 SESSION 写回 `~/.football-engine/njstats_session.json` 即可。
 >           已验证：mint 200 → 推 secret 204（NJSTATS_JWT updated 2026-10-19T17:53:05Z）
->           → 1x2 零合格（门槛1.5%/池193）。**此后再遇 401 可直接自愈，不必惊动用户。**
+>           → 1x2 零合格（门槛1.5%/池193）。
+>           **已做成自动化（分支 fix/duty-session-autoheal）**：新增
+>           scripts/njstats_refresh_session.py 无头重签 SESSION，duty 的 mint() 在
+>           非 200 时调它一次并用新 cookie 重试，仍失败才 return 20 提示人工。
+>           实测：把 SESSION 改坏 → duty 自动续期 → mint(新) → 推 secret 204，退出码 0。
+>           回归测试 tests/test_duty_session_autoheal.py 4 例（变异验证：回退后 2 例失败）。
 >           ZCode 自动化已按用户要求清空（automations 表 0 行，174 条 runs 历史保留）：
 >           删掉「（已迁移云端）周一深度体检 Mac 占位」与「红果每日金币任务 09:30」；
 >           足球那 2 条此前已由 ZCode 侧删除。备份 ~/.football-engine/zcode_tasks_backup_20261020_0148.sqlite
