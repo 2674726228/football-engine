@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-19T23:40:46",
+  "generated_at": "2026-10-19T09:43:39",
   "summary": {
     "total": 11,
-    "critical": 1,
+    "critical": 0,
     "healed": 0
   },
   "findings": [
@@ -73,8 +73,8 @@
     {
       "id": "env/cron",
       "layer": "env",
-      "severity": "critical",
-      "detail": "crontab 缺少关键任务: ['run_realtime_monitor.sh', 'auto_run.sh']（调度层断裂）",
+      "severity": "ok",
+      "detail": "本机无残留 hourly cron（符合机器分工）",
       "healable": false,
       "healed": false
     },
