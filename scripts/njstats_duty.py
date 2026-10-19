@@ -44,6 +44,21 @@ def sh(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(args, cwd=ROOT, capture_output=True, text=True, check=False)
 
 
+def autoheal_session() -> bool:
+    """SESSION cookie 过期时用持久 profile 的 remember-me 无头续期，无需人工过验证码。
+
+    只在 mint 拿到非 200 时调用。失败返回 False，由调用方按「需人工播种」处理。
+    """
+    if not (HOME / ".football-engine" / "pwprofile").exists():
+        return False
+    p = subprocess.run([str(ROOT / ".venv" / "bin" / "python3"),
+                        "scripts/njstats_refresh_session.py"],
+                       cwd=ROOT, capture_output=True, text=True, check=False, timeout=180)
+    ok = p.returncode == 0
+    log(f"续期脚本 rc={p.returncode} {(p.stdout or p.stderr).strip().splitlines()[-1] if (p.stdout or p.stderr).strip() else ''}")
+    return ok
+
+
 def mint() -> str | None:
     if not SESS.exists():
         log("无 session 文件，需播种登录")
@@ -61,8 +76,19 @@ def mint() -> str | None:
         log(f"mint 网络异常 {e}")
         return None
     if r.status_code != 200:
-        log(f"mint HTTP {r.status_code}（session 死，需重新播种）")
-        return None
+        log(f"mint HTTP {r.status_code}（session 死，尝试无头续期）")
+        if not autoheal_session():
+            log("无头续期失败，需人工登录（跑 njstats_seed_login.py）")
+            return None
+        cookie = json.loads(SESS.read_text()).get("SESSION", "")
+        r = requests.get(f"{BASE}/api/user/current",
+                         headers={"Cookie": f"SESSION={cookie}", "User-Agent": UA,
+                                  "Accept": "application/json", "Referer": BASE + "/prediction/mine"},
+                         timeout=20, proxies=PX)
+        if r.status_code != 200:
+            log(f"续期后仍 HTTP {r.status_code}，需人工登录")
+            return None
+        log("无头续期成功")
     tok = ((r.json() or {}).get("data") or {}).get("token")
     return tok or None
 
