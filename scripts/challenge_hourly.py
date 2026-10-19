@@ -52,10 +52,21 @@ def main() -> int:
     now = datetime.now(BJT)
     st = load_state()
     wk = iso_week(now)
-    if st.get("week") != wk:
+    rolled = st.get("week") != wk
+    if rolled:
         st["week"], st["used"] = wk, 0
         if st.get("mode") == "W42-fill":
             st["mode"] = None
+    # 周翻转必须立刻落盘（2026-10-19 修）：此前 STATE.write_text 只在「提交成功
+    # 注数 > 0」的路径上执行，而零合格/已满/列表失败都会提前 return 0——
+    # 于是周翻转后的 week/used 从未持久化。现场：state 停在 W42/27/28 且
+    # mode 仍是 W42-fill，直到某轮投出 ≥1 注才整份写回自愈。
+    # 注意别把影响说大：门槛没坏。翻转在算 g 之前，g 取自内存里翻转后的
+    # mode，duty.log 的「门槛1.5%」即证。坏的是落盘状态——任何直接读该文件
+    # 的消费者（人/看板/复盘脚本）会拿到错的周次配额，残留 mode 还会误导。
+    # 这里只写「翻转」这一个动作，不触碰 records，避免零合格轮制造噪音提交。
+    if rolled:
+        STATE.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
     remaining = st["quota"] - st["used"]
     if remaining <= 0:
         print(f"challenge: 本周已 {st['used']}/{st['quota']}，满")

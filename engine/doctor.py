@@ -332,19 +332,28 @@ def check_state_files(report: DoctorReport) -> None:
 
 # ---------------------------------------------------------------- 环境/调度层
 
-CRON_JOBS_REQUIRED = ("run_realtime_monitor.sh", "auto_run.sh")
+# 2026-10-19 反转：本机 cron 从「必须有」改为「不许有」。
+# 依据 AGENTS.md 机器分工（2026-10-13 定）：日常预测/结算/采集全部在 GitHub
+# Actions（daily-forecast :15/:45、ci-sync :47）；本机 hourly cron 会与它们
+# 同时写 data/state/，每小时必有一次 non-fast-forward，两边互相覆盖且不可追溯。
+# run_realtime_monitor.sh 跑的是 realtime_odds_monitor.py，该脚本文件头自述
+# 「已弃用 2026-08-05」，真实水位序列由 daily-forecast 里的 fetch_sina_odds.py 管。
+# 保留检查的目的因此变成：**这两条 cron 一旦又回来了，立刻报警**。
+CRON_JOBS_FORBIDDEN = ("run_realtime_monitor.sh", "auto_run.sh")
 
 
 def check_env(report: DoctorReport, heal: bool) -> None:
-    """事故史：cron 静默丢失、代理挂掉整夜推送全灭。"""
+    """事故史：cron 静默丢失、代理挂掉整夜推送全灭；反向事故史：本机 cron 与
+    ci-sync 抢写 data/state/，状态不可追溯。"""
     try:
         _, crontab = _run(["crontab", "-l"])
-        missing = [j for j in CRON_JOBS_REQUIRED if j not in crontab]
-        if missing:
-            report.add(Finding("env/cron", "env", "critical",
-                               f"crontab 缺少关键任务: {missing}（调度层断裂）"))
+        present = [j for j in CRON_JOBS_FORBIDDEN if j in crontab]
+        if present:
+            report.add(Finding("env/cron", "env", "warn",
+                               f"本机残留 hourly cron: {present}——会与 ci-sync 抢写 "
+                               f"data/state/（机器分工：本地只负责预测挑战提交）"))
         else:
-            report.add(Finding("env/cron", "env", "ok", "crontab 关键任务在"))
+            report.add(Finding("env/cron", "env", "ok", "本机无残留 hourly cron（符合机器分工）"))
     except Exception:
         report.add(Finding("env/cron", "env", "info", "crontab 读取失败（无 cron?）"))
 

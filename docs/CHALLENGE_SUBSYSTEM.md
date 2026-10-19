@@ -12,8 +12,8 @@
 | 资产 | 与核心引擎的关系 |
 |---|---|
 | scripts/njstats_api_submit.py | **只读** predictions.json + 私有协议，零 import engine.* |
-| scripts/challenge_review.py | **只读** ledger + _vault/challenge_state.json，零 import |
-| _vault/challenge_state.json / recon_njstats.md | 仓库外/不追踪 |
+| scripts/challenge_review.py | **只读** ledger + data/state/challenge_state.json，零 import |
+| _vault/recon_njstats.md 等侦察笔记 | 仓库外/不追踪 |
 | data/state/challenge_review.json | 产出报告，无下游引擎逻辑消费 |
 | 引擎 → 挑战 数据流 | 单向：读 predictions/ledger。**引擎永不读挑战产物**（原则） |
 | 周一深度体检 | 仅"简报引用+可选自否决条款"，删除该步不影响其它步 |
@@ -36,7 +36,7 @@ tests/test_challenge_firewall.py 在 CI 强制此边界（engine/ 出现 challen
 ## 退役程序（挑战下线时照此执行，约 10 分钟，零风险）
 1. 删除/停用两条自动化：「NJStats 挑战提交 每小时:35」；周一深度体检去掉第 6 步与简报③④句（CronUpdate）
 2. scripts/njstats_api_submit.py、challenge_review.py **保留不动**（已自然空转：无 state/无列表即退出）
-3. 历史复盘价值归档：challenge_review.json + _vault/challenge_state.json 存档为静态数据；本文件末尾追加"退役记录：日期/存活周数/池内注数/最终校准结论"
+3. 历史复盘价值归档：challenge_review.json + data/state/challenge_state.json 存档为静态数据；本文件末尾追加"退役记录：日期/存活周数/池内注数/最终校准结论"
 4. 复用资产说明：openApi protobuf 逆向方法（_vault/recon_njstats.md）是通用手艺，与站点无关，保留
 5. 核心引擎回归自检：跑一次完整周检（tracker/EV/CLV 各步照常），确认无红
 

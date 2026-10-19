@@ -255,7 +255,7 @@ njstats_exports/sample.xlsx（Excel schema）、close_calibration_notes.md（研
 - [ ] NJStats 试用窗口（10-15 00:08 到期）：归档管线每小时断点续采（match/odds/8概率端点
       ×分页）；概率端点的历史页在深页，逐小时补齐后做他们的信号质量评估（Brier vs 赛果）
 - [ ] 预测挑战：每日 11:30 自动提交已建（EV 策略：只提赔率∈[1.60,2.31]且模型概率最高的场次，
-      每日≤5 场、周配额 28，状态 _vault/challenge_state.json）；10-13 凌晨首轮结算后复盘命中率
+      每日≤5 场、周配额 28，状态 data/state/challenge_state.json）；10-13 凌晨首轮结算后复盘命中率
 - [x] CLV 三源交叉验证（2026-10-12）：DJYY 均价 -12.45% / football-data 平博 -6.27%（258注）/
       NJStats 平* -9.22%（28注）；**锐度梯度：澳*软庄 -3.29% → 平*锐线 -9.22%，6pp 差=
       市场水位差**。教训固化：量 CLV 必须用最锐基准（scripts/njstats_clv_check.py）
