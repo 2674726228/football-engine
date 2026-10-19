@@ -1,8 +1,20 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-19 08:55（Air 值守：五项修复已合入 main，CI 全绿）
-> 在干什么: 由 Air 上的 agent 接手 7×24 值守（替代原 ZCode 人工）。已合入 main：
+> 状态: doing　更新: 2026-10-20 01:58（Air 值守：session 已自愈续期 + ZCode 自动化清空）
+> 在干什么: 由 Air 上的 agent 接手 7×24 值守（替代原 ZCode 人工）。
+>           **本轮（10-19 23:35 ~ 10-20 01:35 共 5 轮）session 死亡导致 duty 空转，已修复**：
+>           NJStats SESSION cookie 寿命约 20h（10-19 02:08 播种 → 23:35 失效），mint 401 会让
+>           njstats_duty.py 提前 return 20、连 challenge_hourly 都不跑。已找到**无需验证码**
+>           的自愈路径：playwright 持久 profile `~/.football-engine/pwprofile` 里存有
+>           `remember-me`（长 cookie，11-03 到期）+ `SESSION`，无头启动即 HTTP 200，
+>           直接重抓 SESSION 写回 `~/.football-engine/njstats_session.json` 即可。
+>           已验证：mint 200 → 推 secret 204（NJSTATS_JWT updated 2026-10-19T17:53:05Z）
+>           → 1x2 零合格（门槛1.5%/池193）。**此后再遇 401 可直接自愈，不必惊动用户。**
+>           ZCode 自动化已按用户要求清空（automations 表 0 行，174 条 runs 历史保留）：
+>           删掉「（已迁移云端）周一深度体检 Mac 占位」与「红果每日金币任务 09:30」；
+>           足球那 2 条此前已由 ZCode 侧删除。备份 ~/.football-engine/zcode_tasks_backup_20261020_0148.sqlite
+> 之前: 已合入 main（五项修复）：
 >           ① W42→W43 周翻转未落盘 → challenge_hourly.py:55-67 翻转即落盘（+3 例回归测试）
 >           ② 复盘器读 _vault 快照 → 云端复盘从未真跑过 → 改读入库 data/state/，去掉 `|| true`
 >           ③ 本机 cron 与 CI 抢写 → 已删 cron + doctor 检查反转为「不许有」+ djyy 缺文件显式跳过
@@ -24,7 +36,9 @@
 >          ④ GitHub PAT 已装（~/.football-engine/github_token，600，scope repo，已验证推 secret 204）；
 >             仓库 deploy key 曾整条消失（API 查 deploy keys: 0）导致 SSH 全断，
 >             已用 API 重新添加（id 166885983），fetch/push 已复验通过
-> 已知坑: ① token 20h 过期，Air 上每日刷；本机非常开不能承担定时任务
+> 已知坑: ① token 20h 过期，Air 上每日刷；本机非常开不能承担定时任务。
+>           session 死（mint 401）≠ 需人工登录：pwprofile 的 remember-me 可无头重签，
+>           见上方「在干什么」——只有 remember-me 也过期（约 14 天）才需人工跑 seed_login
 >          ② git reset --hard 会清归档（发生两次）；reset 前跑 njstats_safeguard.py
 >          ③ prob 归档 label ≠ 快照时刻，下游时序以 snapshot_at 为准
 >          ④ challenge_hourly 的 STATE.write_text 原先只在「有注提交成功」时执行，
