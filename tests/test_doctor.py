@@ -176,3 +176,36 @@ def test_run_smoke_no_net(tmp_path, monkeypatch):
     r = run(heal=False, net=False)
     assert r.findings, "至少应产出 git 层 findings"
     assert all(f.severity in ("ok", "info", "warn", "critical") for f in r.findings)
+
+
+# ------------------------------------------------ 报告时间戳（2026-10-19 事故）
+def test_generated_at_is_beijing_in_any_runner_tz(monkeypatch):
+    """CI runner 是 UTC：`beijing_date + 本地时分` 会拼出超前 8 小时的假时间。
+
+    事故现场：BJT 02:17 由 ci-sync 提交的 data/state/system_health.json 里写着
+    "2026-10-19T18:17:05"——日期用 beijing_today()、时分用 time.strftime()（runner
+    本地时钟 = UTC）。任何拿 generated_at 判新鲜度/排序的消费方都会被骗 8 小时。
+    """
+    import datetime as _dt
+    import os
+    import time as _time
+
+    # 把进程时区强行设为 UTC，复现 runner 环境
+    old = os.environ.get("TZ")
+    os.environ["TZ"] = "UTC"
+    _time.tzset() if hasattr(_time, "tzset") else None
+    try:
+        from engine.beijing_time import beijing_now
+        got = DoctorReport().to_json()["generated_at"]
+        want = beijing_now().strftime("%Y-%m-%dT%H:%M:%S")
+        got_dt = _dt.datetime.strptime(got, "%Y-%m-%dT%H:%M:%S")
+        want_dt = _dt.datetime.strptime(want, "%Y-%m-%dT%H:%M:%S")
+        # 允许跨秒抖动，但绝不允许 8 小时级别的偏移
+        assert abs((got_dt - want_dt).total_seconds()) < 120, (
+            f"generated_at={got} 应为北京时间 {want}（差 {(got_dt - want_dt).total_seconds()}s）")
+    finally:
+        if old is None:
+            os.environ.pop("TZ", None)
+        else:
+            os.environ["TZ"] = old
+        _time.tzset() if hasattr(_time, "tzset") else None

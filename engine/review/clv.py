@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parents[2]   # engine/review/clv.py → 仓库�
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from engine.beijing_time import beijing_today  # noqa: E402
+from engine.beijing_time import beijing_now  # noqa: E402
 
 DAILY = ROOT / "data" / "daily"
 ODDS_SERIES = ROOT / "data" / "state" / "odds_series"
@@ -226,7 +226,9 @@ def build_report(days_back: int = 30) -> dict:
 
     tiers = sorted({r["tier"] for r in ok})
     report = {
-        "generated_at": beijing_today() + "T" + datetime.now().strftime("%H:%M:%S"),
+        # 同 engine/doctor.py:71 的修法：北京日期配北京时分。CI runner 是 UTC，
+        # datetime.now() 给的是 runner 本地时钟，拼出来会超前 8 小时。
+        "generated_at": beijing_now().strftime("%Y-%m-%dT%H:%M:%S"),
         "window_days": days_back,
         "n_ledger_bets": len(bets),
         "coverage": {

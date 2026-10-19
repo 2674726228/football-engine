@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from engine.beijing_time import beijing_today  # noqa: E402
+from engine.beijing_time import beijing_now, beijing_today  # noqa: E402
 
 DAILY = ROOT / "data" / "daily"
 STATE = ROOT / "data" / "state"
@@ -68,7 +68,10 @@ class DoctorReport:
 
     def to_json(self) -> dict:
         return {
-            "generated_at": beijing_today() + "T" + time.strftime("%H:%M:%S"),
+            # 北京日期必须配北京时分：CI runner 是 UTC，此前 strftime 取的是
+            # runner 本地时钟，拼出来「北京日期 + UTC 时分」→ 时间戳超前 8 小时
+            # （现场：BJT 02:17 提交的报告里写着 18:17）。统一走 beijing_now()。
+            "generated_at": beijing_now().strftime("%Y-%m-%dT%H:%M:%S"),
             "summary": {
                 "total": len(self.findings),
                 "critical": self.n_critical,
