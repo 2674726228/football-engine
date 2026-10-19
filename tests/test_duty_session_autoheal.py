@@ -47,6 +47,9 @@ def fake_session(tmp_path, monkeypatch):
     sess = tmp_path / "njstats_session.json"
     sess.write_text('{"SESSION": "oldcookie"}')
     monkeypatch.setattr(duty, "SESS", sess)
+    # duty.log() 写的是真实 ~/.football-engine/duty.log；不隔离的话跑一次测试
+    # 就会往值守日志里塞几行假的「mint 401」，把人引去查不存在的故障。
+    monkeypatch.setattr(duty, "LOG", tmp_path / "duty.log")
     seen: list[str] = []
 
     def _get(url, headers=None, **kw):
