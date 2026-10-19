@@ -1,13 +1,15 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-19 08:45（Air 值守：四项修复已合入 main 并推送）
-> 在干什么: 由 Air 上的 agent 接手 7×24 值守（替代原 ZCode 人工）。已合入 main（6a1570e8b）：
+> 状态: doing　更新: 2026-10-19 08:55（Air 值守：五项修复已合入 main，CI 全绿）
+> 在干什么: 由 Air 上的 agent 接手 7×24 值守（替代原 ZCode 人工）。已合入 main：
 >           ① W42→W43 周翻转未落盘 → challenge_hourly.py:55-67 翻转即落盘（+3 例回归测试）
 >           ② 复盘器读 _vault 快照 → 云端复盘从未真跑过 → 改读入库 data/state/，去掉 `|| true`
 >           ③ 本机 cron 与 CI 抢写 → 已删 cron + doctor 检查反转为「不许有」+ djyy 缺文件显式跳过
 >           ④ 文档一致性：docs/CHALLENGE_SUBSYSTEM.md:15/16/39、STATUS.md:258 里指
 >              _vault/challenge_state.json 的过时描述一并对齐到 data/state/
+>           ⑤ 审计产物时间戳「北京日期 + UTC 时分」超前 8h → doctor.py:71 / clv.py:229
+>              统一走 beijing_now()（92e5c93c5，+1 例变异验证过的回归测试）
 > 下一步: ① **rho 自进化在 CI 上一直失效（待定，属模型参数禁触区）**：engine/main.py:2320-2327
 >             每轮把 rho 写回 config/prediction.json，而 daily-forecast.yml:193 只
 >             `git add data/ web/`（不含 config/）→ 写进工作区无人提交，被
