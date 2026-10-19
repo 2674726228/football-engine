@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T04:43:34",
+  "generated_at": "2026-10-20T07:57:15",
   "summary": {
     "total": 11,
     "critical": 0,
@@ -33,16 +33,16 @@
     {
       "id": "data/results",
       "layer": "data",
-      "severity": "warn",
-      "detail": "昨日(2026-10-19)缺 results_sina.json（补抓失败）",
-      "healable": true,
+      "severity": "ok",
+      "detail": "昨日赛果文件在",
+      "healable": false,
       "healed": false
     },
     {
       "id": "data/yesterday",
       "layer": "data",
-      "severity": "info",
-      "detail": "昨日(2026-10-19)无预测或无赛果，跳过结算检查",
+      "severity": "ok",
+      "detail": "昨日(2026-10-19)已结算",
       "healable": false,
       "healed": false
     },
