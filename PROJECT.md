@@ -1,7 +1,7 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-20 01:58（Air 值守：session 已自愈续期 + ZCode 自动化清空）
+> 状态: doing　更新: 2026-10-20 02:12（Air 值守：session 自动续期已合入 main；ZCode 自动化清空）
 > 在干什么: 由 Air 上的 agent 接手 7×24 值守（替代原 ZCode 人工）。
 >           **本轮（10-19 23:35 ~ 10-20 01:35 共 5 轮）session 死亡导致 duty 空转，已修复**：
 >           NJStats SESSION cookie 寿命约 20h（10-19 02:08 播种 → 23:35 失效），mint 401 会让
@@ -16,6 +16,9 @@
 >           非 200 时调它一次并用新 cookie 重试，仍失败才 return 20 提示人工。
 >           实测：把 SESSION 改坏 → duty 自动续期 → mint(新) → 推 secret 204，退出码 0。
 >           回归测试 tests/test_duty_session_autoheal.py 4 例（变异验证：回退后 2 例失败）。
+>           已合入 main（3461a5129）。附带修掉测试污染：duty.log() 写真路径，
+>           跑一次测试就往值守日志塞假的「mint 401」（02:01-02:03 那批是测试写的，
+>           不是真故障），已 monkeypatch LOG 到 tmp_path（24e1544f1）。
 >           ZCode 自动化已按用户要求清空（automations 表 0 行，174 条 runs 历史保留）：
 >           删掉「（已迁移云端）周一深度体检 Mac 占位」与「红果每日金币任务 09:30」；
 >           足球那 2 条此前已由 ZCode 侧删除。备份 ~/.football-engine/zcode_tasks_backup_20261020_0148.sqlite
