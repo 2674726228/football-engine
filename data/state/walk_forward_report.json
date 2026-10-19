@@ -1,46 +1,46 @@
 {
-  "total_matches": 1127,
+  "total_matches": 1131,
   "date_range": [
     "2026-07-19",
-    "2026-10-18"
+    "2026-10-19"
   ],
   "metrics": {
-    "brier": 0.5748,
-    "weighted_brier": 0.5709,
-    "rps": 0.197,
-    "weighted_rps": 0.1957,
-    "log_loss": 0.968,
-    "hit_rate": 0.5501,
-    "ece": 0.0902
+    "brier": 0.5746,
+    "weighted_brier": 0.5707,
+    "rps": 0.1971,
+    "weighted_rps": 0.1958,
+    "log_loss": 0.9676,
+    "hit_rate": 0.5517,
+    "ece": 0.0934
   },
   "draw_analysis": {
     "actual_draws": 271,
-    "actual_draw_rate": 0.2405,
+    "actual_draw_rate": 0.2396,
     "predicted_draws": 38,
-    "predicted_draw_rate": 0.0337,
+    "predicted_draw_rate": 0.0336,
     "max_draw_prob": 0.5025,
-    "avg_draw_prob": 0.2552,
-    "avg_market_draw": 0.2404,
-    "market_high_draw_n": 213,
+    "avg_draw_prob": 0.2553,
+    "avg_market_draw": 0.2406,
+    "market_high_draw_n": 215,
     "market_high_draw_actual": 74,
-    "market_high_draw_rate": 0.3474
+    "market_high_draw_rate": 0.3442
   },
   "strategy_comparison": {
     "model": {
-      "hit_rate": 0.5475,
-      "n": 1127
+      "hit_rate": 0.5491,
+      "n": 1131
     },
     "market": {
-      "hit_rate": 0.5604,
-      "n": 1010
+      "hit_rate": 0.5621,
+      "n": 1014
     },
     "hybrid_v2": {
-      "hit_rate": 0.5079,
-      "n": 1010
+      "hit_rate": 0.5089,
+      "n": 1014
     },
     "market_d28": {
-      "hit_rate": 0.5277,
-      "n": 1010
+      "hit_rate": 0.5276,
+      "n": 1014
     }
   },
   "by_league": {
@@ -51,10 +51,10 @@
       "rps": 0.1817
     },
     "意甲": {
-      "n": 68,
-      "hit_rate": 0.5735,
-      "brier": 0.556,
-      "rps": 0.2052
+      "n": 70,
+      "hit_rate": 0.5857,
+      "brier": 0.5553,
+      "rps": 0.2057
     },
     "欧冠": {
       "n": 66,
@@ -105,10 +105,10 @@
       "rps": 0.1886
     },
     "瑞典超": {
-      "n": 44,
-      "hit_rate": 0.4091,
-      "brier": 0.6736,
-      "rps": 0.2313
+      "n": 45,
+      "hit_rate": 0.4222,
+      "brier": 0.6705,
+      "rps": 0.2312
     },
     "巴甲": {
       "n": 43,
@@ -188,17 +188,17 @@
       "brier": 0.4276,
       "rps": 0.1527
     },
+    "法乙": {
+      "n": 15,
+      "hit_rate": 0.5333,
+      "brier": 0.6101,
+      "rps": 0.2073
+    },
     "亚运男足": {
       "n": 15,
       "hit_rate": 0.7333,
       "brier": 0.4304,
       "rps": 0.1409
-    },
-    "法乙": {
-      "n": 14,
-      "hit_rate": 0.5,
-      "brier": 0.6209,
-      "rps": 0.208
     },
     "亚冠精英": {
       "n": 14,
