@@ -1,27 +1,28 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-20 02:12（Air 值守：session 自动续期已合入 main；ZCode 自动化清空）
-> 在干什么: 由 Air 上的 agent 接手 7×24 值守（替代原 ZCode 人工）。
->           **本轮（10-19 23:35 ~ 10-20 01:35 共 5 轮）session 死亡导致 duty 空转，已修复**：
->           NJStats SESSION cookie 寿命约 20h（10-19 02:08 播种 → 23:35 失效），mint 401 会让
->           njstats_duty.py 提前 return 20、连 challenge_hourly 都不跑。已找到**无需验证码**
->           的自愈路径：playwright 持久 profile `~/.football-engine/pwprofile` 里存有
->           `remember-me`（长 cookie，11-03 到期）+ `SESSION`，无头启动即 HTTP 200，
->           直接重抓 SESSION 写回 `~/.football-engine/njstats_session.json` 即可。
->           已验证：mint 200 → 推 secret 204（NJSTATS_JWT updated 2026-10-19T17:53:05Z）
->           → 1x2 零合格（门槛1.5%/池193）。
->           **已做成自动化（分支 fix/duty-session-autoheal）**：新增
->           scripts/njstats_refresh_session.py 无头重签 SESSION，duty 的 mint() 在
->           非 200 时调它一次并用新 cookie 重试，仍失败才 return 20 提示人工。
->           实测：把 SESSION 改坏 → duty 自动续期 → mint(新) → 推 secret 204，退出码 0。
->           回归测试 tests/test_duty_session_autoheal.py 4 例（变异验证：回退后 2 例失败）。
->           已合入 main（3461a5129）。附带修掉测试污染：duty.log() 写真路径，
->           跑一次测试就往值守日志塞假的「mint 401」（02:01-02:03 那批是测试写的，
->           不是真故障），已 monkeypatch LOG 到 tmp_path（24e1544f1）。
->           ZCode 自动化已按用户要求清空（automations 表 0 行，174 条 runs 历史保留）：
->           删掉「（已迁移云端）周一深度体检 Mac 占位」与「红果每日金币任务 09:30」；
->           足球那 2 条此前已由 ZCode 侧删除。备份 ~/.football-engine/zcode_tasks_backup_20261020_0148.sqlite
+> 状态: doing　更新: 2026-10-21 02:15（社区倾向归档上线 + E6 门槛上限实验结案）
+> 在干什么: ① **社区倾向每日快照已上线**（95616b3b7）：新增
+>           scripts/njstats_community_snapshot.py，duty 末尾每天跑一次（date 门控 +
+>           置于 1x2 之后，失败不影响提交链；DUTY_SKIP_COMMUNITY=1 可跳过）。
+>           站点无历史接口（msgId=17 不接受日期参数，三种写法返回字节数完全相同），
+>           只能自己攒样本。首日：813 场中 12 场有分布，8 场拿到 DOM 方向真值。
+>           **重要教训**：f1 选项码不跨场次同义，方向名只在 DOM 里——脚本走
+>           API+DOM 双取（API 存结构、DOM 贴方向）。中途两次猜错（f1=1主/3客、
+>           取全表 pct 最大）都是靠 DOM 真值纠正的。
+>           ② **E6 门槛上限实验结案：不加**。账本 1018 条配对回放，B(1.5~3pp) 兑现
+>           +2.32pp vs C(≥3pp) −4.23pp 看似该加上限，但 Welch t=+1.13、Bootstrap
+>           95%CI [−4.63,+17.97]pp 跨 0；分月看 C 档 8月−7.3 / 9月+0.0 / **10月+6.3pp**，
+>           整体负值由 8 月 75 条样本拖动。已按规则登记 docs/EXPERIMENTS.md，未删行。
+>           ③ **修正两条我报错的结论**：(a)「体彩只开 15 场」不成立——fixture_count
+>           实测 0~59 波动（中位 14），用户指正正确；(b)「赛程源覆盖不足是 bug」
+>           不成立——跨日过滤用的是竞彩比赛日（match_id 前缀）而非开赛日，体彩 21 场
+>           按周二/周三分组后 10-20+10-21 合计 23 场完整覆盖，一场不漏。
+>           fallback_used=True 只表示字段来自 priority>1 的源，**不代表降级失败**。
+>           ④ GitHub cron 漏跑复测：启动延迟恒为 0 秒（created_at 即触发时刻），
+>           但触发点分钟数散乱（challenge 偏差 −34~+23 分），24h 内仅 3/24 次。
+>           属平台侧调度丢弃，workflow 内无法修。
+> 之前: session 自动续期已合入 main；ZCode 自动化清空：
 > 之前: 已合入 main（五项修复）：
 >           ① W42→W43 周翻转未落盘 → challenge_hourly.py:55-67 翻转即落盘（+3 例回归测试）
 >           ② 复盘器读 _vault 快照 → 云端复盘从未真跑过 → 改读入库 data/state/，去掉 `|| true`
