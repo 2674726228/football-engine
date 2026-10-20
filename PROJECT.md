@@ -1,8 +1,17 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-21 02:25（duty 并发锁上线 + E7 rho 结案）
-> 在干什么: ① **duty 并发锁已上线**（efb979518）：`harness/run_duty.sh` 加
+> 状态: doing　更新: 2026-10-21 02:35（CI 看门狗上线）
+> 在干什么: ① **CI 看门狗已上线**（00113529b）：GitHub 对公开仓库定时任务限流严重
+>           （Challenge 24h 只跑 3/24 次，启动延迟恒 0 秒 = 平台侧丢弃而非排队）。
+>           duty 末尾在「CI 超 3h 没跑 + 本地这轮零提交」时用 PAT 手动 dispatch 一轮。
+>           **三条约束都是防重复投注**：CI 与本机是两个独立仓库副本，去重只靠
+>           challenge_state.json 的 records；本地刚投完就触发 CI 会让 CI 在没同步到
+>           新记录的 state 上再投一遍（K=6，最多重复 6 注）。故：本地零提交才补 /
+>           CI 超 3h 才补 / 每小时最多一次；取不到 CI 状态时保守不补。
+>           `DUTY_SKIP_CI_WATCHDOG=1` 可跳过。marker `.ci_watchdog_last` 已 gitignore。
+>           tests/test_ci_watchdog.py 6 例，三条 guard 变异验证 3/3 命中。
+>           ② **duty 并发锁已上线**（efb979518）：`harness/run_duty.sh` 加
 >           `mkdir` 原子锁（macOS 不一定带 flock），锁龄 >30 分钟自动清陈锁，
 >           `trap EXIT INT TERM` 保证释放。此前 run_duty.sh 与 njstats_duty.py
 >           都无锁，手动跑撞 :05/:35 会让两进程同时 git pull --rebase/写 state；
