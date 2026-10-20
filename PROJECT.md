@@ -1,8 +1,22 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-21 02:15（社区倾向归档上线 + E6 门槛上限实验结案）
-> 在干什么: ① **社区倾向每日快照已上线**（95616b3b7）：新增
+> 状态: doing　更新: 2026-10-21 02:25（duty 并发锁上线 + E7 rho 结案）
+> 在干什么: ① **duty 并发锁已上线**（efb979518）：`harness/run_duty.sh` 加
+>           `mkdir` 原子锁（macOS 不一定带 flock），锁龄 >30 分钟自动清陈锁，
+>           `trap EXIT INT TERM` 保证释放。此前 run_duty.sh 与 njstats_duty.py
+>           都无锁，手动跑撞 :05/:35 会让两进程同时 git pull --rebase/写 state；
+>           实测撞过一次（08:35:03 与 08:35:10 并存 7 秒，侥幸没事）。
+>           三种情形实测：正常跑释放 ✓ / 锁被占跳过 ✓ / 陈锁清理 ✓。
+>           ② **E7 rho 自进化结案：无实质收益，维持现状**。澄清：main.py:2320-2327
+>           每轮写回 config，但 daily-forecast.yml:193 只 `git add data/ web/`，
+>           写回无人提交、被 autostash 卷成残渣——**这个「没提交」不是 bug，
+>           是有利状态**。账本 1135 条配对回放：现值 −0.0748 vs 当日拟合 −0.0734
+>           的 ΔBrier −0.000011（t=−0.93）；网格最优 −0.0160 的 ΔBrier −0.000225
+>           （t=−0.47）；75.9% 场次同向改善但幅度淹没在噪声里。
+>           量纲：rho 动 0.0014 只让主胜概率变 0.011pp，比门槛 1.5pp 小两个数量级。
+>           已登记 docs/EXPERIMENTS.md E7 行。**别再"修"这个写回了。**
+> 之前: ① **社区倾向每日快照已上线**（95616b3b7）：新增
 >           scripts/njstats_community_snapshot.py，duty 末尾每天跑一次（date 门控 +
 >           置于 1x2 之后，失败不影响提交链；DUTY_SKIP_COMMUNITY=1 可跳过）。
 >           站点无历史接口（msgId=17 不接受日期参数，三种写法返回字节数完全相同），
