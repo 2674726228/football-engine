@@ -19,6 +19,10 @@ from pathlib import Path
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
+import njstats_api_submit as api  # noqa: E402
+
 HOME = Path.home()
 SESS = HOME / ".football-engine" / "njstats_session.json"
 JWT_FILE = HOME / ".football-engine" / "njstats_jwt"
@@ -189,6 +193,8 @@ def main() -> int:
     # 社区倾向快照（E6 观测，见 docs/EXPERIMENTS.md）。放在最后：前面 1x2 该投
     # 的都投完了，这一步再慢/再失败都不会影响提交链。每天只跑一次（date 门控），
     # 用 marker 而不是看快照文件在不在——避免手工删了文件后一轮轮重跑。
+    if os.environ.get("DUTY_SKIP_SERVER_SNAPSHOT") != "1":
+        _maybe_server_records_snapshot()
     if os.environ.get("DUTY_SKIP_COMMUNITY") != "1":
         _maybe_community_snapshot()
     # CI 看门狗：平台定时任务限流严重，CI 长时间没跑时补一轮。
@@ -285,6 +291,40 @@ def _maybe_dispatch_ci(local_submitted: int) -> None:
             marker.write_text(str(int(now)))
         except OSError:
             pass
+
+
+def _maybe_server_records_snapshot() -> None:
+    """每次把服务端「我已预测」真值落盘，作为账本缺口的对照物。
+
+    为什么需要：challenge_state.json 历史上出现过回写失败（5 条缺口），
+    而那 5 条的服务端记录现在只能靠猜口径。以后每天存一份真值，
+    一旦 state 再漏，就能直接 diff 出来、按当时的 market 码+赔率还原。
+    成本很低（一次请求），但能让「账目对不上」从无解变成可追。
+
+    落盘到 data/state/njstats/my_predictions/<YYYY-MM-DD>.json，
+    每次覆盖当天（一天内多次轮询以最后一次为准，只会变多不会变少）。
+    """
+    try:
+        recs = api.my_predictions()
+    except Exception as e:  # noqa: BLE001 - 快照失败绝不能影响值守
+        log(f"server-snapshot: 取数失败 {type(e).__name__}")
+        return
+    if recs is None:
+        return
+    out_dir = ROOT / "data" / "state" / "njstats" / "my_predictions"
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        day = time.strftime("%Y-%m-%d")
+        payload = {
+            "snapshot_at": time.strftime("%F %T"),
+            "count": len(recs),
+            "note": "msgId=11 账号私有「我已预测」服务端真值；与 challenge_state 对照用",
+            "records": recs,
+        }
+        (out_dir / f"{day}.json").write_text(
+            json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
+    except OSError as e:
+        log(f"server-snapshot: 写盘失败 {e}")
 
 
 def _maybe_community_snapshot() -> None:
