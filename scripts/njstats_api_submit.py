@@ -299,3 +299,63 @@ def board_items(jwt: str | None = None) -> list[dict] | None:
     if st != 200:
         return None
     return parse_board(raw)
+
+
+def parse_my_predictions(raw: bytes) -> list[dict]:
+    """msgId=11 响应 → 账号已预测列表 [{sid, home, away, market, dir, odds}]。
+
+    纯函数，可测。字段（2026-10-21 与本地 state 双向对账后确认）：
+      条目: f1=比赛{f2=联赛,f3=主队,f4=客队}, f2=选择, f3=短 id
+      选择: f1=市场码, f2=方向码, f3=赔率串
+    这是**服务端真值**：无效 JWT 返回空（实测 len=5 仅 "suc"），
+    有效 JWT 返回本账号全部已预测场次，与本地 challenge_state 无关。
+    用途：跨机器去重（CI 与本机是两个独立仓库副本，靠 git state 会漏）。
+    """
+    idx = raw.find(b"suc")
+    body = raw[idx + 3:] if idx >= 0 else raw
+    top = decode_msg(body)
+    cont = _get(top, 5)
+    if not cont:
+        return []
+    out = []
+    for m in decode_msg(cont):
+        if m[0] != 1 or m[1] != "s":
+            continue
+        e = decode_msg(m[2])
+        sid = (_get(e, 3) or b"").decode("utf-8", "ignore")
+        f1b = _get(e, 1)
+        if not sid or not f1b:
+            continue
+        f1 = decode_msg(f1b)
+
+        def nm(fn):
+            b = _get(f1, fn)
+            if not b:
+                return ""
+            tf = decode_msg(b)
+            cn = _get(tf, 3)
+            return (cn or _get(tf, 2) or b"").decode("utf-8", "ignore")
+
+        sel = _get(e, 2)
+        market = direction = odds = None
+        if sel:
+            s = decode_msg(sel)
+            market = _get(s, 1, kind="v")
+            direction = _get(s, 2, kind="v")
+            ob = _get(s, 3)
+            odds = ob.decode("utf-8", "ignore") if ob else None
+        out.append({"sid": sid, "home": nm(3), "away": nm(4),
+                    "market": market, "dir": direction, "odds": odds})
+    return out
+
+
+def my_predictions(jwt: str | None = None) -> list[dict] | None:
+    """本账号已预测场次（服务端真值）。取不到返回 None。"""
+    jwt = jwt or (JWT_FILE.read_text().strip() if JWT_FILE.exists() else "")
+    if not jwt:
+        return None
+    body = _field(2, _field_v(1, 1) + _field_v(2, 60))
+    st, raw = _post_jwt(jwt, "1012", "11", body)
+    if st != 200:
+        return None
+    return parse_my_predictions(raw)
