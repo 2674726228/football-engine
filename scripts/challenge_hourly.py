@@ -97,7 +97,31 @@ def main() -> int:
                     pred[(p["home_team"], p["away_team"])] = p
         except Exception:
             continue
+    # 去重名单 = 本地 state ∪ 服务端已预测列表。
+    #
+    # 只靠本地 state 是不够的：CI 与本机是两个真正独立的仓库副本，各自
+    # pull/push 同一份 challenge_state.json；两边同时跑到同一个候选时，
+    # 谁先 push 谁赢，另一个仍会按自己那份旧 state 再投一遍。
+    # 实测这个缺口真实存在：服务端 33 条 vs 本地 state 28 条，差 5 条
+    # （朗斯vs葡萄牙体育、比利亚雷亚尔vs那不勒斯、莱比锡vs埃因霍温、
+    #  阿森纳vs里尔、马竞vs曼联）——都是历史上 state 回写失败漏记的。
+    #
+    # msgId=11 是账号私有的「我已预测」服务端真值（无效 JWT 返回空，
+    # 有效 JWT 返回全部）。以它为准，跨机器并发也不会重复下单。
     done = {r.get("match", "") for r in st.get("records", [])}
+    _srv = api.my_predictions(jwt)
+    if _srv:
+        _extra = 0
+        for x in _srv:
+            m = f"{x.get('home')} vs {x.get('away')}"
+            if m not in done:
+                _extra += 1
+            done.add(m)
+        if _extra:
+            print(f"challenge: 服务端已预测 {len(_srv)} 条，其中 {_extra} 条本地 state 没记（已并入去重）")
+    else:
+        # 取不到就退回纯本地 state，并留痕——这时的重复风险要能被看见
+        print("challenge: ⚠ 取不到服务端已预测列表，本轮仅按本地 state 去重")
 
     cands = []
     near = []  # 临时灌仓通道：-0.5pp ≤ edge < 门槛（CHALLENGE_TOPFILL 启用时按 EV 补足）
