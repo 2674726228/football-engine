@@ -255,18 +255,18 @@ def _dispatch_ci_challenge() -> bool:
 def _maybe_dispatch_ci(local_submitted: int) -> None:
     """CI 长时间没跑时补触发一轮。
 
-    设计上必须保守——两边共用同一份 challenge_state.json 做去重，
-    而 CI 与本机是两个真正独立的仓库副本，同时投同一场会重复下单：
+    2026-10-21 更新：去重已改走服务端真值（challenge_hourly 用
+    `api.my_predictions` 取 msgId=11 的「我已预测」列表并入去重名单），
+    所以**不再需要「本地零提交」这道闸**——CI 与本机即使完全并发，
+    后到的那个也会看到服务端多出来的记录而跳过，不会重复下单。
 
-      1) 只在本地这一轮**零合格/零提交**时才补跑。本地真投了注，说明
-         本机已经把该做的做了，再触发 CI 只会在同一批候选上再投一遍。
-      2) 只在 CI 距上次运行超过 CI_STALE_H 小时时才补，避免正常调度时
-         反复叠加。
-      3) 每小时最多补一次（看门狗自己的 marker），避免 3 小时空档里
-         每轮都触发、堆出一串并发 run。
+    保留的两条约束是防刷爆和防叠加，与重复投注无关：
+      1) 只在 CI 距上次运行超过 CI_STALE_H 小时时才补，正常调度时不叠加；
+      2) 每小时最多补一次（marker），避免 3 小时空档里 6 轮 duty 各触发
+         一次、堆出一串并发 run（那会挤占 Actions 配额，反过来加剧限流）。
+
+    `local_submitted` 参数保留只为兼容旧调用点与日志，不再参与判断。
     """
-    if local_submitted > 0:
-        return
     age = _ci_last_run_age_h()
     if age is None:
         return

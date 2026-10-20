@@ -47,12 +47,17 @@ def test_dispatches_when_ci_stale_and_nothing_submitted(env, monkeypatch):
     assert marker.exists(), "补触发后应写 marker"
 
 
-def test_skips_when_local_submitted(env, monkeypatch):
-    """本地这轮投了注 → 绝不补跑（防重复下单）。"""
+def test_dispatches_even_when_local_submitted(env, monkeypatch):
+    """本地这轮投了注也照补——去重已改走服务端真值，不会重复下单。
+
+    2026-10-21：challenge_hourly 现在用 api.my_predictions（msgId=11
+    账号私有「我已预测」列表）并入去重名单，CI 与本机并发时后到者会
+    看到服务端记录而跳过。所以这道闸撤了。
+    """
     _, dispatched = env
     monkeypatch.setattr(duty, "_ci_last_run_age_h", lambda: 10.0)
     duty._maybe_dispatch_ci(3)
-    assert dispatched == []
+    assert len(dispatched) == 1
 
 
 def test_skips_when_ci_recent(env, monkeypatch):
