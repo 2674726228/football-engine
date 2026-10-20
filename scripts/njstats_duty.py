@@ -173,7 +173,33 @@ def main() -> int:
             if sh("git", "pull", "--rebase", "--autostash", "origin", "main").returncode == 0 and sh("git", "push", "origin", "main").returncode == 0:
                 log("state 已推"); break
             time.sleep(4)
+    # 社区倾向快照（E6 观测，见 docs/EXPERIMENTS.md）。放在最后：前面 1x2 该投
+    # 的都投完了，这一步再慢/再失败都不会影响提交链。每天只跑一次（date 门控），
+    # 用 marker 而不是看快照文件在不在——避免手工删了文件后一轮轮重跑。
+    if os.environ.get("DUTY_SKIP_COMMUNITY") != "1":
+        _maybe_community_snapshot()
     return 0
+
+
+def _maybe_community_snapshot() -> None:
+    """每天一轮把社区倾向落盘（站点无历史接口，只能自己攒）。"""
+    marker = ROOT / "data" / "state" / ".community_snapshot_done"
+    today = time.strftime("%Y-%m-%d")
+    try:
+        if marker.exists() and marker.read_text().strip() == today:
+            return
+    except OSError:
+        pass
+    p = subprocess.run([str(ROOT / ".venv" / "bin" / "python3"),
+                        "scripts/njstats_community_snapshot.py"],
+                       cwd=ROOT, capture_output=True, text=True, check=False, timeout=300)
+    out = (p.stdout or p.stderr).strip().splitlines()
+    log("community: " + (out[-1] if out else f"无输出 rc={p.returncode}"))
+    if p.returncode == 0:
+        try:
+            marker.write_text(today)
+        except OSError:
+            pass
 
 
 if __name__ == "__main__":
