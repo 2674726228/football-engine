@@ -1,15 +1,15 @@
 {
   "generated_at": "2026-10-20",
-  "total_matches": 1137,
+  "total_matches": 1145,
   "date_range": [
     "2026-07-19",
     "2026-10-20"
   ],
   "overall": {
-    "hit_rate": 0.5488,
-    "brier_final": 0.5753,
-    "brier_model": 0.6128,
-    "brier_market": 0.5659,
+    "hit_rate": 0.5485,
+    "brier_final": 0.5755,
+    "brier_model": 0.6135,
+    "brier_market": 0.5668,
     "brier_djyy": 0.6184
   },
   "daily": [
@@ -1083,21 +1083,21 @@
     },
     {
       "date": "2026-10-20",
-      "n": 2,
-      "hits": 1,
+      "n": 10,
+      "hits": 5,
       "hit_rate": 0.5,
-      "cum_hit_rate": 0.5488,
-      "brier_final": 0.6116,
-      "brier_model": 0.8095,
-      "brier_market": 0.612,
+      "cum_hit_rate": 0.5485,
+      "brier_final": 0.6,
+      "brier_model": 0.7277,
+      "brier_market": 0.6991,
       "brier_djyy": null,
       "pnl": 0.0
     }
   ],
   "rolling7": {
-    "n": 103,
-    "hit_rate": 0.6311,
-    "brier_final": 0.5394,
+    "n": 111,
+    "hit_rate": 0.6216,
+    "brier_final": 0.5377,
     "pnl": 0.0
   },
   "prev7": {
@@ -1106,7 +1106,7 @@
     "brier_final": 0.5714,
     "pnl": 0.0
   },
-  "verdict": "命中率提升 +7pt",
+  "verdict": "命中率提升 +6pt",
   "by_league": [
     {
       "layer": "西甲",
@@ -1115,16 +1115,16 @@
       "brier_final": 0.5524
     },
     {
+      "layer": "欧冠",
+      "n": 75,
+      "hit_rate": 0.6133,
+      "brier_final": 0.5312
+    },
+    {
       "layer": "意甲",
       "n": 70,
       "hit_rate": 0.5857,
       "brier_final": 0.5553
-    },
-    {
-      "layer": "欧冠",
-      "n": 68,
-      "hit_rate": 0.6176,
-      "brier_final": 0.5317
     },
     {
       "layer": "英超",
@@ -1187,6 +1187,12 @@
       "brier_final": 0.5417
     },
     {
+      "layer": "英冠",
+      "n": 39,
+      "hit_rate": 0.4359,
+      "brier_final": 0.6452
+    },
+    {
       "layer": "法甲",
       "n": 39,
       "hit_rate": 0.641,
@@ -1197,12 +1203,6 @@
       "n": 38,
       "hit_rate": 0.6316,
       "brier_final": 0.5722
-    },
-    {
-      "layer": "英冠",
-      "n": 38,
-      "hit_rate": 0.4474,
-      "brier_final": 0.6335
     },
     {
       "layer": "芬超",
@@ -1400,9 +1400,9 @@
     },
     {
       "layer": "L1 大热(<1.5)",
-      "n": 45,
-      "hit_rate": 0.8,
-      "brier_final": 0.3543
+      "n": 49,
+      "hit_rate": 0.7755,
+      "brier_final": 0.3794
     },
     {
       "layer": "3.0+",
@@ -1412,15 +1412,15 @@
     },
     {
       "layer": "L3 中(1.8-2.2)",
-      "n": 31,
-      "hit_rate": 0.5484,
-      "brier_final": 0.5919
+      "n": 32,
+      "hit_rate": 0.5312,
+      "brier_final": 0.5927
     },
     {
       "layer": "L2 热(1.5-1.8)",
-      "n": 26,
-      "hit_rate": 0.5,
-      "brier_final": 0.6482
+      "n": 29,
+      "hit_rate": 0.5172,
+      "brier_final": 0.6333
     },
     {
       "layer": "L4 冷(2.2-3.0)",
@@ -1432,15 +1432,15 @@
   "by_conf_tier": [
     {
       "layer": "mid",
-      "n": 586,
-      "hit_rate": 0.4949,
+      "n": 589,
+      "hit_rate": 0.4941,
       "brier_final": 0.6202
     },
     {
       "layer": "high",
-      "n": 391,
-      "hit_rate": 0.6777,
-      "brier_final": 0.4737
+      "n": 396,
+      "hit_rate": 0.6768,
+      "brier_final": 0.475
     },
     {
       "layer": "low",

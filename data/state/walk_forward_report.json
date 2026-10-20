@@ -1,46 +1,46 @@
 {
-  "total_matches": 1137,
+  "total_matches": 1145,
   "date_range": [
     "2026-07-19",
     "2026-10-20"
   ],
   "metrics": {
-    "brier": 0.5753,
-    "weighted_brier": 0.5715,
-    "rps": 0.1971,
+    "brier": 0.5755,
+    "weighted_brier": 0.5717,
+    "rps": 0.1972,
     "weighted_rps": 0.1959,
-    "log_loss": 0.9687,
-    "hit_rate": 0.5515,
-    "ece": 0.0913
+    "log_loss": 0.9689,
+    "hit_rate": 0.5511,
+    "ece": 0.0902
   },
   "draw_analysis": {
-    "actual_draws": 274,
+    "actual_draws": 276,
     "actual_draw_rate": 0.241,
     "predicted_draws": 39,
-    "predicted_draw_rate": 0.0343,
+    "predicted_draw_rate": 0.0341,
     "max_draw_prob": 0.5025,
-    "avg_draw_prob": 0.2551,
-    "avg_market_draw": 0.2404,
+    "avg_draw_prob": 0.2548,
+    "avg_market_draw": 0.2401,
     "market_high_draw_n": 216,
     "market_high_draw_actual": 75,
     "market_high_draw_rate": 0.3472
   },
   "strategy_comparison": {
     "model": {
-      "hit_rate": 0.5488,
-      "n": 1137
+      "hit_rate": 0.5485,
+      "n": 1145
     },
     "market": {
-      "hit_rate": 0.5608,
-      "n": 1020
+      "hit_rate": 0.5595,
+      "n": 1026
     },
     "hybrid_v2": {
-      "hit_rate": 0.5088,
-      "n": 1020
+      "hit_rate": 0.5078,
+      "n": 1026
     },
     "market_d28": {
-      "hit_rate": 0.5275,
-      "n": 1020
+      "hit_rate": 0.5263,
+      "n": 1026
     }
   },
   "by_league": {
@@ -50,17 +50,17 @@
       "brier": 0.5524,
       "rps": 0.1808
     },
+    "欧冠": {
+      "n": 75,
+      "hit_rate": 0.6133,
+      "brier": 0.5312,
+      "rps": 0.1965
+    },
     "意甲": {
       "n": 70,
       "hit_rate": 0.5857,
       "brier": 0.5553,
       "rps": 0.2057
-    },
-    "欧冠": {
-      "n": 68,
-      "hit_rate": 0.6176,
-      "brier": 0.5317,
-      "rps": 0.1959
     },
     "英超": {
       "n": 63,
@@ -122,6 +122,12 @@
       "brier": 0.5417,
       "rps": 0.1767
     },
+    "英冠": {
+      "n": 39,
+      "hit_rate": 0.4359,
+      "brier": 0.6452,
+      "rps": 0.1882
+    },
     "法甲": {
       "n": 39,
       "hit_rate": 0.641,
@@ -133,12 +139,6 @@
       "hit_rate": 0.6316,
       "brier": 0.5722,
       "rps": 0.2084
-    },
-    "英冠": {
-      "n": 38,
-      "hit_rate": 0.4474,
-      "brier": 0.6335,
-      "rps": 0.1872
     },
     "芬超": {
       "n": 36,
