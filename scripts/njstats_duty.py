@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -24,6 +25,11 @@ JWT_FILE = HOME / ".football-engine" / "njstats_jwt"
 LOG = HOME / ".football-engine" / "duty.log"
 BASE = "https://www.njstats.cn"
 REPO = "wlrwx/football-engine"
+# GitHub Actions 里 Challenge (1x2) workflow 的数字 ID（gh api 可查）。
+# 平台对公开仓库的定时任务限流严重（实测 24h 只跑 3/24 次），这个看门狗
+# 在本机这一轮零提交、且 CI 已超 CI_STALE_H 小时没跑时补触发一轮。
+CI_WORKFLOW_ID = 385270775
+CI_STALE_H = 3.0
 PX = {"http": None, "https": None}  # 直连；显式 None 防环境代理回落
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"
 
@@ -165,6 +171,13 @@ def main() -> int:
                        cwd=ROOT, capture_output=True, text=True, env=env, check=False)
     tail = (p.stdout or p.stderr).strip().splitlines()
     log("1x2: " + (tail[-1] if tail else "无输出"))
+    # 本轮到底投了几注——看门狗要不要补跑 CI 取决于这个
+    _submitted = 0
+    for line in tail:
+        m = re.search(r"提交\s+(\d+)\s+注", line)
+        if m:
+            _submitted = int(m.group(1))
+            break
     st = sh("git", "status", "--short", "data/state/challenge_state.json")
     if st.stdout.strip():
         sh("git", "add", "data/state/challenge_state.json")
@@ -178,7 +191,100 @@ def main() -> int:
     # 用 marker 而不是看快照文件在不在——避免手工删了文件后一轮轮重跑。
     if os.environ.get("DUTY_SKIP_COMMUNITY") != "1":
         _maybe_community_snapshot()
+    # CI 看门狗：平台定时任务限流严重，CI 长时间没跑时补一轮。
+    # 放在最后、且只在本地零提交时动手（见函数 docstring 的三条约束）。
+    if os.environ.get("DUTY_SKIP_CI_WATCHDOG") != "1":
+        _maybe_dispatch_ci(_submitted)
     return 0
+
+
+def _ci_last_run_age_h() -> float | None:
+    """GitHub Actions 里 Challenge workflow 距上次触发的小时数。
+
+    只读 API，不改任何状态。取不到（无 token/网络/限流）时返回 None，
+    调用方按「不知道」处理，不触发补跑。
+    """
+    tok = ""
+    ftok = HOME / ".football-engine" / "github_token"
+    if ftok.exists():
+        try:
+            tok = ftok.read_text().strip()
+        except OSError:
+            tok = ""
+    if not tok:
+        return None
+    url = f"https://api.github.com/repos/{REPO}/actions/workflows/{CI_WORKFLOW_ID}/runs"
+    try:
+        r = requests.get(url, headers={"Authorization": f"Bearer {tok}",
+                                       "Accept": "application/vnd.github+json"},
+                         params={"per_page": 1}, timeout=25, proxies=PX)
+        if r.status_code != 200:
+            return None
+        runs = (r.json() or {}).get("workflow_runs") or []
+        if not runs:
+            return None
+        # created_at 是 UTC ISO8601（形如 2026-10-20T18:26:16Z）
+        from datetime import datetime, timezone
+        ts = datetime.fromisoformat(runs[0]["created_at"].replace("Z", "+00:00"))
+        return (datetime.now(timezone.utc) - ts).total_seconds() / 3600.0
+    except (requests.RequestException, KeyError, ValueError):
+        return None
+
+
+def _dispatch_ci_challenge() -> bool:
+    """手动触发一轮 CI challenge（补跑）。返回是否成功受理。"""
+    tok = ""
+    ftok = HOME / ".football-engine" / "github_token"
+    if ftok.exists():
+        try:
+            tok = ftok.read_text().strip()
+        except OSError:
+            tok = ""
+    if not tok:
+        return False
+    url = f"https://api.github.com/repos/{REPO}/actions/workflows/{CI_WORKFLOW_ID}/dispatches"
+    try:
+        r = requests.post(url, headers={"Authorization": f"Bearer {tok}",
+                                        "Accept": "application/vnd.github+json"},
+                          json={"ref": "main"}, timeout=25, proxies=PX)
+        return r.status_code in (204, 201)
+    except requests.RequestException:
+        return False
+
+
+def _maybe_dispatch_ci(local_submitted: int) -> None:
+    """CI 长时间没跑时补触发一轮。
+
+    设计上必须保守——两边共用同一份 challenge_state.json 做去重，
+    而 CI 与本机是两个真正独立的仓库副本，同时投同一场会重复下单：
+
+      1) 只在本地这一轮**零合格/零提交**时才补跑。本地真投了注，说明
+         本机已经把该做的做了，再触发 CI 只会在同一批候选上再投一遍。
+      2) 只在 CI 距上次运行超过 CI_STALE_H 小时时才补，避免正常调度时
+         反复叠加。
+      3) 每小时最多补一次（看门狗自己的 marker），避免 3 小时空档里
+         每轮都触发、堆出一串并发 run。
+    """
+    if local_submitted > 0:
+        return
+    age = _ci_last_run_age_h()
+    if age is None:
+        return
+    if age < CI_STALE_H:
+        return
+    marker = HOME / ".football-engine" / ".ci_watchdog_last"
+    now = time.time()
+    try:
+        if marker.exists() and now - float(marker.read_text().strip()) < 3600:
+            return
+    except (OSError, ValueError):
+        pass
+    if _dispatch_ci_challenge():
+        log(f"CI 看门狗: Challenge 已 {age:.1f}h 未跑，已补触发一轮")
+        try:
+            marker.write_text(str(int(now)))
+        except OSError:
+            pass
 
 
 def _maybe_community_snapshot() -> None:
