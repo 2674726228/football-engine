@@ -325,6 +325,36 @@ def _maybe_server_records_snapshot() -> None:
             json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
     except OSError as e:
         log(f"server-snapshot: 写盘失败 {e}")
+        return
+
+    # 站点赔率快照（含让球/大小球场次的 1x2 三档）。
+    #
+    # 为什么单独存：本地算 edge 用体彩官方赔率，而挑战赛按站点赔率结算，
+    # 两者差约 10%（见 docs/CHALLENGE_ODDS_GAP_20261021.md）。站点赔率
+    # 只在「当前板」可见，赛后就变了，不存下来永远没法回测「换成站点
+    # 赔率算 EV 能不能提高命中」。每天存一份，攒够再做配对回放。
+    try:
+        board = api.board_with_odds()
+    except Exception as e:  # noqa: BLE001
+        log(f"odds-snapshot: 取数失败 {type(e).__name__}")
+        return
+    if not board:
+        return
+    with_odds = [b for b in board if b.get("odds")]
+    odds_dir = ROOT / "data" / "state" / "njstats" / "site_odds"
+    try:
+        odds_dir.mkdir(parents=True, exist_ok=True)
+        (odds_dir / f"{day}.json").write_text(json.dumps({
+            "snapshot_at": time.strftime("%F %T"),
+            "total": len(board),
+            "with_odds": len(with_odds),
+            "note": "msgId=1 全板 + 站点赔率（挑战赛结算口径）。与 predictions 的体彩赔率对照用",
+            "matches": [{"sid": b["sid"], "home": b["home"], "away": b["away"],
+                         "kick_ts": b["kick_ts"], "odds": b["odds"]} for b in with_odds],
+        }, ensure_ascii=False, indent=1), encoding="utf-8")
+        log(f"odds-snapshot: 站点赔率 {len(with_odds)}/{len(board)} 场")
+    except OSError as e:
+        log(f"odds-snapshot: 写盘失败 {e}")
 
 
 def _maybe_community_snapshot() -> None:

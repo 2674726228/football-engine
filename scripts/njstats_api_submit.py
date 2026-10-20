@@ -359,3 +359,71 @@ def my_predictions(jwt: str | None = None) -> list[dict] | None:
     if st != 200:
         return None
     return parse_my_predictions(raw)
+
+def parse_board_with_odds(raw: bytes) -> list[dict]:
+    """msgId=1 全板响应 → [{sid,home,away,kick_ts,odds}]，odds 为站点口径。
+
+    与 parse_board 的区别只是多带 f2（赔率包）：
+      f2.f1 = 胜平负三档 f3 字符串（如 b'1.70'/b'3.60'/b'5.00'）
+      f2.f2 = 让球、f2.f3 = 大小球（本函数暂不解析）
+    站点赔率与体彩官方赔率**不是一套**（实测站点普遍高约 10%），
+    挑战赛按站点赔率结算，所以算 EV 必须用它。
+    """
+    top = decode_msg(raw)
+    cont = _get(top, 5)
+    if not cont:
+        return []
+    out = []
+    for m in decode_msg(cont):
+        if m[0] != 1 or m[1] != "s":
+            continue
+        e = decode_msg(m[2])
+        sid = (_get(e, 7) or b"").decode("utf-8", "ignore")
+        f1b = _get(e, 1)
+        if not sid or not f1b:
+            continue
+        f1 = decode_msg(f1b)
+        kt = _get(f1, 6)
+        try:
+            kick_ts = int(kt)
+        except (TypeError, ValueError):
+            continue
+
+        def nm(fn):
+            b = _get(f1, fn)
+            if not b:
+                return ""
+            tf = decode_msg(b)
+            cn = _get(tf, 3)
+            return (cn or _get(tf, 2) or b"").decode("utf-8", "ignore")
+
+        odds = None
+        pack = _get(e, 2)
+        if pack:
+            trio = _get(decode_msg(pack), 1)
+            if trio:
+                vals = []
+                for fn3, _k3, v3 in decode_msg(trio):
+                    if _k3 == "s":
+                        try:
+                            vals.append(float(v3.decode()))
+                        except (ValueError, AttributeError):
+                            vals.append(None)
+                if len(vals) == 3 and all(v and v > 1.0 for v in vals):
+                    odds = vals
+        home, away = nm(3), nm(4)
+        if home and away:
+            out.append({"sid": sid, "home": home, "away": away,
+                        "kick_ts": kick_ts, "odds": odds})
+    return out
+
+
+def board_with_odds(jwt: str | None = None) -> list[dict] | None:
+    """全板 + 站点赔率。取不到返回 None。"""
+    jwt = jwt or (JWT_FILE.read_text().strip() if JWT_FILE.exists() else "")
+    if not jwt:
+        return None
+    st, raw = _post_jwt(jwt, "1012", "1", _field(3, b""))
+    if st != 200:
+        return None
+    return parse_board_with_odds(raw)
