@@ -378,5 +378,70 @@ def _maybe_community_snapshot() -> None:
             pass
 
 
+# ------------------------------------------------------------------ 并发锁
+#
+# 原先这把锁只写在 harness/run_duty.sh 里（2026-10-21 加，mkdir 而不是 flock：
+# macOS 自带的 flock 只在部分版本有）。那正是 PROJECT.md「下一步②」记的缺陷
+# ——脚本本身无锁，手动跑一轮撞上 :05/:35 就是两个进程并发
+# `git pull --rebase --autostash` + 写 njstats_jwt + 写 challenge_state.json，
+# 实测撞过一次（08:35:03 与 08:35:10 并存约 7 秒，侥幸没事）。
+#
+# 现在入口要从壳脚本换成 Qoder 自动化，壳要退役，所以锁必须搬进脚本本身：
+# 否则删掉壳脚本 = 连同唯一那份并发保护一起删掉。
+# 锁路径必须是**跨入口一致**的固定值。原先壳脚本用 ${TMPDIR:-/tmp}，
+# 但 launchd 的 TMPDIR 是每用户私有目录（/var/folders/...），
+# 而 launchd / Qoder 自动化 / 手工 shell 三者不一定拿到同一个值——
+# 路径不一致 = 三个入口各锁各的，并发保护形同不存在。
+# 凭据目录 ~/.football-engine 是所有入口都有的（本文件已经依赖它）。
+LOCK = HOME / ".football-engine" / "duty.lock"
+LOCK_STALE_SEC = 1800
+
+
+def acquire_lock() -> bool:
+    """拿到锁返回 True；已被占且锁龄未过陈限返回 False（调用方应直接退 0）。"""
+    if LOCK.is_dir():
+        try:
+            age = time.time() - LOCK.stat().st_mtime
+        except OSError:
+            age = 0.0
+        if age < LOCK_STALE_SEC:
+            log(f"已有 duty 在跑（锁龄 {age:.0f}s），本轮跳过")
+            return False
+        log(f"清理陈锁（{age:.0f}s，进程被 kill -9 时不会自己清）")
+        try:
+            LOCK.rmdir()
+        except OSError:
+            return False
+    try:
+        LOCK.mkdir()
+    except FileExistsError:
+        log("抢锁失败（并发），本轮跳过")
+        return False
+    return True
+
+
+def release_lock() -> None:
+    try:
+        LOCK.rmdir()
+    except OSError:
+        pass
+
+
+def _locked_main() -> int:
+    """进程级入口：壳脚本退役后，唯一能保证「同时只有一个 duty」的地方。
+
+    `DUTY_SKIP_LOCK=1` 供手工调试用（明确知道自己不会撞车时）。
+    测试直接调 main()，不走这里。
+    """
+    if os.environ.get("DUTY_SKIP_LOCK") == "1":
+        return main()
+    if not acquire_lock():
+        return 0
+    try:
+        return main()
+    finally:
+        release_lock()
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(_locked_main())
