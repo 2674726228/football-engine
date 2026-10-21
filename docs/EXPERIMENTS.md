@@ -420,6 +420,28 @@ PnL 曾在三个互不勾稽的地方，且账本长期缺失 2026-07-22~08-03 �
 扩窗口能否把 3.6% 拉起来需要**等若干天真实运行才能验证** ——
 在此之前不要启动 CLV 类实验。
 
+### 2026-10-22 裁决：扩窗口无效，结论要改
+
+PR#9 跑满 10 天后重测同一指标：**3.6% → 3.5%**（换成分母后 42/1203），
+末快照距开赛中位 9.5h → 9.56h，间隔中位 3.92h → 3.99h。**基本没动。**
+
+- **否掉的假设**：「采集窗口右端太早，扩 `--days` 就能拿到收盘价」。
+  扩的是左端（today..today+1），右端（末快照停在开赛前几小时）根本没被移动。
+- **真因**：采集**次数**。抓 sina 赔率只挂在 daily-forecast 上，而它 24h
+  实际只跑 12/48 次（GitHub 对公开仓 schedule 是随机丢弃，不是排队；
+  这条 PROJECT.md 早就写过：`*/15` 实测只跑 5 次/天）。末快照落在哪
+  完全取决于上一轮碰巧几点跑，所以中位数必然趋近"两次运行间隔的均匀分布均值"。
+- **已做**：把 `fetch_sina_odds.py` 也挂进 `ci-sync.yml`（每小时 :47），
+  跨 workflow 冗余比提高单条 cron 频率有效。效果需再观察若干天。
+- **顺带修掉的指标缺陷**（`engine/odds_series_coverage.py`）：
+  ratio 分母原本含未开赛场次（今天只差 33/1232，但会随抓取窗口漂移）；
+  原先的 `not_started_yet: 1181` **标签与语义相反** —— 它数的是
+  「末快照早于开赛」= 采集提前停，不是"还没开赛"。复核这次结论时
+  我就是被这个字段名骗过，差点把"覆盖率 3.5%"判成"指标坏了"。
+- **CLV 不必再等 sina 通路**：`data/state/clv_pinnacle.json` 用 b365/平博
+  收盘价，984 注里 258 注可配对（其余 343 联赛不覆盖 / 318 无英文名 /
+  65 无匹配）。北极星指标走这条，不走 odds_series。
+
 ## DJYY 在 CI 侧被 Cloudflare 拦截（2026-10-11 确诊）
 
 用 `API Connectivity Test` workflow 在 GitHub Actions 上实测：
@@ -453,6 +475,20 @@ BLOCKED! Body: <html>...
   （原先即使 DJYY 正常也只报 "0 fixtures"，与"被拦截"无法区分）
 
 ### 仍需你在 Cloudflare 后台操作
+
+> **2026-10-22 更新**：方案 A 此前**只存在于文档里**。`cf-proxy/worker.js`
+> 的 DJYY 分支自建 headers，既不透传调用方的 `X-DJYY-Key`，也从没读过
+> `env.DJYY_KEY`；而生产 job 只注入 `DJYY_PROXY`，`DJYY_KEY` 只在
+> `api-test.yml` 里出现过。现在两端都接上了（Worker 校验+透传、
+> daily-forecast.yml 四处注入），但**仍需要你**：
+> ① `wrangler secret put DJYY_KEY`（在 Cloudflare 那边）；
+> ② 仓库 Secret `DJYY_KEY` 设成同一个值；
+> ③ `gh secret set DJYY_PROXY` 确认指向已部署的 Worker（这个值仓库里没有记录）。
+> 现场证据：`data/djyy_status.json`（10-21 13:15，github-actions 生成）
+> 已是 `proxy_configured: true` 却仍 `blocked_by_edge HTTP 403`
+> —— 说明"经 Worker 就绕开 Bot Fight Mode"这个前提本身待验证。
+> 另外 health-check 现在会读 `data/djyy_status.json` 并对 403 发 `::error::`，
+> 不再依赖有人去看那个文件。
 
 二选一：
 

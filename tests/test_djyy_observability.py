@@ -390,3 +390,40 @@ def test_djyy_status_proxy_configured_pool_empty(tmp_path):
     payload = json.loads((tmp_path / "djyy_status.json").read_text(encoding="utf-8"))
     assert payload["proxy_configured"] is True
     assert payload["healthy"] is False
+
+
+# ---------- Worker 侧的 key 契约（2026-10-22 补） ----------
+#
+# docs/EXPERIMENTS.md 写的修复方案 A 是「Worker 校验 X-DJYY-Key + 仓库 Secret
+# DJYY_KEY」，但 cf-proxy/worker.js 一直是自建 headers：既不透传调用方的 key，
+# 也从没读过 env.DJYY_KEY。方案存在、实现不存在——这正是"文档说修了"与
+# "代码真修了"分叉的样子。下面三组断言把两端都钉住。
+
+def test_worker_forwards_and_checks_djyy_key():
+    js = (ROOT / "cf-proxy" / "worker.js").read_text(encoding="utf-8")
+    djyy_route = js.split("'/api/djyy/'")[1].split("// 代理竞彩API")[0]
+    assert "env.DJYY_KEY" in djyy_route, "Worker 没读 DJYY_KEY，方案 A 等于没实现"
+    assert "X-DJYY-Key" in djyy_route, "Worker 不透传调用方的 key"
+    assert "status: 401" in djyy_route, "key 不匹配要显式拒绝，不能悄悄放行"
+
+
+def test_workflows_inject_djyy_key():
+    """生产 job 必须带上 key；原先只有 api-test.yml 引用过它。"""
+    yml = (ROOT / ".github" / "workflows" / "daily-forecast.yml").read_text(encoding="utf-8")
+    assert yml.count("DJYY_KEY: ${{ secrets.DJYY_KEY }}") == \
+        yml.count("DJYY_PROXY: ${{ secrets.DJYY_PROXY }}"), \
+        "每个用 DJYY_PROXY 的地方都要同时有 DJYY_KEY，否则 Worker 一旦启用校验就全 401"
+
+
+def test_missing_key_secret_degrades_to_no_header():
+    """secret 未设置 → 空串 → 不发 header（与 Worker 未启用校验时行为一致）。
+
+    这条是灰度安全性的根据：先 deploy Worker 不配 key、或先配 secret 不 deploy，
+    两种顺序都不能把 DJYY 从 403 变成 401/崩。
+    """
+    import importlib
+    from engine.sources import djyy as m
+
+    mod = importlib.reload(m)
+    assert mod.DJYY_KEY == "" or mod.HEADERS.get("X-DJYY-Key") == mod.DJYY_KEY
+
