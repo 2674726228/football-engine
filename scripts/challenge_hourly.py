@@ -179,10 +179,15 @@ def main() -> int:
     for c in picked:
         if api.submit(jwt, c["sid"], 1, c["dir"] + 1) or api.submit(jwt, c["sid"], 1, c["dir"] + 1):
             ok_n += 1
+            # 记录结构：market 表示玩法，line 表示让球线（1x2 时为 None）。
+            # 本脚本只投 1x2（api.submit 第二参固定 1），所以这两个值是确定的；
+            # 历史上有 5 条让球注被套用了这里的 "1x2"/None，导致复盘把让球
+            # 混进 1x2 池子。这里写成显式常量 + 注释，避免后来者再复制错。
             st["records"].append({"match": c["match"], "pick": f"{['主胜','平','客胜'][c['dir']]}@{c['odds']:.2f}",
-                                  "market": "1x2", "sid": c["sid"], "p": round(c["p"], 4),
+                                  "market": "1x2", "play": "1x2", "line": None,
+                                  "sid": c["sid"], "p": round(c["p"], 4),
                                   "mkt_p": round(c["mkt_p"], 4), "edge": round(c["edge"], 4),
-                                  "line": None, "ev": round(c["ev"], 1), "via": "api-ci",
+                                  "ev": round(c["ev"], 1), "via": "api-ci",
                                   "mode": "临时灌仓1018(实验注)" if c.get("fill") else (st.get("mode") or "normal"),
                                   "submitted_at": now.strftime("%F %T")})
     st["used"] += ok_n

@@ -10,7 +10,7 @@
 用法: challenge_review.py
 （无参数：records 不带周字段，统计的是 state 里全部记录的跨周累计结算。）
 """
-import json, sys
+import json, re, sys
 from datetime import datetime
 from collections import defaultdict
 from pathlib import Path
@@ -32,6 +32,86 @@ def load_state():
         sys.exit(f"challenge_review: 缺 {STATE_FILE}（应已入库，检查 checkout 是否完整）")
     return json.loads(p.read_text(encoding='utf-8'))
 
+def parse_pick(pick: str) -> dict:
+    """把 pick 字符串解析成 {play, dir, line, side, raw}。
+
+    为什么要专门写：原实现靠 `startswith('主胜')` / `'负@' in pick` 这类子串猜，
+    实测 9 种真实格式里 4 种解析失败，且**静默返回 None**——None 去比
+    actual_idx 永远 False，把命中的注算成未中。受影响的真实记录：
+      '胜@2.98'        （考文垂，简化写法，不以「主胜」开头）
+      '胜@3.3'         （克拉约瓦，同上）
+      '客+0.5@0.95'    （霍芬海姆，让球受让）
+      '让负(-2)@2.04'  （站点格式，让球）
+
+    另外让球方向不能直接等同胜平负方向——要让球线 + 比分一起判，
+    所以这里只负责**拆解**，判定交给 judge_hit()。
+
+    返回：
+      play: '1x2' | 'handicap' | 'unknown'
+      dir:  0主/1平/2客（仅 1x2）
+      line: 让球绝对值（仅 handicap）
+      side: 'home' | 'away'（仅 handicap，表示买的是哪边）
+    """
+    out = {'play': '1x2', 'dir': None, 'line': None, 'side': None, 'raw': pick}
+    if not pick or '@' not in pick:
+        out['play'] = 'unknown'
+        return out
+    head = pick.split('@')[0].strip()
+
+    # 让球族：主队-1 / 客队+0.5 / 客+0.5 / 让胜(-1) / 让负(-2) / 受让
+    if any(k in head for k in ('主队-', '客队+', '客+', '受让', '让胜', '让负')):
+        out['play'] = 'handicap'
+        m = re.search(r'([+-]?\d+(?:\.\d+)?)', head)
+        if m:
+            out['line'] = abs(float(m.group(1)))
+        if head.startswith('让胜') or head.startswith('主队-'):
+            out['side'] = 'home'
+        elif (head.startswith('让负') or head.startswith('客队+')
+              or head.startswith('客+') or '受让' in head):
+            out['side'] = 'away'
+        return out
+
+    # 胜平负族：主胜/客胜/平/胜/负
+    if head in ('主胜', '胜', 'home'):
+        out['dir'] = 0
+    elif head in ('平', 'draw'):
+        out['dir'] = 1
+    elif head in ('客胜', '负', 'away'):
+        out['dir'] = 2
+    else:
+        out['play'] = 'unknown'
+    return out
+
+
+def judge_hit(parsed: dict, actual_idx: int,
+              home_score: int | None = None,
+              away_score: int | None = None) -> bool | None:
+    """判定一注是否命中。返回 True/False；信息不足返回 None（而不是 False）。
+
+    关键区别：让球注必须用比分+让球线判，不能拿 1x2 的 actual_idx 直接比。
+      「主队-1」= 主队让 1 球 → 净胜 ≥2 算赢，净胜 1 球是走盘（不算命中）
+      「客+0.5」= 客队受让半球 → 客队平或胜都算命中
+    """
+    play = parsed.get('play')
+    if play == '1x2':
+        d = parsed.get('dir')
+        if d is None:
+            return None
+        return actual_idx == d
+
+    if play == 'handicap':
+        if home_score is None or away_score is None:
+            return None
+        line, side = parsed.get('line'), parsed.get('side')
+        if line is None or side is None:
+            return None
+        margin = home_score - away_score
+        if side == 'home':
+            return margin - line > 0
+        return -margin + line > 0
+    return None
+
+
 def main():
     st = load_state()
     # 注：records 条目本身不带 week 字段，无法按周切分；settled 是 state 里
@@ -52,6 +132,25 @@ def main():
                 pred_index[(x['home_team'], x['away_team'])] = x['match_id']
         except Exception:
             continue
+    # 比分索引：让球判定需要精确比分，账本里只有 total_goals_actual，
+    # 真实比分在 data/daily/<date>/results_sina.json（字段 home_score/away_score）。
+    score_index = {}
+    for d in sorted(set(r['date'] for r in ledger.values())):
+        f = Path(f'{ROOT}/data/daily/{d}/results_sina.json')
+        if not f.exists():
+            continue
+        try:
+            rows = json.loads(f.read_text(encoding='utf-8'))
+        except (json.JSONDecodeError, OSError):
+            continue
+        for x in (rows if isinstance(rows, list) else []):
+            hs, as_ = x.get('home_score'), x.get('away_score')
+            if hs is None or as_ is None:
+                continue
+            key = (x.get('home_team'), x.get('away_team'))
+            if key[0] and key[1]:
+                score_index[key] = (int(hs), int(as_))
+
     settled = []
     for rec in recs:
         m = rec.get('match', '')
@@ -62,22 +161,34 @@ def main():
         if not mid or mid not in ledger: continue
         lr = ledger[mid]
         pick = rec.get('pick', '')
-        dir_ = None
-        if '主队-1' in pick or pick.startswith('主胜'): dir_ = 0
-        elif pick.startswith('平'): dir_ = 1
-        elif '负@' in pick or pick.startswith('客胜'): dir_ = 2
+        parsed = parse_pick(pick)
         claimed_p = rec.get('p')  # 若提交时记了声明概率
-        hit = lr['actual_idx'] == dir_
+        # 让球注需要精确比分：优先从 results_sina 取，支持队名别名
+        hs = as_ = None
+        sc = score_index.get((alias(h), alias(a))) or score_index.get((h, a))
+        if sc:
+            hs, as_ = sc
+        hit = judge_hit(parsed, lr['actual_idx'], hs, as_)
         settled.append({
-            'match': m, 'pick': pick, 'hit': hit,
+            'match': m, 'pick': pick,
+            'hit': hit,
+            'play': parsed['play'],
+            'line': parsed.get('line'),
+            # market 保留旧字段名给下游（eval_plane 等）用，值改由 parse_pick 决定
+            'market': ('hcap' if parsed['play'] == 'handicap'
+                       else (rec.get('market') or '1x2')),
             'actual': ['胜','平','负'][lr['actual_idx']],
-            'market': rec.get('market') or ('hcap' if ('主队-' in pick or '受让' in pick) else '1x2'),
             'edge': rec.get('edge'), 'claimed_p': claimed_p,
             'brier_final': lr.get('brier_final'), 'brier_market': lr.get('brier_market'),
         })
-    n = len(settled); hits = sum(1 for s in settled if s['hit'])
+    # hit=None 表示信息不足（如让球注账本里没比分），单列出来，不算进命中率
+    judged = [s for s in settled if s['hit'] is not None]
+    unjudged = [s for s in settled if s['hit'] is None]
+    n = len(judged); hits = sum(1 for s in judged if s['hit'])
     print(f"=== 挑战复盘：{n} 注已结算，{hits} 中（{(hits/n if n else 0):.0%}）"
           f"——跨周累计，state 当前周为 {st['week']} ===")
+    if unjudged:
+        print(f"    （另有 {len(unjudged)} 注信息不足未计入：让球注缺比分）")
     for s in settled:
         print(f"  {'✅' if s['hit'] else '❌'} {s['match'][:22]:22s} {s['pick'][:14]:14s} 实际{s['actual']} "
               f"edge={s['edge'] if s['edge'] is not None else '-'} brier(我/市场)={s['brier_final']}/{s['brier_market']}")
