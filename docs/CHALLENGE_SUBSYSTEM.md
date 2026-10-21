@@ -44,6 +44,13 @@ tests/test_challenge_firewall.py 在 CI 强制此边界（engine/ 出现 challen
 - 2026-10-12 上线（UI 模拟）→ 10-15 纯 API + 预登记纪律 v5.2
 - W42 特例（本周）：填仓模式——门槛 edge>0、K=剩余配额/剩余天数，目标周日 28/28
 - W43 起（常规）：周一~四 ≥1.5pp / 周五~日 ≥0.8pp，K=max(2,⌈剩余/天⌉)，上限 6
+- **2026-10-22：闸门量纲切换到 `ev_site`（E8 前瞻实验，见 docs/EXPERIMENTS.md）**。
+  原 edge 档从 10-19 起连续 131 轮零合格——不是"1.5pp 太少"，而是
+  `P − market_fair` 在实测模型下**恒为负**（7 场对照最大 −0.23pp，与 E3 一致）。
+  新口径 `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），赌的是盘口软而非模型聪明。
+  开关在 `data/state/challenge_policy.json` 的 `gate_mode`/`ev_floor`，改回 `"edge"` 即停实验。
+  实测覆盖率才是下一层天花板：站点板 333 场 ∩ 我方预测 13 场 = 可评 10 场，
+  10-22 这天只有 1 场过新闸门；要放量得先扩赛程/赔率覆盖（见任务：独立信息源）。
 
 ## JWT 续期机制（2026-10-16 逆向定稿）
 - **正道（免验证码）**：浏览器登录 session 调 `GET /api/user/current`（credentials:include）→ `data.token` 返回全新 20h JWT。Mac :35 值守每次 mint 后写文件 + 推 GitHub secret `NJSTATS_JWT`。只要登录时勾了"自动登录"（Spring SESSION cookie 长期有效），即可无限续命，无需再碰验证码。
