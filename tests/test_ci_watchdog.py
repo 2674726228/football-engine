@@ -90,3 +90,67 @@ def test_threshold_constant_is_sane():
     """阈值别被随手改成 0（那会把看门狗变成每轮都触发的噪声源）。"""
     assert duty.CI_STALE_H >= 1.0
     assert duty.CI_WORKFLOW_ID > 0
+
+
+# ---------------------------------------------------------------- daily 看门狗
+
+from datetime import datetime, timedelta  # noqa: E402
+
+
+@pytest.fixture
+def daily_env(tmp_path, monkeypatch):
+    monkeypatch.setattr(duty, "HOME", tmp_path)
+    (tmp_path / ".football-engine").mkdir(exist_ok=True)
+    marker = tmp_path / ".football-engine" / ".daily_watchdog_last"
+    dispatched = []
+    monkeypatch.setattr(duty, "_dispatch_daily_ci",
+                        lambda: (dispatched.append(1), True)[1])
+    monkeypatch.setattr(duty, "log", lambda m: None)
+    return marker, dispatched
+
+
+def _today():
+    return datetime.now(duty.BJT).strftime("%Y-%m-%d")
+
+
+def _yesterday():
+    return (datetime.now(duty.BJT) - timedelta(days=1)).strftime("%Y-%m-%d")
+
+
+def test_daily_dispatches_when_today_has_no_run(daily_env, monkeypatch):
+    marker, dispatched = daily_env
+    monkeypatch.setattr(duty, "_daily_last_run_info", lambda: (1.5, _yesterday()))
+    assert duty._maybe_dispatch_daily_ci() is True
+    assert len(dispatched) == 1 and marker.exists()
+
+
+def test_daily_dispatches_when_stale_even_today(daily_env, monkeypatch):
+    _, dispatched = daily_env
+    monkeypatch.setattr(duty, "_daily_last_run_info", lambda: (7.0, _today()))
+    assert duty._maybe_dispatch_daily_ci() is True
+
+
+def test_daily_skips_when_recent_run_today(daily_env, monkeypatch):
+    _, dispatched = daily_env
+    monkeypatch.setattr(duty, "_daily_last_run_info", lambda: (2.0, _today()))
+    assert duty._maybe_dispatch_daily_ci() is False
+    assert dispatched == []
+
+
+def test_daily_skips_when_unknown(daily_env, monkeypatch):
+    _, dispatched = daily_env
+    monkeypatch.setattr(duty, "_daily_last_run_info", lambda: None)
+    assert duty._maybe_dispatch_daily_ci() is False
+
+
+def test_daily_cooldown(daily_env, monkeypatch):
+    _, dispatched = daily_env
+    monkeypatch.setattr(duty, "_daily_last_run_info", lambda: (1.5, _yesterday()))
+    assert duty._maybe_dispatch_daily_ci() is True
+    assert duty._maybe_dispatch_daily_ci() is False
+    assert len(dispatched) == 1, "2h 冷却内不应重复补"
+
+
+def test_daily_constants_sane():
+    assert duty.DAILY_STALE_H >= 1.0
+    assert duty.DAILY_WORKFLOW_ID > 0

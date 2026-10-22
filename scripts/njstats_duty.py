@@ -14,7 +14,7 @@ import re
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -35,6 +35,12 @@ REPO = "wlrwx/football-engine"
 # 在本机这一轮零提交、且 CI 已超 CI_STALE_H 小时没跑时补触发一轮。
 CI_WORKFLOW_ID = 385270775
 CI_STALE_H = 3.0
+# daily-forecast 的看门狗（2026-10-23）：它负责生成当天预测，GitHub 限流会让
+# 「今天还没跑过」变成挑战池匹配 0（10-23 01:30 实测匹配0/候选0）。
+DAILY_WORKFLOW_ID = 316265897
+DAILY_STALE_H = 6.0
+DAILY_COOLDOWN_H = 2.0
+BJT = timezone(timedelta(hours=8))
 # duty 自己拥有的落盘路径。分成两组是因为提交时机不同：state 在投完注就要推
 # （CI 那边靠它去重），三份快照在所有采集步跑完后才齐。
 # 只列这三份，不整目录 add——njstats/ 下还有别的脚本的产物，
@@ -257,26 +263,26 @@ def main() -> int:
     # CI 看门狗：平台定时任务限流严重，CI 长时间没跑时补一轮。
     # 放在最后、且只在本地零提交时动手（见函数 docstring 的三条约束）。
     if os.environ.get("DUTY_SKIP_CI_WATCHDOG") != "1":
-        _maybe_dispatch_ci(_submitted)
+        # 先保证当天预测存在；daily 刚补过就不要再叠一轮 challenge（下一轮再看）。
+        if not _maybe_dispatch_daily_ci():
+            _maybe_dispatch_ci(_submitted)
     return 0
 
 
-def _ci_last_run_age_h() -> float | None:
-    """GitHub Actions 里 Challenge workflow 距上次触发的小时数。
-
-    只读 API，不改任何状态。取不到（无 token/网络/限流）时返回 None，
-    调用方按「不知道」处理，不触发补跑。
-    """
-    tok = ""
+def _gh_token() -> str:
     ftok = HOME / ".football-engine" / "github_token"
-    if ftok.exists():
-        try:
-            tok = ftok.read_text().strip()
-        except OSError:
-            tok = ""
+    try:
+        return ftok.read_text().strip()
+    except OSError:
+        return ""
+
+
+def _last_run_info(workflow_id: int) -> tuple[float, str] | None:
+    """返回 (距上次触发小时数, 上次触发的北京日期)；取不到返回 None。"""
+    tok = _gh_token()
     if not tok:
         return None
-    url = f"https://api.github.com/repos/{REPO}/actions/workflows/{CI_WORKFLOW_ID}/runs"
+    url = f"https://api.github.com/repos/{REPO}/actions/workflows/{workflow_id}/runs"
     try:
         r = requests.get(url, headers={"Authorization": f"Bearer {tok}",
                                        "Accept": "application/vnd.github+json"},
@@ -287,25 +293,29 @@ def _ci_last_run_age_h() -> float | None:
         if not runs:
             return None
         # created_at 是 UTC ISO8601（形如 2026-10-20T18:26:16Z）
-        from datetime import datetime, timezone
         ts = datetime.fromisoformat(runs[0]["created_at"].replace("Z", "+00:00"))
-        return (datetime.now(timezone.utc) - ts).total_seconds() / 3600.0
+        age_h = (datetime.now(timezone.utc) - ts).total_seconds() / 3600.0
+        return age_h, ts.astimezone(BJT).strftime("%Y-%m-%d")
     except (requests.RequestException, KeyError, ValueError):
         return None
 
 
-def _dispatch_ci_challenge() -> bool:
-    """手动触发一轮 CI challenge（补跑）。返回是否成功受理。"""
-    tok = ""
-    ftok = HOME / ".football-engine" / "github_token"
-    if ftok.exists():
-        try:
-            tok = ftok.read_text().strip()
-        except OSError:
-            tok = ""
+def _ci_last_run_age_h() -> float | None:
+    """Challenge workflow 距上次触发的小时数（测试与旧调用点保留这个名字）。"""
+    info = _last_run_info(CI_WORKFLOW_ID)
+    return info[0] if info else None
+
+
+def _daily_last_run_info() -> tuple[float, str] | None:
+    return _last_run_info(DAILY_WORKFLOW_ID)
+
+
+def _dispatch_workflow(workflow_id: int) -> bool:
+    """手动触发一轮 workflow（补跑）。返回是否成功受理。"""
+    tok = _gh_token()
     if not tok:
         return False
-    url = f"https://api.github.com/repos/{REPO}/actions/workflows/{CI_WORKFLOW_ID}/dispatches"
+    url = f"https://api.github.com/repos/{REPO}/actions/workflows/{workflow_id}/dispatches"
     try:
         r = requests.post(url, headers={"Authorization": f"Bearer {tok}",
                                         "Accept": "application/vnd.github+json"},
@@ -313,6 +323,47 @@ def _dispatch_ci_challenge() -> bool:
         return r.status_code in (204, 201)
     except requests.RequestException:
         return False
+
+
+def _dispatch_ci_challenge() -> bool:
+    return _dispatch_workflow(CI_WORKFLOW_ID)
+
+
+def _dispatch_daily_ci() -> bool:
+    return _dispatch_workflow(DAILY_WORKFLOW_ID)
+
+
+def _maybe_dispatch_daily_ci() -> bool:
+    """daily-forecast 今天还没跑过（或已 6h 没跑）时补一轮。
+
+    GitHub 对公开仓的 cron 限流实测 24h 只有 4-6 次；而 daily-forecast 负责生成
+    当天预测。2026-10-23 01:30 实测：上次 daily 是 10-22 23:15，10-23 的预测
+    一直没生成 → 挑战池连续两轮「匹配0/候选0」，页面/结算/rho 也全停。
+    只在「北京时间今天还没跑过」或「已超 DAILY_STALE_H」时补；2h 冷却防叠。
+    取不到状态时保守不动。
+    """
+    info = _daily_last_run_info()
+    if info is None:
+        return False
+    age_h, last_date = info
+    today = datetime.now(BJT).strftime("%Y-%m-%d")
+    if not (last_date < today or age_h >= DAILY_STALE_H):
+        return False
+    marker = HOME / ".football-engine" / ".daily_watchdog_last"
+    now = time.time()
+    try:
+        if marker.exists() and now - float(marker.read_text().strip()) < DAILY_COOLDOWN_H * 3600:
+            return False
+    except (OSError, ValueError):
+        pass
+    if _dispatch_daily_ci():
+        log(f"CI 看门狗: Daily Forecast 上次 {last_date}（{age_h:.1f}h 前），已补触发一轮")
+        try:
+            marker.write_text(str(int(now)))
+        except OSError:
+            pass
+        return True
+    return False
 
 
 def _maybe_dispatch_ci(local_submitted: int) -> None:

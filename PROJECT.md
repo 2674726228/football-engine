@@ -292,6 +292,11 @@
 - [x] `evolution/` 产物（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
+- 2026-10-23 **daily-forecast 看门狗**：GitHub cron 限流导致 10-23 的预测一直没生成
+      （上次 daily 是 10-22 23:15），挑战池连续两轮「匹配0/候选0」，页面/结算/rho 也停。
+      duty 的 CI 看门狗扩展到 Daily Forecast：**北京时间今天还没跑过、或距上次超 6h**
+      就补触发一轮（2h 冷却；daily 刚补过则本轮不再叠 challenge）。取不到状态时保守不动。
+      回归测试 `tests/test_ci_watchdog.py` 新增 6 例。
 - 2026-10-23 **新闻源（展示层）落地**：旧路径依赖本机 Chrome、10-11→10-18 每天 0 命中，
   且 football-engine 无任何读取方；Qwen 摘要也上不了 CI。改用**直播吧足球列表**
   （HTTP、当日更新、无需登录）→ 按预测队名 + `TEAM_ALIASES` 简称 + 挑战池译名反查匹配 →
