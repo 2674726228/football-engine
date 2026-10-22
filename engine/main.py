@@ -57,6 +57,7 @@ from engine.learning.combo_miner import ComboMiner
 # 判平错误 → 强度自动下降，等反馈证明后再升，而不是关闭联赛
 from engine.learning.online_weights import OnlineWeightLearner
 from engine.prediction.lgbm_model import LGBMModel, LGBMConfig, build_features
+from engine.prediction.league_stats import league_stats
 from engine.prediction.isotonic_cal import IsotonicCalibrator, CalibrationConfig
 from engine.prediction.temperature_scaling import TemperatureScaler
 from engine.prediction.rho_fitter import RhoFitter
@@ -340,6 +341,14 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
         print("  校准层: isotonic 已由洁净样本验证自动启用")
 
     predictions = []
+    # 侧挂信号索引：整轮只建一次（446 场量级，比每场重读快照便宜得多）。
+    # 侧挂缺席时 build_index 返回空 dict，下游 features 全填 0，引擎照常跑。
+    try:
+        from engine.sources import njstats_side as _side_mod
+        _side_index = _side_mod.build_index()
+    except Exception as _e:
+        print(f"  ⚠ 侧挂信号不可用（{_e}），按缺数据继续")
+        _side_mod, _side_index = None, {}
     # 融合分支命中计数（2026-10-11）：用于每日运行日志暴露"实际走了哪条分支"。
     # 死源（如 DJYY 断供）此前无任何运行时信号，只体现在账本的空字段里。
     _fused_source_counts: dict[str, int] = {}
@@ -489,17 +498,44 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
         djyy_probs = djyy_data.get("model_probs")
 
         # LGBM 第三层（特征构建依赖 fixture/ratings 留在 main，掺混在 fusion.py）
+        # 输入快照（2026-10-22）：form / 联赛先验 / 排名 / xG 以前要么没传
+        # （特征恒为默认值 0、2.5、0.45），要么训练与服务两端取源不同
+        # （训练用落盘的模型 xG，服务用 DJYY fixture xG）。这里只取一次、
+        # 随预测落盘，训练侧原样回放，保证两端逐位同参。
+        _lg_goals, _lg_home_win = league_stats(fixture.competition)
+        _lgbm_inputs = {
+            "form_home": float(home_rating.form or 0.0),
+            "form_away": float(away_rating.form or 0.0),
+            "league_avg_goals": _lg_goals,
+            "league_home_win_rate": _lg_home_win,
+            # DJYY 的 fixtures 里就带排名（djyy.py:213-214 解出
+            # _rank_home/_rank_away），以前一个都没传 → rank_diff 恒为 0。
+            "rank_home": getattr(fixture, "_rank_home", None),
+            "rank_away": getattr(fixture, "_rank_away", None),
+            # 与落盘的 home_xg/away_xg 同源（模型 xG），不再用 fixture 外部 xG
+            "xg_home": pred.home_xg,
+            "xg_away": pred.away_xg,
+        }
         lgbm_probs = None
         if lgbm_model.is_available:
+            _side_sig = (_side_index.get(_side_mod.key(fixture.home_team, fixture.away_team))
+                         if _side_mod else None)
             feature_dict = build_features(
                 elo_home=home_rating.elo,
                 elo_away=away_rating.elo,
                 odds=market_odds,
                 handicap=fixture.handicap,
-                xg_home=getattr(fixture, "_xg_home", None),
-                xg_away=getattr(fixture, "_xg_away", None),
+                home_form=_lgbm_inputs["form_home"],
+                away_form=_lgbm_inputs["form_away"],
+                league_avg_goals=_lgbm_inputs["league_avg_goals"],
+                league_home_win_rate=_lgbm_inputs["league_home_win_rate"],
+                xg_home=_lgbm_inputs["xg_home"],
+                xg_away=_lgbm_inputs["xg_away"],
+                rank_home=_lgbm_inputs["rank_home"],
+                rank_away=_lgbm_inputs["rank_away"],
                 djyy_probs=djyy_probs,
                 include_market_odds=lgbm_cfg.use_odds_features,
+                side=_side_sig.to_features() if _side_sig else None,
             )
             _lgbm_pred = lgbm_model.predict_single(feature_dict)
             if _lgbm_pred:
@@ -646,6 +682,10 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
             # xG
             "home_xg": pred.home_xg,
             "away_xg": pred.away_xg,
+            # LGBM 输入快照（2026-10-22）：form/联赛先验/排名/模型 xG。
+            # 训练侧 build_training_rows 优先回放这份冻结值，不再从
+            # team_ratings.json 的当前值反推（那是预测后的状态）。
+            "lgbm_inputs": _lgbm_inputs,
             # 市场赔率 (真实或合成)
             "home_odds": market_odds[0] if market_odds else None,
             "draw_odds": market_odds[1] if market_odds else None,
