@@ -7,7 +7,7 @@ CI 侧当时仅预测+结算+Pages+ci-sync+归档(已过期仍在撞墙：23/50 
 ## 已完成的迁移（本次）
 | 能力 | 原来 | 现在 |
 |---|---|---|
-| 挑战 1x2 提交 | Mac ZCode 提示词 | **确定性代码 challenge_hourly.py；云 challenge.yml:35 与 Mac 值守同码互备**（云遇 runner IP 封锁时 Mac 兜底，恢复即自动切换，零人工） |
+| 挑战 1x2 提交 | Mac ZCode 提示词 | **确定性代码 challenge_hourly.py；云 challenge.yml:25 与 Mac 值守同码互备**（:25 而非 :35：本机 duty 在 :05/:35 写同一份 state，CI 开始真提交后同分钟必撞车；云遇 runner IP 封锁时 Mac 兜底，恢复即自动切换，零人工） |
 | 挑战 让球提交 | 同上混跑 | Mac 值守（弹窗线路/水位需浏览器），与 CI 共用 repo state |
 | JWT 凭据链 | 不存在 | Mac 每小时检测续推 GH secret（云端零浏览器依赖） |
 | 周一深度体检 | Mac ZCode cron | **CI weekly-deep-check.yml**（六份评测 JSON 回仓+摘要页）；Mac 已改退役占位 |
