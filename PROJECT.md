@@ -40,7 +40,10 @@
 >           33 注实盘得分对不上（而排序正在用它）；账本 `djyy_prob` 的 null 是**永久的**
 >           （append 去重、backfill 路径实测 0 行生效）要不要回填 = 改考卷；
 >           社区倾向**不能**接进模型层（docs/CHALLENGE_SUBSYSTEM.md:18 引擎永不读挑战产物，
->           tests/test_challenge_firewall.py 执法）。
+>           tests/test_challenge_firewall.py 执法）；
+>           E8 候选池还套着既有的「体彩价 ≥1.60」过滤，站点价口径下会误杀
+>           （10-22 萨迪纳摩 vs 奈梅亨：站点 1.62、P=0.647 → ev_site +4.77%，
+>           体彩价 1.42 被挡）——改它等于改 E8 抽样，要另立实验。
 > 之前: ① **复盘方向解析静默失败已修**（e088572e1）：challenge_review.py 原来靠
 >           子串猜方向（startswith('主胜')/`'负@' in pick`），实测 9 种真实格式
 >           4 种解析失败且**静默返回 None**——None 比 actual_idx 永远 False，
@@ -222,6 +225,7 @@
 - [x] `evolution/` 产物（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
+- 2026-10-22 **挑战池队名匹配主客颠倒**：`challenge_hourly.py` 的模糊分支写成「池子主队比预测客队、池子客队比预测主队」，等于只有原文精确匹配生效——10-22 的 11 场预测只进池 6 场，另 5 场明明在板上（4 场译名差异：萨迪纳摩/萨格勒布迪纳摩、克里特/OFI克雷迪、利勒斯特伦/利勒斯特罗姆、拉普大学/拉普拉塔大学生；1 场子串：塞尔塔/维戈塞尔塔）。修法：方向纠正 + 走 `normalize_team` + 保守子串；池子译名映射只放脚本本地（写进 `engine/team_aliases.py` 会合并 team_ratings 的键，属模型层变更）；子串不跨梯队/女队（10-21 板上里尔与里尔U19 并存，不挡会一注变两注），同一预测只取第一条板条目。10-22 进池 6→11、候选 4→5，仍 0 场 ev_site≥2%
 - 2026-10-22 **LGBM 特征「有数据、模型不读」四项**：① `TeamRating.form` 一直在 EMA 更新，但调用点从不传 `home_form/away_form` → 三个 form 特征恒 0（仅 45% 场次有非零值，全被浪费）；② `data/league_matrix.json` 33 个联赛、覆盖 65.6% 场次，`league_avg_goals/league_home_win_rate` 从不传 → 恒 2.5/0.45；③ 服务端 xG 取 `fixture._xg_home`（DJYY，403 时为空），训练端取落盘 `home_xg`（模型 xG）→ 同一特征两端异源；④ 排名只在服务端接线，训练端没传 → 训练 rank_diff 恒 0、服务端非 0。修法：服务端统一取一次 `_lgbm_inputs`（form/联赛先验/排名/模型 xG）随预测落盘为 `lgbm_inputs`，`build_training_rows` 优先回放冻结值；旧样本退回历史列（`form_home` 自 10-09 有值、`home_xg` 为模型 xG），联赛先验/排名无从追溯就保持默认，不用今天的表回填历史。`is_knockout` 仍无任何上游字段（`Fixture` 本身就没有该字段，采集层也没有赛段信息；只有 dict 版 `predict_batch` 契约里留着参数），属数据源缺口不是接线缺口
 - 2026-10-13 **静默吞异常·关键路径第一处**：sporttery（竞彩官方主源）的 fetch_results 完全静默 return []、fetch_fixtures 只 print——被 WAF 拦/代理没配/结构变更三种病因在下游全表现为「今天没赛果」→ 结算静默跳过、账本静默不涨（与 DJYY 静默 3.5 周同病）→ 照 djyy 的 LAST_ERROR 模式接上，blocked_by_waf 与 fetch_failed 可区分；写测试时又当场抓到「成功后旧错误不清会永久挂红」并补上
 - 2026-10-13 same_odds._load() 列名全错：读 match_id/result/league 而 odds.csv 里是 home_score/away_score/competition → 永远加载 0 条 → analyze 恒 0 → find_value_signals 恒空，功能从未真正跑通过且不报错；已改真实列名+比分推导（**0 → 29586 条**）。教训：**评估参数必须用真实数据**——3 个样本测出「容差要 0.15」，92 场真实数据测出 0.015→14%、0.1→91%，结论相反
