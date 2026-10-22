@@ -247,11 +247,13 @@ def main() -> int:
         _maybe_server_records_snapshot()
     if os.environ.get("DUTY_SKIP_COMMUNITY") != "1":
         _maybe_community_snapshot()
+    # 三份 njstats 快照一写完就先提交，不等 DJYY：后者是 600s 超时的外网抓取，
+    # 2026-10-23 00:10 实测把快照落地拖了 10 分钟（文件已写盘，只是没进仓）。
+    # 提交失败不影响本轮采集（文件在本地，下一轮再试）——但要可见，否则又回到
+    # 「静默不提交、样本只活在笔记本上」。
+    commit_push(SNAPSHOT_PATHS, "duty: njstats 每日快照（站点赔率/服务端真值/社区倾向）")
     if os.environ.get("DUTY_SKIP_DJYY") != "1":
         _maybe_djyy_snapshot()
-    # 快照写完就走提交链。这一步失败不影响本轮采集（文件已落在本地），下一轮
-    # 还会再试——但要让它可见，否则又回到「静默不提交、样本只活在笔记本上」。
-    commit_push(SNAPSHOT_PATHS, "duty: njstats 每日快照（站点赔率/服务端真值/社区倾向）")
     # CI 看门狗：平台定时任务限流严重，CI 长时间没跑时补一轮。
     # 放在最后、且只在本地零提交时动手（见函数 docstring 的三条约束）。
     if os.environ.get("DUTY_SKIP_CI_WATCHDOG") != "1":
