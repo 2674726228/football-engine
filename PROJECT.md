@@ -19,8 +19,9 @@
 >           ORD/IAD/SJC/DFW 一致），header/cookie/重试/密钥都不是变量；此前偶发 200
 >           只是 Worker 响应被边缘缓存 60s 的假象。修复：duty 用本机住宅网络直连抓取，
 >           超过 10h 即刷新并提交快照，CI 只消费仓库快照。10-22 实测本机直连 200 场、
->           200/200 带 Pinnacle 赔率与模型概率，今日 11 场预测命中 9 场。
->           **不需要再配 DJYY_KEY 或 Worker 白名单。**
+>           200/200 带 Pinnacle 赔率与模型概率，今日 11 场预测命中 9 场；预测侧 fusion
+>           在实时源缺失时用快照 `djyy_model_prob` 补位（日志输出 `DJYY 概率补位`），
+>           第三通道不再被重新归一化掉。**不需要再配 DJYY_KEY 或 Worker 白名单。**
 >           遗留：队名别名仍有 2/11 未命中（萨迪纳摩等）；comparison 接口已无 xG 字段。
 >           ⑤ 删 `harness/`（DeepSeek 值守 agent）——`deepseek_key` 不存在，每轮都走降级分支；
 >           并发锁搬进 `njstats_duty.py`（固定路径 `~/.football-engine/duty.lock`），

@@ -503,6 +503,9 @@ BLOCKED! Body: <html>...
   CI 每轮仍会尝试，失败时保留仓库快照（`fetch_djyy_ssr.py` 已加
   "半程失败不写盘"）。2026-10-22 实测本机直连：200 场、200 场带
   Pinnacle 赔率、200/200 有模型概率。
+- 预测侧补位：`engine/main.py` 在实时源缺失时把快照的 `djyy_model_prob`
+  传给 fusion（日志打 `DJYY 概率补位: n/N 场`），否则快照只能补 xG/赔率，
+  `djyy_weight` 仍会被重新归一化掉。
 
 残留风险：笔记本连续 10h 以上不在线时快照会变旧；`data/djyy_status.json`
 的 403 告警仍会提示。**不需要再配 `DJYY_KEY`，也不需要给 Worker 加白名单。**
