@@ -138,8 +138,8 @@ jobs:
           _host = _up.urlparse(_djyy).hostname or ""
           print(f"proxy: configured={bool(os.environ.get('DJYY_PROXY'))} host={_host}")
           print("headers: " + json.dumps({k: LAST_HEADERS.get(k) for k in
-                ("x-proxy", "cf-mitigated", "server", "cf-ray") if LAST_HEADERS.get(k)},
-                ensure_ascii=False))
+                ("x-proxy", "x-proxy-attempts", "cf-mitigated", "server", "cf-ray")
+                if LAST_HEADERS.get(k)}, ensure_ascii=False))
           if code == "200":
               try:
                   d = json.loads(body)

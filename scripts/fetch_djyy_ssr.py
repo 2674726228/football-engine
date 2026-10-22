@@ -10,12 +10,15 @@ DJYY 网站改版，不再用 SSR RSC Flight Data，改为公开 JSON API。
 用法: python scripts/fetch_djyy_ssr.py
 输出: data/djyy_matches.json
 """
-import os
 import json
+import os
+import random
+import ssl
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
-import ssl
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -35,20 +38,45 @@ _SSL_CTX.check_hostname = False
 _SSL_CTX.verify_mode = ssl.CERT_NONE
 
 
-def _fetch_json(url: str, timeout: int = 15) -> dict | list | None:
-    req = urllib.request.Request(
-        url,
-        headers={
-            "User-Agent": "Mozilla/5.0 (compatible; football-engine/1.0)",
-            "Accept": "application/json",
-        },
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout, context=_SSL_CTX) as resp:
-            return json.loads(resp.read().decode("utf-8", errors="replace"))
-    except Exception as e:
-        print(f"  ✗ Failed: {e}", file=sys.stderr)
-        return None
+# 2026-10-22：djyylive 的 Cloudflare 挑战是间歇性的（CI 实测 6 次里 2 次 403），
+# 单次请求等于把整份快照押在骰子上。403/429/5xx 属于"过一会儿可能就好"，
+# 其余 4xx（404 等）重试无意义，直接放弃。
+_RETRYABLE = {403, 425, 429, 500, 502, 503, 504}
+_ATTEMPTS = 3
+
+
+def _headers() -> dict:
+    h = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "Referer": "https://djyylive.com/",
+    }
+    key = (os.environ.get("DJYY_KEY") or "").strip()
+    if key:
+        h["X-DJYY-Key"] = key
+    return h
+
+
+def _fetch_json(url: str, timeout: int = 15, attempts: int = _ATTEMPTS) -> dict | list | None:
+    last = "unknown"
+    for i in range(attempts):
+        req = urllib.request.Request(url, headers=_headers())
+        try:
+            with urllib.request.urlopen(req, timeout=timeout, context=_SSL_CTX) as resp:
+                return json.loads(resp.read().decode("utf-8", errors="replace"))
+        except urllib.error.HTTPError as e:
+            last = f"HTTP {e.code}"
+            if e.code not in _RETRYABLE:
+                break
+        except Exception as e:
+            last = f"{type(e).__name__}: {e}"
+        if i < attempts - 1:
+            time.sleep(0.5 * (2 ** i) + random.uniform(0, 0.25))
+    print(f"  ✗ Failed after {i + 1} attempt(s): {last} ({url})", file=sys.stderr)
+    return None
 
 
 def fetch_fixtures(
@@ -155,6 +183,24 @@ def extract_match(fixture: dict, comp: dict | None) -> dict:
     return m
 
 
+def _existing_snapshot() -> dict | None:
+    try:
+        data = json.loads(OUTPUT.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _age_days(extracted_at: str) -> int | None:
+    try:
+        ts = datetime.fromisoformat(extracted_at)
+    except (TypeError, ValueError):
+        return None
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - ts).days
+
+
 def main():
     print("[fetch_djyy_v2] Fetching from djyylive.com API...")
 
@@ -166,11 +212,19 @@ def main():
     print(f"  ✓ Fixtures: {len(fixtures)} matches")
 
     if not fixtures:
-        print("  ⚠ No fixtures found, keeping existing file")
+        prev = _existing_snapshot()
+        if prev:
+            at = prev.get("extracted_at") or "未知时间"
+            age = _age_days(at)
+            print(f"  ⚠ 赛程为空（抓取失败或真无赛程），保留旧快照 {at}"
+                  + (f"（{age} 天前，下游将拿到过期 DJYY 数据）" if age is not None else ""))
+        else:
+            print("  ⚠ 赛程为空且无旧快照，本次不产出")
         return
 
     matches = []
     enriched = 0
+    comp_failed = 0
     for i, fx in enumerate(fixtures):
         mid = fx.get("id")
         if not mid:
@@ -181,6 +235,8 @@ def main():
             comp = fetch_comparison(mid)
         except Exception:
             pass
+        if comp is None:
+            comp_failed += 1
 
         m = extract_match(fx, comp)
         matches.append(m)
@@ -190,6 +246,14 @@ def main():
 
         if (i + 1) % 10 == 0:
             print(f"    ... {i+1}/{len(fixtures)} ({enriched} with odds)")
+
+    # 赛程拿到了但 comparison 全挂（典型的"半程 403"）：这时写盘会把
+    # 有效的 djyy_prob/赔率全部抹成 null，比保留旧快照伤害大得多。
+    prev = _existing_snapshot() or {}
+    if enriched == 0 and comp_failed and (prev.get("with_odds") or 0) > 0:
+        print(f"  ⚠ {comp_failed}/{len(fixtures)} 场 comparison 抓取失败，"
+              f"保留旧快照（with_odds={prev.get('with_odds')}），不覆盖为全 null")
+        return
 
     output = {
         "source": "djyylive.com API v2",

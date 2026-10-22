@@ -72,31 +72,60 @@ export default {
       const fwd = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
           + 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Referer': 'https://djyylive.com/',
+        'Origin': 'https://djyylive.com',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site',
       };
       // 上游若开始要求站点自身的凭据（cookie / 自定义 header），
       // 这里按原样透传，免得又变成"只有改 Worker 才能修"的死路。
       const passthrough = request.headers.get('Cookie');
       if (passthrough) fwd['Cookie'] = passthrough;
 
-      try {
-        const upstreamResp = await fetch(targetUrl, { headers: fwd });
-        const body = await upstreamResp.text();
-        return new Response(body, {
-          status: upstreamResp.status,
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Access-Control-Allow-Origin': '*',
-            'Cache-Control': 'public, max-age=60',
-            'X-Proxy': 'cf-worker-djyy',
-          },
-        });
-      } catch (err) {
-        return Response.json(
-          { error: 'upstream_failed', detail: err.message },
-          { status: 502 }
-        );
+      // 2026-10-22 实测：上游 Bot Fight Mode 对 Worker 出口是**间歇**挑战，
+      // 同一条 URL 6 次里约 2 次 403（cf-ray 落在 DFW），其余 200。
+      // 单次转发等于把可用性押在骰子上，所以这里对 403/429/5xx 退避重试。
+      const RETRYABLE = new Set([403, 425, 429, 500, 502, 503, 504]);
+      const MAX_ATTEMPTS = 3;
+      let upstreamResp = null;
+      let attempts = 0;
+      for (let i = 0; i < MAX_ATTEMPTS; i++) {
+        attempts++;
+        try {
+          upstreamResp = await fetch(targetUrl, { headers: fwd });
+        } catch (err) {
+          if (i === MAX_ATTEMPTS - 1) {
+            return Response.json(
+              { error: 'upstream_failed', detail: err.message, attempts },
+              { status: 502, headers: { 'X-Proxy': 'cf-worker-djyy', 'X-Proxy-Attempts': String(attempts) } }
+            );
+          }
+          await new Promise(r => setTimeout(r, 250 * (2 ** i) + Math.random() * 250));
+          continue;
+        }
+        if (!RETRYABLE.has(upstreamResp.status) || i === MAX_ATTEMPTS - 1) break;
+        // 挑战页正文没有用处，丢弃后再重试，避免占着连接。
+        await upstreamResp.body?.cancel();
+        await new Promise(r => setTimeout(r, 250 * (2 ** i) + Math.random() * 250));
       }
+
+      const body = await upstreamResp.text();
+      const upstreamType = upstreamResp.headers.get('Content-Type');
+      return new Response(body, {
+        status: upstreamResp.status,
+        headers: {
+          // 挑战页要如实反映是 HTML，否则排查时会被误当成 JSON 解析失败。
+          'Content-Type': upstreamType || 'application/json; charset=utf-8',
+          'Access-Control-Allow-Origin': '*',
+          // 失败响应不得进边缘缓存：否则一次挑战会被放大成整分钟全挂。
+          'Cache-Control': upstreamResp.status >= 400 ? 'no-store' : 'public, max-age=60',
+          'X-Proxy': 'cf-worker-djyy',
+          'X-Proxy-Attempts': String(attempts),
+        },
+      });
     }
 
     // 代理竞彩API: /api/sporttery/gateway/... → webapi.sporttery.cn/gateway/...
