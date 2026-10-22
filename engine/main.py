@@ -340,6 +340,14 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
         print("  校准层: isotonic 已由洁净样本验证自动启用")
 
     predictions = []
+    # 侧挂信号索引：整轮只建一次（446 场量级，比每场重读快照便宜得多）。
+    # 侧挂缺席时 build_index 返回空 dict，下游 features 全填 0，引擎照常跑。
+    try:
+        from engine.sources import njstats_side as _side_mod
+        _side_index = _side_mod.build_index()
+    except Exception as _e:
+        print(f"  ⚠ 侧挂信号不可用（{_e}），按缺数据继续")
+        _side_mod, _side_index = None, {}
     # 融合分支命中计数（2026-10-11）：用于每日运行日志暴露"实际走了哪条分支"。
     # 死源（如 DJYY 断供）此前无任何运行时信号，只体现在账本的空字段里。
     _fused_source_counts: dict[str, int] = {}
@@ -491,6 +499,8 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
         # LGBM 第三层（特征构建依赖 fixture/ratings 留在 main，掺混在 fusion.py）
         lgbm_probs = None
         if lgbm_model.is_available:
+            _side_sig = (_side_index.get(_side_mod.key(fixture.home_team, fixture.away_team))
+                         if _side_mod else None)
             feature_dict = build_features(
                 elo_home=home_rating.elo,
                 elo_away=away_rating.elo,
@@ -500,6 +510,7 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
                 xg_away=getattr(fixture, "_xg_away", None),
                 djyy_probs=djyy_probs,
                 include_market_odds=lgbm_cfg.use_odds_features,
+                side=_side_sig.to_features() if _side_sig else None,
             )
             _lgbm_pred = lgbm_model.predict_single(feature_dict)
             if _lgbm_pred:

@@ -44,8 +44,9 @@ class LGBMConfig:
     use_djyy_features: bool = True
 
 
-# 标准特征列名
-FEATURE_NAMES = [
+# 标准特征列名（**原有 21 列的顺序不可动**：已训练的 booster 按列号取值，
+# 中间插一列等于让整个模型读错位。侧挂特征只能追加在末尾。）
+BASE_FEATURE_NAMES = [
     "elo_diff",           # Elo差（主-客）
     "elo_home",           # 主队Elo
     "elo_away",           # 客队Elo
@@ -68,6 +69,21 @@ FEATURE_NAMES = [
     "is_knockout",        # 是否淘汰赛
     "rank_diff",          # 排名差（如有）
 ]
+
+# 侧挂特征（NJStats 旁路，见 engine/sources/njstats_side.py）。追加在末尾，
+# 缺数据填 0。当前线上 booster 只有 21 列，predict_single 会按 booster 的
+# num_feature() 截断，所以这份列表变长不会改变现有输出；下次影子重训吃到
+# 22~27 列后自动生效。
+SIDE_FEATURE_NAMES = [
+    "side_open_home",     # NJStats 开盘去水：主
+    "side_open_draw",     # NJStats 开盘去水：平
+    "side_open_away",     # NJStats 开盘去水：客
+    "side_ppg_home",      # 主队主场场均积分
+    "side_ppg_away",      # 客队客场场均积分
+    "side_ppg_diff",      # 两者之差（正=主队占优）
+]
+
+FEATURE_NAMES = BASE_FEATURE_NAMES + SIDE_FEATURE_NAMES
 
 
 class LGBMModel:
@@ -200,8 +216,15 @@ class LGBMModel:
         if not self._is_trained:
             return None
 
-        # 构造特征向量
-        vec = np.array([[feature_dict.get(name, 0.0) for name in FEATURE_NAMES]])
+        # 只喂 booster 认得的列数：老模型 21 列时侧挂列自动截掉，输出与接线前逐位相同
+        n = len(FEATURE_NAMES)
+        num_feature = getattr(self._model, "num_feature", None)
+        if callable(num_feature):
+            try:
+                n = min(n, int(num_feature()))
+            except Exception:
+                pass
+        vec = np.array([[feature_dict.get(name, 0.0) for name in FEATURE_NAMES[:n]]])
         probs = self.predict_proba(vec)
         if probs is not None and len(probs) > 0:
             return float(probs[0][0]), float(probs[0][1]), float(probs[0][2])
@@ -243,6 +266,7 @@ def build_features(
     rank_home: Optional[int] = None,
     rank_away: Optional[int] = None,
     include_market_odds: bool = False,
+    side: Optional[dict] = None,
 ) -> dict:
     """从原始数据构造标准特征字典
 
@@ -306,5 +330,12 @@ def build_features(
         features["rank_diff"] = float(rank_away - rank_home)  # 正=主队排名高
     else:
         features["rank_diff"] = 0.0
+
+    # 侧挂（NJStats 旁路）：缺席一律 0（树模型里 0 与缺失同义，够用）
+    for name in SIDE_FEATURE_NAMES:
+        try:
+            features[name] = float((side or {}).get(name, 0.0))
+        except (TypeError, ValueError):
+            features[name] = 0.0
 
     return features
