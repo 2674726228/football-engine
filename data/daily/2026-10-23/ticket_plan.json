@@ -5,7 +5,7 @@
   "total_stake": 0,
   "expected_roi": 0.0,
   "bankroll": 3874.5510999999997,
-  "breaker_multiplier": 0.25,
+  "breaker_multiplier": 1.0,
   "parlay": [],
   "score_parlay": [
     {
@@ -18,7 +18,7 @@
           "league": "德甲",
           "score": "1-0",
           "prob": 0.211,
-          "cal_prob": 0.0923,
+          "cal_prob": 0.092,
           "odds": 14.0
         },
         {
@@ -27,8 +27,8 @@
           "away": "米德尔斯堡",
           "league": "英冠",
           "score": "1-0",
-          "prob": 0.172,
-          "cal_prob": 0.0923,
+          "prob": 0.173,
+          "cal_prob": 0.092,
           "odds": 19.0
         }
       ],
@@ -39,24 +39,24 @@
       "worst_win": 0.0,
       "n_bets": 1,
       "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 0.9% × 赔率 266 倍 = EV +127%）"
+      "note": "两场比分都中才赢（校准命中 0.8% × 赔率 266 倍 = EV +125%）"
     }
   ],
   "parlay_stake": 2.0,
   "total_exposure": 2.0,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
-    "overall": 0.546,
-    "n": 1163,
+    "overall": 0.547,
+    "n": 1170,
     "table": {
-      "0.35": 0.4313,
+      "0.35": 0.4286,
       "0.4": 0.4956,
-      "0.45": 0.4824,
-      "0.5": 0.5061,
+      "0.45": 0.4926,
+      "0.5": 0.503,
       "0.55": 0.5,
       "0.6": 0.6701,
       "0.65": 0.7195,
-      "0.7": 0.8142
+      "0.7": 0.8158
     },
     "note": "串关 EV 用账本校准命中率（模型概率高估，0.55-0.60 段仅 31.6% 命中）；推荐=校准EV>0"
   }
