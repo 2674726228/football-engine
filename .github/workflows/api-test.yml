@@ -21,13 +21,25 @@ jobs:
           python3 << 'PYEOF'
           import subprocess, json, re, os
 
+          LAST_HEADERS = {}
+
           def curl(url, headers=None, timeout=15):
-              cmd = ["curl", "-s", "-o", "/tmp/resp.bin", "-w", "%{http_code}", "--max-time", str(timeout), url]
+              global LAST_HEADERS
+              cmd = ["curl", "-s", "-o", "/tmp/resp.bin", "-D", "/tmp/resp.hdr",
+                     "-w", "%{http_code}", "--max-time", str(timeout), url]
               for k, v in (headers or {}).items():
                   cmd += ["-H", f"{k}: {v}"]
               r = subprocess.run(cmd, capture_output=True, text=True)
               code = r.stdout.strip()
               body = open("/tmp/resp.bin", "rb").read()
+              LAST_HEADERS = {}
+              try:
+                  for line in open("/tmp/resp.hdr", errors="replace").read().splitlines():
+                      if ":" in line and not line.startswith("HTTP/"):
+                          k, v = line.split(":", 1)
+                          LAST_HEADERS[k.strip().lower()] = v.strip()
+              except OSError:
+                  pass
               return code, body
 
           UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -120,6 +132,14 @@ jobs:
           )
           print(f"window: {_d0} .. {_d1}")
           print(f"HTTP: {code}")
+          # 2026-10-22：403 必须区分「workers.dev 边缘挑战」与「上游挑战」——
+          # 前者加 key/重部署都没用，只能换自定义域；后者才是 Worker 能解的。
+          import urllib.parse as _up
+          _host = _up.urlparse(_djyy).hostname or ""
+          print(f"proxy: configured={bool(os.environ.get('DJYY_PROXY'))} host={_host}")
+          print("headers: " + json.dumps({k: LAST_HEADERS.get(k) for k in
+                ("x-proxy", "cf-mitigated", "server", "cf-ray") if LAST_HEADERS.get(k)},
+                ensure_ascii=False))
           if code == "200":
               try:
                   d = json.loads(body)
