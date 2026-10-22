@@ -474,8 +474,8 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
                     had_odds_initial=market_odds,  # 无初始赔率时用当前
                 )
                 reverse_result = reverse_engine.analyze(ri)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"  ⚠ 逆向赔率分析失败 {fixture.match_id}: {e}")
 
         # --- 增强: 同赔分析 ---
         same_odds_result = None
@@ -980,8 +980,8 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
                     "best_edge": round(_hev0.best_edge, 4),
                     "recommended": _hev0.recommended,
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  ⚠ 让球 EV 落盘失败 {p.get('match_id')}: {e}")
         # 自适应置信阈值过滤（连败时收紧）
         if p.get("confidence", 0) < conf_threshold:
             filtered_count += 1
@@ -1121,8 +1121,8 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
                     "kelly_fraction": 0.03,  # 冷门玩法小注（波胆/半全场赔率高）
                 })
                 p.setdefault("play_ev", {})[_pev.play] = round(_pev.best_edge, 4)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  ⚠ 多玩法 EV 失败 {p.get('match_id')}: {e}")
 
         # 写回 kelly_edge 到预测字典，解决 Kelly=0 问题
         p["kelly_edge"] = round(max_edge, 4) if max_edge > -1.0 else 0.0
