@@ -7,43 +7,9 @@
   "bankroll": 3874.5510999999997,
   "breaker_multiplier": 0.25,
   "parlay": [],
-  "score_parlay": [
-    {
-      "type": "比分2串1",
-      "legs": [
-        {
-          "match": "2026-10-22_周四002",
-          "home": "波兹南莱赫",
-          "away": "桑德兰",
-          "league": "欧罗巴",
-          "score": "1-0",
-          "prob": 0.204,
-          "cal_prob": 0.0921,
-          "odds": 14.0
-        },
-        {
-          "match": "2026-10-22_周四009",
-          "home": "霍芬海姆",
-          "away": "里昂",
-          "league": "欧罗巴",
-          "score": "0-1",
-          "prob": 0.241,
-          "cal_prob": 0.0653,
-          "odds": 17.0
-        }
-      ],
-      "total_odds": 238.0,
-      "hit_prob": 0.006,
-      "stake": 2.0,
-      "potential": 476.0,
-      "worst_win": 0.0,
-      "n_bets": 1,
-      "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 0.6% × 赔率 238 倍 = EV +43%）"
-    }
-  ],
-  "parlay_stake": 2.0,
-  "total_exposure": 2.0,
+  "score_parlay": [],
+  "parlay_stake": 0,
+  "total_exposure": 0.0,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5475,
