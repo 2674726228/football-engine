@@ -34,6 +34,14 @@ REPO = "wlrwx/football-engine"
 # 在本机这一轮零提交、且 CI 已超 CI_STALE_H 小时没跑时补触发一轮。
 CI_WORKFLOW_ID = 385270775
 CI_STALE_H = 3.0
+# duty 自己拥有的落盘路径。分成两组是因为提交时机不同：state 在投完注就要推
+# （CI 那边靠它去重），三份快照在所有采集步跑完后才齐。
+# 只列这三份，不整目录 add——njstats/ 下还有别的脚本的产物，
+# 让 duty 顺手提交它们等于替别人决定版本，会和 ci-sync 抢写。
+STATE_PATHS = ["data/state/challenge_state.json"]
+SNAPSHOT_PATHS = ["data/state/njstats/site_odds/",
+                  "data/state/njstats/my_predictions/",
+                  "data/state/njstats/community/"]
 PX = {"http": None, "https": None}  # 直连；显式 None 防环境代理回落
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"
 
@@ -52,6 +60,32 @@ def log(msg: str) -> None:
 
 def sh(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(args, cwd=ROOT, capture_output=True, text=True, check=False)
+
+
+def commit_push(paths: list[str], msg: str) -> bool:
+    """把指定路径的工作区变更提交并推送（3 次重试）。无变更视为已完成，返回 True。
+
+    2026-10-22 修：原先这里是一段只认 `challenge_state.json` 的内联 commit，
+    而 duty 每天另外写的三份快照（site_odds / my_predictions / community）
+    **从来没人提交**——它们只存在于这台笔记本的工作区里。站点赔率快照存在的
+    唯一理由就是攒样本做配对回放（docs/CHALLENGE_ODDS_GAP_20261021.md），
+    不进 origin 等于没攒；已知坑②「git reset --hard 清归档」已经发生过两次。
+    与 rho 写回「进工作区无人提交」是同一个病。
+    """
+    if not sh("git", "status", "--short", "--", *paths).stdout.strip():
+        return True
+    sh("git", "add", "-A", "--", *paths)
+    if sh("git", "commit", "-m", msg).returncode != 0:
+        log(f"commit 失败: {msg}")
+        return False
+    for _ in range(3):
+        if (sh("git", "pull", "--rebase", "--autostash", "origin", "main").returncode == 0
+                and sh("git", "push", "origin", "main").returncode == 0):
+            log(f"已推: {msg}")
+            return True
+        time.sleep(4)
+    log(f"push 失败（3 次重试）: {msg}")
+    return False
 
 
 def autoheal_session() -> bool:
@@ -182,14 +216,7 @@ def main() -> int:
         if m:
             _submitted = int(m.group(1))
             break
-    st = sh("git", "status", "--short", "data/state/challenge_state.json")
-    if st.stdout.strip():
-        sh("git", "add", "data/state/challenge_state.json")
-        sh("git", "commit", "-m", "duty: challenge state 更新")
-        for _ in range(3):
-            if sh("git", "pull", "--rebase", "--autostash", "origin", "main").returncode == 0 and sh("git", "push", "origin", "main").returncode == 0:
-                log("state 已推"); break
-            time.sleep(4)
+    commit_push(STATE_PATHS, "duty: challenge state 更新")
     # 社区倾向快照（E6 观测，见 docs/EXPERIMENTS.md）。放在最后：前面 1x2 该投
     # 的都投完了，这一步再慢/再失败都不会影响提交链。每天只跑一次（date 门控），
     # 用 marker 而不是看快照文件在不在——避免手工删了文件后一轮轮重跑。
@@ -197,6 +224,9 @@ def main() -> int:
         _maybe_server_records_snapshot()
     if os.environ.get("DUTY_SKIP_COMMUNITY") != "1":
         _maybe_community_snapshot()
+    # 快照写完就走提交链。这一步失败不影响本轮采集（文件已落在本地），下一轮
+    # 还会再试——但要让它可见，否则又回到「静默不提交、样本只活在笔记本上」。
+    commit_push(SNAPSHOT_PATHS, "duty: njstats 每日快照（站点赔率/服务端真值/社区倾向）")
     # CI 看门狗：平台定时任务限流严重，CI 长时间没跑时补一轮。
     # 放在最后、且只在本地零提交时动手（见函数 docstring 的三条约束）。
     if os.environ.get("DUTY_SKIP_CI_WATCHDOG") != "1":

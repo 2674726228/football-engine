@@ -73,14 +73,30 @@ def main() -> int:
         return 0
     fill = st.get("mode") == "W42-fill"
     g = 0.001 if fill else (0.015 if now.weekday() <= 3 else 0.008)
+    # 闸门量纲（策略层口径，改动由 docs/EXPERIMENTS.md E8 裁决，默认保持 edge）：
+    #   edge    = P − market_fair，模型与市场的可能性分歧，**与赔率无关**
+    #   ev_site = P × 站点结算价 − 1，赌的是盘口软，不是模型聪明
+    # 2026-10-22 实测：7 场未开赛对照里 edge 全为负（中位 −0.99pp，最大 −0.23pp），
+    # 1.5pp 这一档不是"少"而是不可达（与 E3 结论一致：实测模型需权重 0.577，
+    # 仅 4.8% 场次够得着）；同一批换成站点价 EV 则 5/7 ≥ 0、2 场 ≥ +2%。
+    gate_mode, ev_floor = "edge", 0.02
     try:
         pol = json.loads(POLICY.read_text()) if POLICY.exists() else {}
         if pol.get("gate_hint") == "tighten" and (pol.get("n_settled") or 0) >= 80:
             g += 0.005
-    except Exception:
-        pass
+        if pol.get("gate_mode") == "ev_site":
+            # 先取数再切换：policy 写坏时整条丢弃，不能留下「口径换了、地板没换」
+            ev_floor = float(pol.get("ev_floor", 0.02))
+            gate_mode = "ev_site"
+    except Exception as exc:
+        print(f"challenge: policy 读取失败（{exc}），本轮用默认闸门 {gate_mode}/{ev_floor}")
 
-    items = api.board_items(jwt)
+    # 用 board_with_odds 而不是 board_items：同一请求（modId=1012/msgId=1）、
+    # 同一份响应，只是多带 f2 赔率包。挑战赛按**站点自己的赔率**结算，而
+    # predictions.json 里是体彩官方赔率（实测首选方向价差中位 1.1161），
+    # 所以下单那一刻的站点价必须跟着注单存进 records——事后每日快照是
+    # 覆盖式的，存的是最后一轮的价，不是下单时的价。
+    items = api.board_with_odds(jwt)
     if items is None:
         print("challenge: 列表失败（JWT 过期？），本轮跳过，明日 Mac 续期自愈")
         return 0
@@ -150,13 +166,23 @@ def main() -> int:
         if not o or o < 1.60:
             continue
         e = P - mf[sel]
+        site = it.get("odds")
+        o_site = site[sel] if site and len(site) > sel else None
+        ev_site = P * o_site - 1 if o_site else None
+        # 上界护栏：外部盘口的解析出过错（f1 选项码不跨场次同义那类），
+        # 站点价软到 EV>25% 不会是价值，是脏数据。实测今天最高 +6.9%。
+        ev_ok = ev_site is not None and ev_floor <= ev_site <= 0.25
+        qualified = ev_ok if gate_mode == "ev_site" else e >= g
         rec = {"sid": sid, "match": match, "dir": sel, "p": P, "mkt_p": mf[sel],
-               "edge": e, "odds": o, "ev": P * 100 * mult(o)}
-        if e >= g:
+               "edge": e, "odds": o, "site_odds": o_site, "ev_site": ev_site,
+               "ev": P * 100 * mult(o), "gate": gate_mode}
+        if qualified:
             cands.append(rec)
         elif e >= float(os.environ.get("CHALLENGE_TOPFILL_FLOOR", "-0.005")):
             near.append(rec)
-    cands.sort(key=lambda c: -c["ev"])
+    # 排序：ev_site 档按价差质量排；edge 档保持原状按 `ev`（赔率档倍数×P）排，
+    # 不顺手改既有口径——mult() 那套倍数与站点 33 注实盘得分对不上，是另一个待核项。
+    cands.sort(key=lambda c: -(c["ev_site"] if gate_mode == "ev_site" else c["ev"]))
     K = min(8 if fill else 6, remaining)
     picked = cands[:K]
     try:
@@ -173,7 +199,8 @@ def main() -> int:
             c["fill"] = True
             picked.append(c)
     if not picked:
-        print(f"challenge: 零合格（门槛{g:.1%}/池{len(items)}）——正常")
+        thr = ev_floor if gate_mode == "ev_site" else g
+        print(f"challenge: 零合格（{gate_mode} 门槛{thr:.1%}/池{len(items)}）——正常")
         return 0
     ok_n = 0
     for c in picked:
@@ -188,11 +215,18 @@ def main() -> int:
                                   "sid": c["sid"], "p": round(c["p"], 4),
                                   "mkt_p": round(c["mkt_p"], 4), "edge": round(c["edge"], 4),
                                   "ev": round(c["ev"], 1), "via": "api-ci",
+                                  # pick 里的数字是**体彩价**（predictions.json 口径）；
+                                  # 挑战赛按站点价结算，两者差约 10%，故必须同时存下
+                                  # 下单那一刻的站点价与两种量纲的合格判据。
+                                  "gate": c["gate"],
+                                  "site_odds": round(c["site_odds"], 3) if c["site_odds"] else None,
+                                  "ev_site": round(c["ev_site"], 4) if c["ev_site"] is not None else None,
                                   "mode": "临时灌仓1018(实验注)" if c.get("fill") else (st.get("mode") or "normal"),
                                   "submitted_at": now.strftime("%F %T")})
     st["used"] += ok_n
     STATE.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"challenge: 提交 {ok_n} 注 → {st['used']}/{st['quota']} 门槛{g:.1%}")
+    thr = ev_floor if gate_mode == "ev_site" else g
+    print(f"challenge: 提交 {ok_n} 注 → {st['used']}/{st['quota']} {gate_mode} 门槛{thr:.1%}")
     return 0
 
 
