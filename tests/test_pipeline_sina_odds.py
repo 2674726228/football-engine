@@ -12,6 +12,7 @@ import pytest
 from engine.pipeline.sina_odds import (
     _norm_name,
     build_sina_data,
+    load_sina_odds_map,
     lookup_sina_match,
 )
 
@@ -115,3 +116,20 @@ def test_build_sina_data_tolerates_missing_keys():
     assert out["initial_odds"] is None
     assert out["odds_history_count"] == 0
     assert out["series"] is not None
+
+
+def test_corrupt_odds_file_is_reported_not_silent(tmp_path, capsys):
+    """整份 odds_sina.json 损坏时按「今天没有赔率」处理，但必须留痕。
+
+    原实现 `except Exception: pass` 把接口改版/文件截断伪装成正常的缺数据，
+    market 通道整轮退化而日志一个字都没有——这是本项目反复出现的静默死亡模式。
+    """
+    d = tmp_path / "data" / "daily" / "2026-10-22"
+    d.mkdir(parents=True)
+    (d / "odds_sina.json").write_text('{"broken":', encoding="utf-8")
+
+    by_team, by_no, n = load_sina_odds_map("2026-10-22", root=tmp_path)
+
+    assert by_team == {} and by_no == {} and n == 0
+    out = capsys.readouterr().out
+    assert "解析失败" in out and "odds_sina.json" in out

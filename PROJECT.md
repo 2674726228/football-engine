@@ -1,7 +1,7 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-22 16:25（SportMonks 裁决不订阅，登录页已关）
+> 状态: doing　更新: 2026-10-22 17:39（静默吞异常关键路径留痕 + rho 持久化 + 周报化）
 > 在干什么: ① **E8 换闸门量纲**：`edge` 档实测**不可达**（7 场对照 P−market_fair 全负，
 >           最大 −0.23pp；10-19 起连续 131 轮零合格），改成
 >           `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），开关在
@@ -256,11 +256,12 @@
 - [ ] 洁净样本累积 / Qwen 新闻源（用户决定）
 - [x] ~~SportMonks `fixtures_on` / `fixture_odds` / `injuries` 未接入~~ → 随不订阅裁决关闭。
       **不要凭文档猜**这三个方法；真要接需先有能覆盖竞彩联赛的套餐与 token 再实测
-- [ ] 全仓库 98 处 `except → return None/pass` 静默吞异常。**这是本项目的头号病害**——
-      今晚发现的三处静默零产物（代理硬编码、key 文件名、`same_odds` 列名不匹配）
-      都是同一个病：不报错，只是没产出。**不要批量改**（会淹没真正需要静默的地方）；
-      建议按"关键路径"逐个加可区分的错误记录，参考 `engine/sources/djyy.py` 的
-      `_record_error()` 模式
+- [ ] 静默吞异常（2026-10-22 AST 重扫：**256 处**，旧记的 98 是漏算）——**不报错，只是没产出**，
+      是本项目的头号病害。**不要批量改**（会淹没真正需要静默的地方）。
+      2026-10-22 已把**预测/结算主链路 10 处**改成留痕（详见「已修」），
+      剩余集中在 build_site（30+，页面渲染兜底）、odds_series（逐行跳过，语义正确）、
+      以及 xG/阵容/反向分析等可选增强——那些失败本就不该刷屏。
+      参考 `engine/sources/djyy.py` 的 `_record_error()` 模式继续按关键路径推进
 
 ## 今晚已解决（原在待办清单里，复核后移出）
 - [x] issue #1 无盘口标注（PR #35：`_pred_pick` 加「⚠ 无盘口·不可投注」；页面已验证 1 处）
@@ -269,6 +270,23 @@
 - [x] `evolution/` 产物（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
+- 2026-10-22 **静默吞异常·预测/结算主链路 10 处留痕**：AST 全仓重扫得 256 处 `except → pass/return 默认值`
+      （旧文档的 98 是漏算），按「失败会不会让输出静默退化」筛出主链路 10 处，只加日志不改控制流：
+      ① `sina_odds.load_sina_odds_map` 整份赔率文件解析失败原先 `pass` → 市场通道整轮退化却像「今天本来没数据」
+      （+回归测试 `test_corrupt_odds_file_is_reported_not_silent`）；
+      ②③ `main.py` 联赛参数同步 / MatchDB 联赛基线同步失败 → 沿用旧参数无人知；
+      ④⑤ 结算侧读 `predictions.json` / `results.json` 损坏文件被静默 continue → 预测索引与幂等基准悄悄变少；
+      ⑥ **`results.json` 损坏原先直接当空列表覆盖** → 改成先改名留一份 `results.json.corrupt-<北京时间>` 再重建
+      （这是唯一一处不只是加日志的：覆盖会永久丢历史赛果）；
+      ⑦ 联赛命中/判平反馈写失败；⑧ 串关赛果映射失败（少一条腿→整注不结算）；
+      ⑨ 赛果回写 `predictions.json` 失败；⑩ 账本无法解析的行按条计数后汇总告警（校准/LGBM 样本会少）。
+      **未动的**：xG/阵容/反向分析/波胆 EV 等可选增强，以及 odds_series 的逐行跳过——那些本来就是局部坏数据，
+      刷屏只会掩盖真问题
+- 2026-10-22 **周度体检摘要周报化**（4270e7a7c）：摘要原先只打当次值，且 `upgrade_tracker`/`clv_report`
+      每天被 daily-forecast 刷新，**git 里的上一版不是「上周」**，所以基线另存
+      `data/state/weekly_digest.jsonl`（append-only，13 项指标 + 评委判定变化）。顺带修回仓步：
+      原 `git add a b c 2>/dev/null || true` 在任一文件缺失时**整条 add 原子失败**，把「什么都没暂存」
+      伪装成成功 → 改逐文件 `if [ -e ] ; then git add`
 - 2026-10-22 **挑战池队名匹配主客颠倒**：`challenge_hourly.py` 的模糊分支写成「池子主队比预测客队、池子客队比预测主队」，等于只有原文精确匹配生效——10-22 的 11 场预测只进池 6 场，另 5 场明明在板上（4 场译名差异：萨迪纳摩/萨格勒布迪纳摩、克里特/OFI克雷迪、利勒斯特伦/利勒斯特罗姆、拉普大学/拉普拉塔大学生；1 场子串：塞尔塔/维戈塞尔塔）。修法：方向纠正 + 走 `normalize_team` + 保守子串；池子译名映射只放脚本本地（写进 `engine/team_aliases.py` 会合并 team_ratings 的键，属模型层变更）；子串不跨梯队/女队（10-21 板上里尔与里尔U19 并存，不挡会一注变两注），同一预测只取第一条板条目。10-22 进池 6→11、候选 4→5，仍 0 场 ev_site≥2%
 - 2026-10-22 **LGBM 特征「有数据、模型不读」四项**：① `TeamRating.form` 一直在 EMA 更新，但调用点从不传 `home_form/away_form` → 三个 form 特征恒 0（仅 45% 场次有非零值，全被浪费）；② `data/league_matrix.json` 33 个联赛、覆盖 65.6% 场次，`league_avg_goals/league_home_win_rate` 从不传 → 恒 2.5/0.45；③ 服务端 xG 取 `fixture._xg_home`（DJYY，403 时为空），训练端取落盘 `home_xg`（模型 xG）→ 同一特征两端异源；④ 排名只在服务端接线，训练端没传 → 训练 rank_diff 恒 0、服务端非 0。修法：服务端统一取一次 `_lgbm_inputs`（form/联赛先验/排名/模型 xG）随预测落盘为 `lgbm_inputs`，`build_training_rows` 优先回放冻结值；旧样本退回历史列（`form_home` 自 10-09 有值、`home_xg` 为模型 xG），联赛先验/排名无从追溯就保持默认，不用今天的表回填历史。`is_knockout` 仍无任何上游字段（`Fixture` 本身就没有该字段，采集层也没有赛段信息；只有 dict 版 `predict_batch` 契约里留着参数），属数据源缺口不是接线缺口
 - 2026-10-13 **静默吞异常·关键路径第一处**：sporttery（竞彩官方主源）的 fetch_results 完全静默 return []、fetch_fixtures 只 print——被 WAF 拦/代理没配/结构变更三种病因在下游全表现为「今天没赛果」→ 结算静默跳过、账本静默不涨（与 DJYY 静默 3.5 周同病）→ 照 djyy 的 LAST_ERROR 模式接上，blocked_by_waf 与 fetch_failed 可区分；写测试时又当场抓到「成功后旧错误不清会永久挂红」并补上

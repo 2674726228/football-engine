@@ -40,8 +40,10 @@ def load_sina_odds_map(target_date, root: Path | None = None) -> tuple[dict, dic
                 match_no = m.get("match_no", "")
                 if match_no:
                     sina_odds_by_no[match_no] = m
-        except Exception:
-            pass
+        except Exception as e:
+            # 整份文件解析失败等于当天没有新浪赔率可用，必须留痕：
+            # 静默返回空 dict 会把接口改版/文件截断伪装成「本来就没数据」。
+            print(f"  ⚠ 新浪赔率文件解析失败（按无赔率处理）: {sina_odds_file}: {e}")
     return sina_odds_map, sina_odds_by_no, n_matches
 
 

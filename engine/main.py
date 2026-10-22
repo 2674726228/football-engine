@@ -263,8 +263,8 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
         matrix = source_mgr.get_league_params()
         if matrix:
             league_mgr.update_from_league_matrix(matrix)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"  ⚠ 联赛参数同步失败（沿用旧参数）: {e}")
     print(f"  ✓ 联赛参数: {len(league_mgr.summary())} 个联赛已配置")
 
     # MatchDB: 历史xG作为预测辅助
@@ -1485,7 +1485,8 @@ def run_settlement(target_date: date):
                 continue
             try:
                 _preds = json.loads(pf.read_text(encoding="utf-8"))
-            except Exception:
+            except Exception as e:
+                print(f"  ⚠ 跳过损坏的 {pf}: {e}")
                 continue
             for _p in _preds:
                 _mid = _p.get("match_id", "")
@@ -1515,7 +1516,8 @@ def run_settlement(target_date: date):
                 continue
             try:
                 _rs = json.loads(rj.read_text(encoding="utf-8"))
-            except Exception:
+            except Exception as e:
+                print(f"  ⚠ 跳过损坏的 {rj}: {e}")
                 continue
             for _x in _rs:
                 if _x.get("home_team") and _x.get("away_team"):
@@ -1733,8 +1735,15 @@ def run_settlement(target_date: date):
         if r_file.exists():
             try:
                 existing = json.loads(r_file.read_text(encoding="utf-8"))
-            except Exception:
-                pass
+            except Exception as e:
+                # 损坏文件不能直接覆盖——先留一份现场，否则历史赛果永久丢失。
+                _bak = r_file.with_name(
+                    f"{r_file.name}.corrupt-{beijing_now().strftime('%Y%m%d%H%M%S')}")
+                try:
+                    r_file.replace(_bak)
+                except OSError:
+                    _bak = None
+                print(f"  ⚠ results.json 解析失败，已备份为 {_bak.name if _bak else '（备份失败）'}: {e}")
         existing_ids = {e.get("match_id") for e in existing}
 
         def _mid_rank(mid: str) -> int:
@@ -1902,8 +1911,8 @@ def run_settlement(target_date: date):
         if matrix and isinstance(matrix, list):
             db.sync_league_baselines(matrix)
             print(f"  联赛基线已同步: {len(matrix)} 个联赛")
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"  ⚠ 联赛基线同步失败（MatchDB 现有基线不变）: {e}")
 
     print(f"  ✓ MatchDB: {db_recorded} 场新增记录")
     db.close()
@@ -1969,8 +1978,8 @@ def run_settlement(target_date: date):
                 hit=(actual == "draw"),
             )
             league_fed += 1
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  ⚠ 联赛反馈失败 {pred.get('match_id')}: {e}")
         # 计算PnL（基于Kelly plan，支持同场多玩法）
         pnl = 0.0
         s_list = ticket_map.get(pred["match_id"], [])
@@ -2018,7 +2027,8 @@ def run_settlement(target_date: date):
     for n in norm:
         try:
             _res_by_mid[n["match_id"]] = (int(n["r"].home_score), int(n["r"].away_score))
-        except Exception:
+        except Exception as e:
+            print(f"  ⚠ 串关赛果映射失败 {n.get('match_id')}: {e}")
             continue
 
     # 幂等守卫（2026-10-11 修正）：
@@ -2208,7 +2218,8 @@ def run_settlement(target_date: date):
                 continue
             try:
                 _pl = json.loads(_pf.read_text(encoding="utf-8"))
-            except Exception:
+            except Exception as e:
+                print(f"  ⚠ 赛果回写失败，跳过损坏的 {_pf}: {e}")
                 continue
             _by_mid = {p.get("match_id"): p for p in _pl}
             _chg = 0
@@ -2302,13 +2313,17 @@ def run_settlement(target_date: date):
     print("\n  [校准进化] 洁净样本盘点 + 启用决策...")
     ledger_path = ROOT / "data" / "state" / "review_ledger.jsonl"
     all_records = []
+    _bad_ledger = 0
     if ledger_path.exists():
         for line in ledger_path.read_text().strip().split("\n"):
             if line.strip():
                 try:
                     all_records.append(json.loads(line))
                 except Exception:
+                    _bad_ledger += 1
                     continue
+    if _bad_ledger:
+        print(f"  ⚠ 账本 {_bad_ledger} 行无法解析，已跳过（校准/LGBM 样本减少）")
     # 污染样本隔离（2026-10-11）：v2 链里混进了 20 场 league_draw_baseline
     # 越界样本（巴甲平局概率被钉在 0.5025，真实率 0.266），会系统性带偏
     # 校准曲线。剔除而不升 chain 版本——污染只占 3.6%，不该让 538 条
