@@ -31,17 +31,24 @@ jobs:
         run: python scripts/eval_plane.py
       - name: 数据完整性自检
         run: python -m engine.selfcheck --fail-on-critical || echo "::warning::selfcheck 报 critical"
-      - name: 汇总进摘要
+      - name: 汇总进摘要（vs 上次周检）
         run: |
           {
-            echo "## 评委席"; python -c "import json;d=json.load(open('data/state/eval_registry.json'));[print(f'- {k}: {v[\"status\"]} samples={v[\"samples\"]} verdict={v[\"verdict\"]}') for k,v in d['judges'].items()]"
-            echo "## 升级判定"; python -c "import json;d=json.load(open('data/state/upgrade_tracker.json'));print('vs自身:',d.get('verdict'),'| vs市场:',d.get('verdict_vs_market','—'))"
-            echo "## CLV"; python -c "import json;d=json.load(open('data/state/clv_report.json'));o=d['overall'];print('n:',o.get('n'),'均值:',o.get('clv_fair_mean'),'判定:',o.get('verdict'))"
+            echo "## 周度趋势"
+            echo
+            python scripts/weekly_digest.py --write
           } >> "$GITHUB_STEP_SUMMARY"
       - name: 回仓
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/wlrwx/football-engine.git"
-          git add data/state/upgrade_tracker.json data/state/edge_calibration.json data/state/clv_report.json data/state/eval_registry.json data/state/challenge_review.json data/state/challenge_policy.json data/state/system_health.json 2>/dev/null || true
+          # 逐个 add：单个文件缺失时不让整条 add 原子失败（此前 2>/dev/null || true
+          # 会把「什么都没暂存」伪装成成功）。
+          for f in data/state/upgrade_tracker.json data/state/edge_calibration.json \
+                   data/state/clv_report.json data/state/eval_registry.json \
+                   data/state/challenge_review.json data/state/challenge_policy.json \
+                   data/state/system_health.json data/state/weekly_digest.jsonl; do
+            if [ -e "$f" ]; then git add "$f"; fi
+          done
           git diff --cached --quiet || (git pull --rebase origin main || git rebase --abort; git commit -m "tracker: 周度体检(云) $(date +%F)"; git push origin HEAD:main)

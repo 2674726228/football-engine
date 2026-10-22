@@ -28,7 +28,10 @@ CI 侧当时仅预测+结算+Pages+ci-sync+归档(已过期仍在撞墙：23/50 
 **该优化（两周内）**
 - [ ] 状态文件并发写：CI/Mac 双端写 challenge_state → 给两边都加 pull-rebase-commit 事务（现依赖小时错峰，够用但可加锁）
 - [ ] eval_plane 的 quorum 加"合议方向+置信"一行判定（现在只列票）
-- [ ] CI 摘要页周报化：weekly-deep-check 输出与上周对比 diff（趋势一眼可读）
+- [x] ~~CI 摘要页周报化~~ 2026-10-22：weekly-deep-check 增加 `scripts/weekly_digest.py --write`，
+      指标与上次周检对比（Δ 列）。基线存独立历史 `data/state/weekly_digest.jsonl`——不能读 git 上一版，
+      因为 upgrade_tracker / clv_report 每天都会刷新，上一版不是「上周」；首次运行只记基线。
+      回仓步改为逐文件 add，避免单个文件缺失让整条 `git add` 原子失败。
 
 **该升级（看数据说话）**
 - [ ] NJStats 续订评估（试用已到期收割完结）：等前向配对样本 ≥80 注后由 challenge_review 的 edge 兑现率裁决——**独立信息型燃料值 698 就续，市场镜像型不续**
