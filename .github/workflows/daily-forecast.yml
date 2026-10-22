@@ -234,7 +234,9 @@ jobs:
             echo "无变更，跳过提交"
             exit 0
           fi
-          git commit -m "daily: forecast $(date +%Y-%m-%d)"
+          # 预测目标日按北京时间；提交信息别用 runner 的 UTC 日期（01:32 跑出来的
+          # 10-23 数据曾被写成 daily: forecast 2026-10-22）。
+          git commit -m "daily: forecast $(TZ=Asia/Shanghai date +%Y-%m-%d)"
 
           # 把本次提交 rebase 到最新 main 再 push。
           #
