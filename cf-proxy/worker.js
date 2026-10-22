@@ -55,14 +55,32 @@ export default {
       const targetPath = url.pathname.replace('/api/djyy', '');
       const targetUrl = `${DJYY_UPSTREAM}${targetPath}${url.search}`;
 
+      // 2026-10-22：这个 Worker 一直是"公开可白嫖"的——它自建 headers，
+      // 既不透传调用方的 X-DJYY-Key，也从没读过 env.DJYY_KEY，
+      // 于是 docs/EXPERIMENTS.md 里写的「A 方案：Worker 校验 X-DJYY-Key」
+      // 其实从未存在（tests/test_djyy_observability.py 只断言了路径转发）。
+      // 现在补上：设了 DJYY_KEY 就要求带 key（未设则放行，便于灰度）。
+      const expectedKey = (env && env.DJYY_KEY) || '';
+      const gotKey = request.headers.get('X-DJYY-Key') || '';
+      if (expectedKey && gotKey !== expectedKey) {
+        return Response.json(
+          { error: 'unauthorized', detail: '缺少或错误的 X-DJYY-Key' },
+          { status: 401 }
+        );
+      }
+
+      const fwd = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+          + 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+      };
+      // 上游若开始要求站点自身的凭据（cookie / 自定义 header），
+      // 这里按原样透传，免得又变成"只有改 Worker 才能修"的死路。
+      const passthrough = request.headers.get('Cookie');
+      if (passthrough) fwd['Cookie'] = passthrough;
+
       try {
-        const upstreamResp = await fetch(targetUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
-              + 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'application/json',
-          },
-        });
+        const upstreamResp = await fetch(targetUrl, { headers: fwd });
         const body = await upstreamResp.text();
         return new Response(body, {
           status: upstreamResp.status,

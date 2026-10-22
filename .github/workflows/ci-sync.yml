@@ -46,6 +46,20 @@ jobs:
             python scripts/paper_track_draw.py >> "$STAMP" 2>&1 || true
             touch "$STAMP"
           fi
+      # 2026-10-22：sina 赔率时序采集也挂到这里。
+      #
+      # 起因是 PR#9 的结论被推翻了：那次把 fetch_sina_odds 的 `--days` 从 1 扩到 2
+      # 是想解决"末快照距开赛中位 9.6h、开赛前 2h 内取到价的只有 3.5%"，
+      # 跑满 10 天后同一指标 3.6%→3.5%，一点没动 —— 因为它改的是窗口左端，
+      # 病灶在右端的**采集次数**：抓取只挂在 daily-forecast 上，而它 24h 实际
+      # 只跑 12/48 次（GitHub 对公开仓的 schedule 是随机丢弃，不是排队）。
+      # 提高单条 cron 频率没有意义（*/15 实测也只跑 5 次/天），跨 workflow 冗余才有意义：
+      # 这里再挂一份，等于把有效频率叠加到 ~18 次/天。
+      #
+      # 注意：不要因为这一步在就以为 daily-forecast 那份可以删——
+      # 覆盖率报告（engine.odds_series_coverage）在 daily-forecast 里算。
+      - name: sina 赔率时序采集（closing coverage）
+        run: python scripts/fetch_sina_odds.py || echo "⚠ 新浪赔率抓取失败（辅助源，继续）"
       - name: 刷新 CLV 与体检报告
         run: |
           python -m engine.review.clv --quiet || true

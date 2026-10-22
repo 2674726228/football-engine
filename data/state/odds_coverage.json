@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-22T00:15:07",
+  "generated_at": "2026-10-22T08:28:00",
   "total_matches": 1256,
   "no_kickoff_time": 0,
   "snapshots": {
@@ -43,13 +43,16 @@
   "closing_coverage": {
     "window_h": 2.0,
     "n": 42,
-    "ratio": 0.0334,
-    "not_started_yet": 1205
+    "ratio": 0.0345,
+    "assessable": 1217,
+    "pending_kickoff": 39,
+    "post_kickoff_last": 51,
+    "stopped_before_kickoff": 1205
   },
   "near_close_coverage": {
     "window_h": 6.0,
     "n": 281,
-    "ratio": 0.2237
+    "ratio": 0.2309
   },
   "last_collection_day_offset": {
     "0": 475,
@@ -147,5 +150,5 @@
     }
   },
   "healthy": false,
-  "note": "healthy 判据：开赛前 2 小时内有快照的场次 ≥ 50%（且该场尚未开赛）。2026-10-11 基线 3.6% —— CLV 类实验在此之前不可用。"
+  "note": "healthy 判据：**已开赛**场次里、开赛前 2 小时内有快照的比例 ≥ 50%。2026-10-11 基线 3.6%；2026-10-22 复核（PR#9 扩 --days 跑满 10 天）3.5% —— 扩窗口无效，瓶颈是采集频率（抓赔率只挂在 daily-forecast 上，它 24h 实际只跑 12/48 次）。收盘价另有通路：b365/平博 （data/state/clv_pinnacle.json，984 注里 258 注可配对）。"
 }

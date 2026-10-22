@@ -508,6 +508,13 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
                 handicap=fixture.handicap,
                 xg_home=getattr(fixture, "_xg_home", None),
                 xg_away=getattr(fixture, "_xg_away", None),
+                # 排名：DJYY 的 fixtures 里就带（djyy.py:213-214 已经解出
+                # _rank_home/_rank_away），但这里以前一个都没传 →
+                # rank_diff 恒为 0。与 rest_days 同一类病：旋钮接线了、
+                # 值永远是默认值。见 evolution/harness/invariants.py 的
+                # check_dead_features。
+                rank_home=getattr(fixture, "_rank_home", None),
+                rank_away=getattr(fixture, "_rank_away", None),
                 djyy_probs=djyy_probs,
                 include_market_odds=lgbm_cfg.use_odds_features,
                 side=_side_sig.to_features() if _side_sig else None,

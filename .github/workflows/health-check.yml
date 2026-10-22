@@ -92,9 +92,38 @@ jobs:
           fi
           echo "$CONTENT" | jq -r '
             (.closing_coverage.ratio * 1000 | round / 10) as $pct
-            | "→ 开赛前 \(.closing_coverage.window_h)h 内有快照: \(.closing_coverage.n)/\(.total_matches) 场 (\($pct)% )",
-              "→ 健康判定: \(if .healthy then "健康" else "不健康 —— CLV 类实验不可用" end)"
+            | "→ 开赛前 \(.closing_coverage.window_h)h 内有快照: \(.closing_coverage.n)/\(.closing_coverage.assessable) 已开赛 (\($pct)%)",
+              "→ 未开赛 \(.closing_coverage.pending_kickoff) 场不入分母；采集提前停 \(.closing_coverage.stopped_before_kickoff) 场",
+              "→ 健康判定: \(if .healthy then "健康" else "不健康 —— sina 收盘通路不可用，收盘价改走 b365/平博（clv_pinnacle.json）" end)"
           '
           if ! echo "$CONTENT" | jq -e '.healthy' >/dev/null; then
-            echo "::warning::赔率时序覆盖率低于 50% 门槛 —— CLV 类实验当前不可用"
+            echo "::warning::赔率时序覆盖率低于 50% 门槛 —— sina 收盘通路不可用（2026-10-22 实测 3.5%，PR#9 扩窗口已证无效，瓶颈是采集频率）"
+          fi
+
+      # 2026-10-22：DJYY 被边缘拦截要在这里报警。
+      #
+      # 起因：djyy_prob 从 2026-08-15 起恒为 null、连续 3.5 周无人察觉；
+      # 10-11 修成"失败可见"（engine/sources/djyy.py 记 blocked_by_edge），
+      # 但可见性只落到 data/djyy_status.json 里，**没有任何一步去读它做判断**。
+      # 状态文件没人看 = 又一种形式的静默。这里按已有模式用 gh api 读，不引入 checkout。
+      - name: DJYY source health (read-only)
+        if: ${{ github.event_name == 'schedule' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL="repos/${{ github.repository }}/contents/data/djyy_status.json"
+          CONTENT=$(gh api "$URL" --jq '.content' 2>/dev/null | base64 -d) || CONTENT=""
+          if [ -z "$CONTENT" ]; then
+            echo "::warning::读不到 data/djyy_status.json —— DJYY 体检从未跑过？"
+            exit 0
+          fi
+          echo "$CONTENT" | jq -r '
+            "→ DJYY 状态: \(if .healthy then "健康" else "不健康" end)"
+            + " | 生成于 \(.generated_at) | 覆盖 \(.covered)/\(.fixtures)"
+            + (if .error then "\n  原因: \(.error)" else "" end)
+          '
+          # 不健康 + 状态文件是新鲜的（说明这一轮真的试过且失败），才值得单独点名
+          if echo "$CONTENT" | jq -e '.healthy == false and (.error // "" | test("blocked_by_edge"))' >/dev/null; then
+            echo "::error::DJYY 被 Cloudflare 边缘拦截（403），融合里 0.2 的 djyy 权重实际贡献 0" \
+                 "—— 修法见 docs/EXPERIMENTS.md「DJYY 在 CI 侧被 Cloudflare 拦截」节"
           fi

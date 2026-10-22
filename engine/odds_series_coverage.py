@@ -19,7 +19,15 @@
 大多不是收盘价。** 任何基于这批数据的 CLV 都只是"相对最后一次观测"。
 
 去重逻辑（赔率未变只更新时间戳、不追加）本身是正确的，
-3.92h 的间隔接近赔率真实变动频率。真正的问题是采集窗口右端太早。
+3.92h 的间隔接近赔率真实变动频率。当时判断"问题是采集窗口右端太早"。
+
+**2026-10-22 复核：那个判断是错的，PR#9 扩 `--days` 跑满 10 天没有效果。**
+同一指标 3.4%→3.5%（换成分母后），末快照距开赛中位 9.5h→9.7h。真因是
+**采集频率**：抓 sina 赔率只挂在 daily-forecast 上，而它 24h 实际只跑
+12/48 次（GitHub 对公开仓的 schedule 限流），末快照落在哪完全取决于
+上一轮碰巧几点跑。扩窗口改的是左端，右端根本没被移动。
+收盘价另有通路：`data/state/clv_pinnacle.json` 用 b365/平博收盘价，
+984 注里 258 注可配对（其余是联赛不覆盖/无英文名）。
 
 本脚本把上述指标变成可监控的状态文件，让改善可验证、退化可发现。
 
@@ -37,6 +45,8 @@ import sys
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
+
+from engine.beijing_time import beijing_now
 
 ROOT = Path(__file__).resolve().parent.parent
 SERIES_DIR = ROOT / "data" / "state" / "odds_series"
@@ -75,9 +85,14 @@ def measure() -> dict:
     gaps: list[float] = []
     moved = 0
     flat = 0
+    started = 0
+    pending = 0
     last_day_offset: Counter = Counter()
     by_kickoff_hour: dict[int, list[float]] = defaultdict(list)
     no_kickoff = 0
+    # sina 的 match_time/ts 都是北京墙上时间、无时区后缀，所以要把 beijing_now()
+    # 的 tzinfo 剥掉再比；直接 datetime.now() 在 CI 上是 UTC（2026-08-14 事故）。
+    now = beijing_now().replace(tzinfo=None)
 
     for f in files:
         try:
@@ -117,14 +132,27 @@ def measure() -> dict:
             continue
         lead_last.append((ko - t1).total_seconds() / 3600)
         lead_first.append((ko - t0).total_seconds() / 3600)
+        if ko <= now:
+            started += 1
+        else:
+            pending += 1
         last_day_offset[(ko.date() - t1.date()).days] += 1
         by_kickoff_hour[ko.hour].append((ko - t1).total_seconds() / 3600)
 
     total = sum(n_snap_dist.values())
+    # 分母改成「已经开赛」的场次。今天这项修正只动 33/1232（2.7%），
+    # 但不改就会随抓取窗口漂移：series 里永远混着未开赛的场次，
+    # 它们结构上不可能有收盘快照，等于给 ratio 加了一个会变的分母噪音。
+    #
+    # 真正致命的是原先那行 `not_started = lead_last > 0` 的**标签**：
+    # 它数出来 1181，看着像"1181 场还没开赛所以没法评估"，实际含义是
+    # 「末快照早于开赛」= 采集在开赛前就停了，正是本指标要抓的病灶。
+    # 2026-10-22 复核时我就是被这个字段名骗了一次，差点把
+    # 「覆盖率 3.5%」判成「指标分母坏了」。标签按真实语义改掉。
     within_close = sum(1 for g in lead_last if 0 <= g <= CLOSE_WINDOW_H)
     within_near = sum(1 for g in lead_last if 0 <= g <= NEAR_WINDOW_H)
-    # 已开赛的（lead<0）不算"拿到收盘"，它们本来就是事后的
-    not_started = sum(1 for g in lead_last if g > 0)
+    post_kickoff_last = sum(1 for g in lead_last if g < 0)
+    denom = started or 1
 
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
@@ -157,13 +185,19 @@ def measure() -> dict:
         "closing_coverage": {
             "window_h": CLOSE_WINDOW_H,
             "n": within_close,
-            "ratio": round(within_close / max(total, 1), 4),
-            "not_started_yet": not_started,
+            "ratio": round(within_close / denom, 4),
+            # 分母 = 已开赛且能定出开赛时刻的场次
+            "assessable": started,
+            "pending_kickoff": pending,
+            # 末快照落在开赛之后（拿到的是赛后价，对 CLV 无用）
+            "post_kickoff_last": post_kickoff_last,
+            # 末快照早于开赛 = 采集在收盘前就停了（原 not_started_yet，语义已纠正）
+            "stopped_before_kickoff": sum(1 for g in lead_last if g > 0),
         },
         "near_close_coverage": {
             "window_h": NEAR_WINDOW_H,
             "n": within_near,
-            "ratio": round(within_near / max(total, 1), 4),
+            "ratio": round(within_near / denom, 4),
         },
         "last_collection_day_offset": {
             str(k): v for k, v in sorted(last_day_offset.items())
@@ -172,10 +206,13 @@ def measure() -> dict:
             str(h): {"n": len(v), "median_lead": round(st.median(v), 2)}
             for h, v in sorted(by_kickoff_hour.items())
         },
-        "healthy": bool(total and within_close / max(total, 1) >= 0.5),
+        "healthy": bool(started and within_close / denom >= 0.5),
         "note": (
-            "healthy 判据：开赛前 %.0f 小时内有快照的场次 ≥ 50%%（且该场尚未开赛）。"
-            "2026-10-11 基线 3.6%% —— CLV 类实验在此之前不可用。"
+            "healthy 判据：**已开赛**场次里、开赛前 %.0f 小时内有快照的比例 ≥ 50%%。"
+            "2026-10-11 基线 3.6%%；2026-10-22 复核（PR#9 扩 --days 跑满 10 天）3.5%% —— "
+            "扩窗口无效，瓶颈是采集频率（抓赔率只挂在 daily-forecast 上，"
+            "它 24h 实际只跑 12/48 次）。收盘价另有通路：b365/平博 "
+            "（data/state/clv_pinnacle.json，984 注里 258 注可配对）。"
             % CLOSE_WINDOW_H
         ),
     }
@@ -212,8 +249,10 @@ def main() -> int:
     print(f"  末次快照提前(小时)  : 中位 {lt['median_last']} "
           f"(P10 {lt['p10_last']} / P90 {lt['p90_last']})")
     c = rep["closing_coverage"]
-    print(f"\n  ★ 开赛前 {c['window_h']}h 内有快照: {c['n']} ({c['ratio']*100:.1f}%)"
-          f"   ← CLV 可用性的关键指标")
+    print(f"\n  ★ 开赛前 {c['window_h']}h 内有快照: {c['n']}/{c['assessable']} 已开赛 "
+          f"({c['ratio']*100:.1f}%)   ← CLV 可用性的关键指标")
+    print(f"    未开赛 {c['pending_kickoff']} / 末快照在开赛后 {c['post_kickoff_last']} / "
+          f"采集在开赛前就停了 {c['stopped_before_kickoff']}")
     nc = rep["near_close_coverage"]
     print(f"  ★ 开赛前 {nc['window_h']}h 内有快照: {nc['n']} ({nc['ratio']*100:.1f}%)")
     print(f"  健康判定            : {'✓ 健康' if rep['healthy'] else '✗ 不健康'}")
