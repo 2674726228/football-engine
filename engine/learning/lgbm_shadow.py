@@ -47,15 +47,25 @@ def _paired(diffs):
     return m, se, n
 
 
-def build_training_rows(records: list[dict], daily_root: Path) -> list[dict]:
+def build_training_rows(records: list[dict], daily_root: Path,
+                        side_index: dict | None = None) -> list[dict]:
     """从每日 predictions.json 重建 (特征, 标签)。
 
     只用预测时冻结字段，与 serve 端 build_features 同参调用 → 零偏移。
     特征/标签与融合链版本无关，遗留样本同样可用；
     额外标记 _v2（该行 final_prob 是否来自洁净链）供公平对照用。
+
+    侧挂特征与 serve 同源（engine.sources.njstats_side），但多一道 as_of 闸：
+    快照晚于当时的预测时刻就丢弃，否则训练集会学到未来才有的价。
     """
     by_date: dict[str, dict[str, dict]] = {}
     rows = []
+    try:
+        from engine.sources import njstats_side as side_mod
+    except Exception:
+        side_mod = None
+    if side_index is None:
+        side_index = side_mod.build_index() if side_mod else {}
     for r in records:
         d = r.get("date", "")
         if d not in by_date:
@@ -69,6 +79,8 @@ def build_training_rows(records: list[dict], daily_root: Path) -> list[dict]:
         if not p:
             continue
         try:
+            sig = (side_index.get(side_mod.key(p.get("home_team", ""), p.get("away_team", "")))
+                   if side_mod else None)
             feats = build_features(
                 elo_home=float(p.get("elo_home") or 1500),
                 elo_away=float(p.get("elo_away") or 1500),
@@ -77,6 +89,7 @@ def build_training_rows(records: list[dict], daily_root: Path) -> list[dict]:
                 xg_away=p.get("away_xg"),
                 djyy_probs=p.get("djyy_model_prob"),
                 include_market_odds=False,
+                side=sig.features_as_of(p.get("as_of", "")) if sig else None,
             )
         except Exception:
             continue
