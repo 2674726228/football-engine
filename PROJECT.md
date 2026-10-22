@@ -1,8 +1,47 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-21 09:50（复盘方向解析修复：战绩 50%→54%）
-> 在干什么: ① **复盘方向解析静默失败已修**（e088572e1）：challenge_review.py 原来靠
+> 状态: doing　更新: 2026-10-22 10:00（外部审计后修复已全部合入 main：#37 #38 #39 #40 #41）
+> 在干什么: ① **E8 换闸门量纲**：`edge` 档实测**不可达**（7 场对照 P−market_fair 全负，
+>           最大 −0.23pp；10-19 起连续 131 轮零合格），改成
+>           `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），开关在
+>           `data/state/challenge_policy.json` 的 gate_mode，改回 `"edge"` 即停实验。
+>           **赌的是盘口软（站点价比体彩价中位高 11.6%），不是模型变强**；
+>           判定标准已写死进 docs/EXPERIMENTS.md E8 行，不许边跑边改。
+>           ② 三份 njstats 快照（site_odds/my_predictions/community）**从来没被提交过**，
+>           只活在笔记本工作区（duty 的 commit 链原先只认 challenge_state.json）→
+>           抽 `commit_push()` 统一；并把「下单那一刻的站点价」写进 records——
+>           每日快照是覆盖式的，存的是最后一轮的价，不是成交时的价。
+>           ③ PR#9 扩 `--days` 判失败：10 天后收盘覆盖 3.6%→3.5%，真因是采集**次数**
+>           （sina 只挂 daily-forecast，24h 实际 12/48 次）→ fetch_sina_odds 同时挂进 ci-sync。
+>           ④ DJYY：`cf-proxy/worker.js` 一直不透传 X-DJYY-Key、也不读 env.DJYY_KEY，
+>           即文档里的「方案 A」从未实现，生产 job 也没注入 DJYY_KEY。两端已补齐；
+>           但 `proxy_configured: true` 仍 403 → 需要你在 Cloudflare 侧配 secret 并验 Worker 已部署。
+>           ⑤ 删 `harness/`（DeepSeek 值守 agent）——`deepseek_key` 不存在，每轮都走降级分支；
+>           并发锁搬进 `njstats_duty.py`（固定路径 `~/.football-engine/duty.lock`），
+>           launchd 改为直接跑脚本，Qoder 自动化接手「每日 4 次巡检」+「E8 每日对账」。
+> 新坑: ① 本机**没有 gh CLI**，AGENTS.md 里那些 `gh ...` 全跑不了（已改写交付节）。
+>       ② `odds_coverage.not_started_yet` 原先语义与名字相反（它数的是「末快照早于开赛」），
+>          这次复核就是被这个字段名骗过 —— 已拆成 assessable / pending_kickoff /
+>          stopped_before_kickoff / post_kickoff_last。
+>       ③ 站点板 333 场 ∩ 我方预测 13 场 = 可评 10 场：**闸门放开后瓶颈变成覆盖率**；
+>          10-22 那轮新口径只放 1 场。④ `rank_diff` 恒 0（djyy.py 解出了 _rank_home/_rank_away
+>          但 main.py 一个没传）—— 已接，但 lgbm 仍 ready:false，今天不改变任何输出。
+> 下一步: ① 上述五批修复已随 PR #37/#38/#39/#40/#41 合入 main，E8 从下一个整点轮起
+>           按新口径（ev_site 2%~25%）真实攒注——此前所有「零合格」都是 edge 档的结果。
+>         ② E8 攒注：n≥60 或 2026-11-22 收尾；每小时确定性保留在 launchd
+>           （本机合盖会漏轮，10-21 实测 20:00/21:00 零日志）。
+>         ③ 独立信息源整体**卡在 DJYY 恢复**上：context 层是 store-only（72/1163 条带 context，
+>           `FusionInput` 无字段）、雷速/Qwen 新闻（`leisu_intel` 10-11→10-20 每天 0 命中
+>           且 football-engine 无人读，还依赖本机 Chrome 上不了 CI）。
+>           **SportMonks 是付费墙不是代码**：token 本机可读、CI 已挂，但 90 个
+>           `data/state/sportmonks/*_details.json` 全空 `{}`，odds/xg/predictions 未订阅。
+>         ④ 待用户裁决：让球注 records schema（play/line）；`mult()` 赔率档倍数与站点
+>           33 注实盘得分对不上（而排序正在用它）；账本 `djyy_prob` 的 null 是**永久的**
+>           （append 去重、backfill 路径实测 0 行生效）要不要回填 = 改考卷；
+>           社区倾向**不能**接进模型层（docs/CHALLENGE_SUBSYSTEM.md:18 引擎永不读挑战产物，
+>           tests/test_challenge_firewall.py 执法）。
+> 之前: ① **复盘方向解析静默失败已修**（e088572e1）：challenge_review.py 原来靠
 >           子串猜方向（startswith('主胜')/`'负@' in pick`），实测 9 种真实格式
 >           4 种解析失败且**静默返回 None**——None 比 actual_idx 永远 False，
 >           把命中的注算成未中。受影响：胜@2.98(考文垂)、胜@3.3(克拉约瓦)、

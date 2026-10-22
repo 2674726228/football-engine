@@ -1,31 +1,35 @@
 #!/bin/zsh
-# football-engine 值守 agent 统一入口（替代 ZCode 的全部日常交互）
-#   ./fe-agent          → 和 DeepSeek agent 对话（等价于在 ZCode 里跟助手说话）
-#   ./fe-agent seed     → 弹出浏览器播种登录（cookie 过期/失效时跑一次）
-#   ./fe-agent duty     → 手动触发一轮值守（launchd 每小时 :05/:35 自动跑的同款）
-#   ./fe-agent key sk-x → 保存 DeepSeek API key
+# football-engine 值守统一入口
+#   ./fe-agent          → 看一眼值守状态（日志尾部 + 快照新鲜度）
+#   ./fe-agent duty     → 手动触发一轮值守（与 launchd/Qoder 自动化 :05/:35 同款）
+#   ./fe-agent seed     → 弹出浏览器播种登录（session 死透时跑一次）
 #   ./fe-agent ghtoken ghp_x → 保存 GitHub PAT（推云端 secret 用，classic+repo 范围）
+#
+# 2026-10-22：删掉 `./fe-agent` 的 DeepSeek 对话分支与 `key` 子命令。
+# 那条路从来没能跑过——deepseek_key 不存在，run_duty.sh 每轮都在
+# 「无 DeepSeek key，降级跑确定性脚本」分支上；agent 值守改由 Qoder 自动化承担
+# （见 docs/DUTY_RUNBOOK.md）。顺带 `duty` 现在是带并发锁的：锁原先只在
+# 壳脚本里，手动跑等于绕过它撞车。
 cd "$(dirname "$0")" || exit 1
-KEYF=~/.football-engine/deepseek_key
 SESSF=~/.football-engine/njstats_session.json
 case "$1" in
-  key)
-    echo "$2" > "$KEYF" && chmod 600 "$KEYF" && echo "✅ DeepSeek key 已存" ;;
   ghtoken)
-    echo "$2" > ~/.football-engine/github_token && chmod 600 ~/.football-engine/github_token && echo "✅ GitHub token 已存（launchd 推 secret 用）" ;;
+    echo "$2" > ~/.football-engine/github_token && chmod 600 ~/.football-engine/github_token && echo "✅ GitHub token 已存（launchd/自动化 推 secret 用）" ;;
   seed)
     ./.venv/bin/python3 scripts/njstats_seed_login.py ;;
   duty)
-    ./.venv/bin/python3 scripts/njstats_duty.py ;;
-  *)
-    if [[ ! -s $KEYF && -z $DEEPSEEK_API_KEY ]]; then
-      echo "缺 DeepSeek key。两步开机："
-      echo "  1) platform.deepseek.com 建 API key，然后 ./fe-agent key sk-xxxx"
-      echo "  2) 若 mint 报 session 死：./fe-agent seed（弹窗登录一次）"
-      exit 1
-    fi
     if [[ ! -s $SESSF ]]; then
-      echo "⚠ 还没播种登录——值守的 mint 链会报'需播种'。建议先 ./fe-agent seed"
+      echo "⚠ 还没播种登录——mint 会报「需播种」。先跑 ./fe-agent seed"
     fi
-    ./.venv/bin/python3 harness/deepseek_agent.py --chat "$@" ;;
+    ./.venv/bin/python3 scripts/njstats_duty.py ;;
+  status)
+    echo "── duty.log 尾部 ──"; tail -12 ~/.football-engine/duty.log
+    echo "── 快照 ──"; ls -lt data/state/njstats/site_odds data/state/njstats/my_predictions 2>/dev/null | head -6
+    echo "── 闸门口径 ──"; cat data/state/challenge_policy.json 2>/dev/null || echo "（无 policy 文件 = 默认 edge）"
+    echo "── 本周配额 ──"; ./.venv/bin/python3 -c "
+import json;d=json.load(open('data/state/challenge_state.json'))
+print(f\"week={d.get('week')} used={d.get('used')}/{d.get('quota')} records={len(d.get('records',[]))}\")" ;;
+  *)
+    sed -n '2,7p' "$0"
+    echo "── 最近 6 行日志 ──"; tail -6 ~/.football-engine/duty.log ;;
 esac
