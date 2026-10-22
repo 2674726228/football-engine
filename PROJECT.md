@@ -36,6 +36,9 @@
 >           且 football-engine 无人读，还依赖本机 Chrome 上不了 CI）。
 >           **SportMonks 是付费墙不是代码**：token 本机可读、CI 已挂，但 90 个
 >           `data/state/sportmonks/*_details.json` 全空 `{}`，odds/xg/predictions 未订阅。
+>           **NJStats 侧挂特征也已断供**：njstats_features 试用 10-15 到期，10-14 后
+>           无快照（10-21 当天 model_eligible=0）→ E9 已在 EXPERIMENTS.md 标「阻塞」，
+>           解阻只能恢复采集或换源，不降覆盖门槛。
 >         ④ 待用户裁决：让球注 records schema（play/line）；`mult()` 赔率档倍数与站点
 >           33 注实盘得分对不上（而排序正在用它）；账本 `djyy_prob` 的 null 是**永久的**
 >           （append 去重、backfill 路径实测 0 行生效）要不要回填 = 改考卷；
