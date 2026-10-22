@@ -1,46 +1,46 @@
 {
-  "total_matches": 1163,
+  "total_matches": 1170,
   "date_range": [
     "2026-07-19",
     "2026-10-22"
   ],
   "metrics": {
-    "brier": 0.5778,
-    "weighted_brier": 0.5745,
-    "rps": 0.1984,
-    "weighted_rps": 0.1974,
-    "log_loss": 0.9722,
-    "hit_rate": 0.5486,
-    "ece": 0.0839
+    "brier": 0.5772,
+    "weighted_brier": 0.5739,
+    "rps": 0.1983,
+    "weighted_rps": 0.1973,
+    "log_loss": 0.9714,
+    "hit_rate": 0.5496,
+    "ece": 0.0858
   },
   "draw_analysis": {
-    "actual_draws": 280,
-    "actual_draw_rate": 0.2408,
+    "actual_draws": 281,
+    "actual_draw_rate": 0.2402,
     "predicted_draws": 39,
-    "predicted_draw_rate": 0.0335,
+    "predicted_draw_rate": 0.0333,
     "max_draw_prob": 0.5025,
-    "avg_draw_prob": 0.254,
+    "avg_draw_prob": 0.2539,
     "avg_market_draw": 0.2396,
-    "market_high_draw_n": 216,
+    "market_high_draw_n": 217,
     "market_high_draw_actual": 75,
-    "market_high_draw_rate": 0.3472
+    "market_high_draw_rate": 0.3456
   },
   "strategy_comparison": {
     "model": {
-      "hit_rate": 0.546,
-      "n": 1163
+      "hit_rate": 0.547,
+      "n": 1170
     },
     "market": {
-      "hit_rate": 0.5566,
-      "n": 1042
+      "hit_rate": 0.5586,
+      "n": 1049
     },
     "hybrid_v2": {
-      "hit_rate": 0.5058,
-      "n": 1042
+      "hit_rate": 0.5071,
+      "n": 1049
     },
     "market_d28": {
-      "hit_rate": 0.524,
-      "n": 1042
+      "hit_rate": 0.5253,
+      "n": 1049
     }
   },
   "by_league": {
@@ -62,17 +62,17 @@
       "brier": 0.5553,
       "rps": 0.2057
     },
+    "欧罗巴": {
+      "n": 64,
+      "hit_rate": 0.5,
+      "brier": 0.6055,
+      "rps": 0.2283
+    },
     "英超": {
       "n": 63,
       "hit_rate": 0.4762,
       "brier": 0.6137,
       "rps": 0.199
-    },
-    "欧罗巴": {
-      "n": 59,
-      "hit_rate": 0.4915,
-      "brier": 0.6133,
-      "rps": 0.2329
     },
     "德甲": {
       "n": 54,
@@ -241,6 +241,12 @@
       "hit_rate": 1.0,
       "brier": 0.2944,
       "rps": 0.1217
+    },
+    "欧协联": {
+      "n": 4,
+      "hit_rate": 0.75,
+      "brier": 0.5221,
+      "rps": 0.1745
     },
     "韩职": {
       "n": 3,
