@@ -17,11 +17,69 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(ROOT / "scripts"))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 import njstats_api_submit as api  # noqa: E402
+from engine.team_aliases import normalize_team  # noqa: E402
 
 STATE = ROOT / "data" / "state" / "challenge_state.json"
 POLICY = ROOT / "data" / "state" / "challenge_policy.json"
 BJT = timezone(timedelta(hours=8))
+
+# 挑战池译名 → 预测侧译名。池子用全称/异译，竞彩赛程用简称。
+# 只用于挑战匹配，**不写进 engine/team_aliases.py**：那张表是 team_ratings
+# 的键（normalize_team 的输出），改它等于合并 Elo 条目——实测这四个名字
+# 两侧都已有独立 rating（萨迪纳摩 1598 vs 萨格勒布迪纳摩 1648、
+# 利勒斯特伦 1454 vs 利勒斯特罗姆 1493、拉普大学 1679 vs 拉普拉塔大学生
+# 1438），属模型层变更，要动得单独评估，不能混在挑战修复里。
+_POOL_ALIAS = {
+    "萨格勒布迪纳摩": "萨迪纳摩",
+    "OFI克雷迪": "克里特",
+    "利勒斯特罗姆": "利勒斯特伦",
+    "拉普拉塔大学生": "拉普大学",
+}
+# 子串互含必须挡住梯队/女队：10-21 板上同时有「里尔 vs 加拉塔萨雷」和
+# 「里尔U19 vs 加拉塔萨雷U19」，不挡就会把青年队当成同一场（一次两注）。
+_SQUAD_MARKERS = ("B队", "二队", "II队", "U21", "U23", "U20", "U19", "U18",
+                  "U17", "U16", "预备队", "青年队", "卡斯蒂亚", "女足", "女子")
+
+
+def _canon(name: str) -> str:
+    n = normalize_team(name)
+    return _POOL_ALIAS.get(n, n)
+
+
+def _contains(a: str, b: str) -> bool:
+    return bool(a) and bool(b) and (a in b or b in a)
+
+
+def _is_squad_variant(name: str) -> bool:
+    return any(m in name for m in _SQUAD_MARKERS)
+
+
+def match_prediction(pred: dict, home: str, away: str) -> dict | None:
+    """池子 (home, away) → 预测记录。
+
+    顺序：原文精确 → 归一化精确 → 归一化互含（主客同向，B 队不混）。
+    2026-10-22 修：原实现的互含把主客写反了（拿池子主队比预测客队、
+    拿池子客队比预测主队），实际只剩精确匹配。实测 10-22 板 11 场预测
+    只进池 6 场，另 5 场都在板上（4 场是译名差异，1 场子串差异）。
+    """
+    p = pred.get((home, away))
+    if p:
+        return p
+    hn, an = _canon(home), _canon(away)
+    for (ph, pa), pp in pred.items():
+        if hn == _canon(ph) and an == _canon(pa):
+            return pp
+    for (ph, pa), pp in pred.items():
+        phn, pan = _canon(ph), _canon(pa)
+        if not (_contains(hn, phn) and _contains(an, pan)):
+            continue
+        if _is_squad_variant(hn) != _is_squad_variant(phn) or _is_squad_variant(an) != _is_squad_variant(pan):
+            continue
+        return pp
+    return None
 
 
 def mult(o):
@@ -141,6 +199,7 @@ def main() -> int:
 
     cands = []
     near = []  # 临时灌仓通道：-0.5pp ≤ edge < 门槛（CHALLENGE_TOPFILL 启用时按 EV 补足）
+    used_pred = set()  # 同一预测命中多个板条目（梯队/异写）时只取第一条
     for it in items:
         sid, h, a = it.get("sid"), it.get("home"), it.get("away")
         kts = it.get("kick_ts")
@@ -149,14 +208,13 @@ def main() -> int:
         match = f"{h} vs {a}"
         if match in done:
             continue
-        p = pred.get((h, a))
-        if not p:
-            for (ph, pa), pp in pred.items():
-                if h and pa and (h in pa or pa in h) and a and pp and (a in ph or ph in a):
-                    p = pp
-                    break
+        p = match_prediction(pred, h, a)
         if not p:
             continue
+        pk = (p.get("home_team"), p.get("away_team"))
+        if pk in used_pred:
+            continue
+        used_pred.add(pk)
         fp = [p.get("home_win_prob"), p.get("draw_prob"), p.get("away_win_prob")]
         mf, odds = p.get("market_fair"), [p.get("home_odds"), p.get("draw_odds"), p.get("away_odds")]
         if None in fp or not mf or not odds[0]:
