@@ -191,7 +191,25 @@ jobs:
 
           print()
           print("=" * 50)
-          print("6. RUNNER IP INFO")
+          print("6. ZHIBO8 NEWS (news.zhibo8.com)")
+          print("=" * 50)
+          # 2026-10-23：赛前情报采集源。GitHub runner 在海外，先验证可达性，
+          # 不通则采集必须放回 Mac duty（住宅网络），与本机探测结果分开看。
+          code, body = curl(
+              "https://news.zhibo8.com/zuqiu/",
+              {"User-Agent": UA, "Referer": "https://news.zhibo8.com/"}
+          )
+          print(f"HTTP: {code}")
+          if code == "200":
+              text = body.decode("utf-8", errors="replace")
+              n = len(re.findall(r'href="//news\.zhibo8\.com/zuqiu/\d{4}-\d{2}-\d{2}/', text))
+              print(f"OK - article links: {n}")
+          else:
+              print(f"BLOCKED! Body: {body[:300]}")
+
+          print()
+          print("=" * 50)
+          print("7. RUNNER IP INFO")
           print("=" * 50)
           code, body = curl("https://ipinfo.io/json")
           if code == "200":
