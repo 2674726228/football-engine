@@ -170,6 +170,17 @@ jobs:
               pass
           EOF
 
+      - name: 挑战实验对账（数据兜底，无需 JWT）
+        # 本机 22:40 的对账在电脑关机/休眠时不会跑；这里只读仓库已入库的数据
+        # （state records + results_sina + 最近一份「已预测」快照）给一份兜底。
+        # 实时服务端真值与零合格归因（duty.log）仍只在 Mac 侧，脚本头部已声明。
+        run: |
+          {
+            echo "## E8/E10 对账（数据兜底）"
+            python scripts/challenge_reconcile.py \
+              || echo "::warning::挑战对账失败（只影响这份报告，不影响预测/结算）"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       # 2026-10-11：刷新评估类报告。
       #
       # 此前 upgrade_tracker / edge_calibration / config_audit **没有任何 workflow
