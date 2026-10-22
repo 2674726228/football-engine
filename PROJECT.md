@@ -1,7 +1,7 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-22 15:55（E8 截止风险预登记解除）
+> 状态: doing　更新: 2026-10-22 16:25（SportMonks 裁决不订阅，登录页已关）
 > 在干什么: ① **E8 换闸门量纲**：`edge` 档实测**不可达**（7 场对照 P−market_fair 全负，
 >           最大 −0.23pp；10-19 起连续 131 轮零合格），改成
 >           `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），开关在
@@ -61,6 +61,9 @@
 >           且 football-engine 无人读，还依赖本机 Chrome 上不了 CI）。
 >           **SportMonks 是付费墙不是代码**：token 本机可读、CI 已挂，但 90 个
 >           `data/state/sportmonks/*_details.json` 全空 `{}`，odds/xg/predictions 未订阅。
+>           **2026-10-22 裁决：不订阅、不接生产**——现有 token 仅见丹麦超/苏超 4 个联赛，
+>           xG 403、Pinnacle 赔率/predictions 拿不到；且 DJYY 后端同为 SportMonks，
+>           快照已覆盖 Pinnacle 赔率+模型概率，试用到期即断供。登录页已关闭。
 >           **NJStats 侧挂特征也已断供**：njstats_features 试用 10-15 到期，10-14 后
 >           无快照（10-21 当天 model_eligible=0）→ E9 已在 EXPERIMENTS.md 标「阻塞」，
 >           解阻只能恢复采集或换源，不降覆盖门槛。
