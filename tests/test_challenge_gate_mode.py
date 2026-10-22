@@ -43,7 +43,7 @@ def _setup(tmp_path, monkeypatch, matches, policy=None, site_odds=True):
               "home_win_prob": m["p"], "draw_prob": 0.2,
               "away_win_prob": 1 - m["p"] - 0.2,
               "market_fair": [m["p"] - m["edge"], 0.2, 1 - m["p"] - 0.2 + m["edge"]],
-              "home_odds": 2.0, "draw_odds": 3.5, "away_odds": 3.5}
+              "home_odds": m.get("sp", 2.0), "draw_odds": 3.5, "away_odds": 3.5}
              for m in matches]
     (d / "predictions.json").write_text(json.dumps({"predictions": preds}), encoding="utf-8")
     monkeypatch.setattr(ch, "ROOT", tmp_path)
@@ -135,3 +135,31 @@ def test_zero_output_names_the_caliber(tmp_path, monkeypatch, capsys):
     ch.main()
     out = capsys.readouterr().out
     assert "ev_site" in out and "2.0%" in out, f"实际输出：{out}"
+
+
+def test_zero_output_attributes_match_and_candidate_counts(tmp_path, monkeypatch, capsys):
+    """E8 护栏②归因：零合格时要能看出匹配几场、候选几场、最高 EV 多少。"""
+    _setup(tmp_path, monkeypatch,
+           [{"sid": "HHHh", "home": "帕尔马", "away": "都灵", "p": 0.50, "edge": -0.01, "site": 1.90}],
+           policy={"gate_mode": "ev_site", "ev_floor": 0.02})
+    ch.main()
+    out = capsys.readouterr().out
+    assert "/匹配1" in out and "/候选1" in out and "最高-5.00%" in out, f"实际输出：{out}"
+
+
+def test_zero_output_names_floor_blocked_opportunity(tmp_path, monkeypatch, capsys):
+    """体彩价<1.60 被旧筛挡住、但站点 EV 达标的场次必须留痕。
+
+    10-22 实盘：萨迪纳摩 vs 奈梅亨 体彩 1.42、站点 1.62、P≈0.647 → ev_site +4.8%。
+    不改变投注面（仍不投），只让 E8 的抽样偏差在每轮日志里可见。
+    """
+    _, submitted = _setup(
+        tmp_path, monkeypatch,
+        [{"sid": "IIIi", "home": "萨迪纳摩", "away": "奈梅亨", "p": 0.647,
+          "edge": -0.0042, "site": 1.62, "sp": 1.42}],
+        policy={"gate_mode": "ev_site", "ev_floor": 0.02})
+    ch.main()
+    out = capsys.readouterr().out
+    assert submitted == [], "诊断不得改变投注面"
+    assert "/候选0" in out, f"体彩 1.42 必须仍被旧筛挡住：{out}"
+    assert "/价筛外1场达标最高+4.8" in out and "萨迪纳摩" in out, f"实际输出：{out}"

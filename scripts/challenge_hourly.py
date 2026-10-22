@@ -200,6 +200,9 @@ def main() -> int:
     cands = []
     near = []  # 临时灌仓通道：-0.5pp ≤ edge < 门槛（CHALLENGE_TOPFILL 启用时按 EV 补足）
     used_pred = set()  # 同一预测命中多个板条目（梯队/异写）时只取第一条
+    n_match = n_cand = 0
+    best_ev = None
+    floor_hits = []  # 体彩价<1.60 但站点EV达标的场次，仅用于日志归因
     for it in items:
         sid, h, a = it.get("sid"), it.get("home"), it.get("away")
         kts = it.get("kick_ts")
@@ -215,13 +218,14 @@ def main() -> int:
         if pk in used_pred:
             continue
         used_pred.add(pk)
+        n_match += 1
         fp = [p.get("home_win_prob"), p.get("draw_prob"), p.get("away_win_prob")]
         mf, odds = p.get("market_fair"), [p.get("home_odds"), p.get("draw_odds"), p.get("away_odds")]
         if None in fp or not mf or not odds[0]:
             continue
         sel = max(range(3), key=lambda i: fp[i])
         o, P = odds[sel], fp[sel]
-        if not o or o < 1.60:
+        if not o:
             continue
         e = P - mf[sel]
         site = it.get("odds")
@@ -230,6 +234,17 @@ def main() -> int:
         # 上界护栏：外部盘口的解析出过错（f1 选项码不跨场次同义那类），
         # 站点价软到 EV>25% 不会是价值，是脏数据。实测今天最高 +6.9%。
         ev_ok = ev_site is not None and ev_floor <= ev_site <= 0.25
+        # 体彩价 <1.60 直接丢弃是 edge 时代留下的筛子。ev_site 口径下它会
+        # 系统性偏掉抽样：站点价对体彩价有约 11% 溢价，低价热门换到站点价
+        # 正好落在正 EV 区（10-21/10-22 两天被它挡掉 4 场达标注，最高 +15.6%）。
+        # 这里只在日志留档，不改投注面——改抽样要另立实验（见 PROJECT.md）。
+        if o < 1.60:
+            if ev_ok:
+                floor_hits.append((match, o, ev_site))
+            continue
+        n_cand += 1
+        if ev_site is not None and (best_ev is None or ev_site > best_ev):
+            best_ev = ev_site
         qualified = ev_ok if gate_mode == "ev_site" else e >= g
         rec = {"sid": sid, "match": match, "dir": sel, "p": P, "mkt_p": mf[sel],
                "edge": e, "odds": o, "site_odds": o_site, "ev_site": ev_site,
@@ -258,7 +273,13 @@ def main() -> int:
             picked.append(c)
     if not picked:
         thr = ev_floor if gate_mode == "ev_site" else g
-        print(f"challenge: 零合格（{gate_mode} 门槛{thr:.1%}/池{len(items)}）——正常")
+        diag = f"/匹配{n_match}/候选{n_cand}"
+        if best_ev is not None:
+            diag += f"/最高{best_ev:+.2%}"
+        if gate_mode == "ev_site" and floor_hits:
+            fm, fo, fev = max(floor_hits, key=lambda x: x[2])
+            diag += f"/价筛外{len(floor_hits)}场达标最高{fev:+.2%}({fm}@体彩{fo:.2f})"
+        print(f"challenge: 零合格（{gate_mode} 门槛{thr:.1%}/池{len(items)}{diag}）——正常")
         return 0
     ok_n = 0
     for c in picked:
@@ -284,7 +305,8 @@ def main() -> int:
     st["used"] += ok_n
     STATE.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
     thr = ev_floor if gate_mode == "ev_site" else g
-    print(f"challenge: 提交 {ok_n} 注 → {st['used']}/{st['quota']} {gate_mode} 门槛{thr:.1%}")
+    print(f"challenge: 提交 {ok_n} 注 → {st['used']}/{st['quota']} {gate_mode} 门槛{thr:.1%}"
+          f"（匹配{n_match}/候选{n_cand}）")
     return 0
 
 
