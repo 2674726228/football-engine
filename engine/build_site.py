@@ -3255,6 +3255,45 @@ def _ticket_section(ticket, predictions, st_index=None):
   </div>"""
 
 
+def _site_spf_status(predictions):
+    """竞彩胜平负在售状态：({match_id: "ok"|"no_spf"}, 有快照的日期集合)。
+
+    数据源是 duty 入库的站点板快照（odds 三位齐全才算在售）。匹配复用挑战侧的
+    match_prediction——「同场」的定义必须和提交/结算侧一致，不能另造一套。
+    只用于页面标注（issue #1），不参与选腿/EV/账本。
+    """
+    status, dates = {}, set()
+    try:
+        from scripts.challenge_hourly import match_prediction
+    except Exception:
+        return status, dates
+    by_date = {}
+    for p in predictions or []:
+        mid = str(p.get("match_id") or "")
+        if len(mid) >= 10:
+            by_date.setdefault(mid[:10], []).append(p)
+    for d, preds in by_date.items():
+        f = ROOT / "data" / "state" / "njstats" / "site_odds" / f"{d}.json"
+        if not f.exists():
+            continue
+        try:
+            snap = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        dates.add(d)
+        index = {(p.get("home_team", ""), p.get("away_team", "")): p for p in preds}
+        for m in snap.get("matches") or []:
+            p = match_prediction(index, m.get("home", ""), m.get("away", ""))
+            if not p:
+                continue
+            odds = m.get("odds") or []
+            ok = (len(odds) >= 3
+                  and all(isinstance(o, (int, float)) and o > 1.0 for o in odds[:3]))
+            mid = p.get("match_id")
+            status[mid] = "ok" if ok or status.get(mid) == "ok" else "no_spf"
+    return status, dates
+
+
 def _parlay_section(ticket, predictions, st_index=None):
     """串关方案（2026-08-08 新增；2026-08-13 用户确认保留——竞彩主流玩法）。
 
@@ -3274,6 +3313,15 @@ def _parlay_section(ticket, predictions, st_index=None):
         return ""
 
     sel_map = {"home": "主胜", "draw": "平局", "away": "客胜"}
+    spf_status, snap_dates = _site_spf_status(predictions)
+
+    def _ticket_state(t):
+        legs = t.get("legs") or []
+        dates = {str(lg.get("match_id", ""))[:10] for lg in legs}
+        if not (dates & snap_dates):
+            return "unverified"          # 没有当日快照：无法验证，保持原标注
+        ok = bool(legs) and all(spf_status.get(lg.get("match_id")) == "ok" for lg in legs)
+        return "ok" if ok else "reference"
 
     def _legs_html(t):
         html = ""
@@ -3291,20 +3339,37 @@ def _parlay_section(ticket, predictions, st_index=None):
                 _prob_label = (f"{lg.get('prob', 0)*100:.0f}%→{(_hp or _cp or 0)*100:.0f}%"
                                if _hp or _cp else f"{lg.get('prob', 0)*100:.0f}%")
                 _src_badge = '<span class="pick-val home" style="font-size:.7em;margin-right:4px">模型</span>'
+            _st = spf_status.get(lg.get("match_id"))
+            _leg_date = str(lg.get("match_id", ""))[:10]
+            if _st == "no_spf":
+                _st_badge = ('<span class="pick-val draw" style="font-size:.68em;margin-left:4px" '
+                             'title="站点快照显示该场胜平负未开售；此处是参考盘口赔率，不可按此投注">'
+                             '竞彩未开售</span>')
+            elif _st is None and _leg_date in snap_dates:
+                _st_badge = ('<span class="pick-val draw" style="font-size:.68em;margin-left:4px" '
+                             'title="站点快照中找不到该场，无法确认竞彩在售；按参考盘口展示">'
+                             '未确认在售</span>')
+            else:
+                _st_badge = ""
             html += (f'<div class="ticket-item"><span class="ti-match"><span class="jc-no" '
                      f'style="font-size:.62rem;padding:1px 5px;margin-right:4px">{_jc_no(lg.get("match", ""))}</span>'
                      f'{_src_badge}{lg.get("home", "")} vs '
                      f'{lg.get("away", "")} <span style="opacity:.6">[{lg.get("league", "")}]</span> '
                      f'<span class="pick-val {"home" if sel=="home" else ("draw" if sel=="draw" else "away")}" '
                      f'style="font-size:.8em">{sel_map.get(sel, sel)} {_prob_label}</span></span>'
-                     f'<span class="ti-odds">@{lg.get("odds", 0):.2f}</span></div>')
+                     f'<span class="ti-odds">@{lg.get("odds", 0):.2f}</span>{_st_badge}</div>')
         return html
 
     def _ticket_html(t):
-        rec = t.get("recommended", False)
+        state = _ticket_state(t)
+        rec = t.get("recommended", False) and state != "reference"
         src = t.get("source", "calibrated")
         ptype = t.get("type", "")
-        if rec:
+        if t.get("recommended") and state == "reference":
+            badge = ('<span class="pick-val draw" style="font-size:.75em" '
+                     'title="含竞彩未开售/未确认在售的腿；EV 按参考盘口计算，系统不据此出注">'
+                     '⚠ 仅参考·竞彩未确认在售</span>')
+        elif rec:
             badge = '<span class="pick-val home" style="font-size:.75em">⭐ 正EV 推荐</span>'
         elif src == "market":
             badge = ('<span class="pick-val draw" style="font-size:.75em" '
@@ -3312,6 +3377,9 @@ def _parlay_section(ticket, predictions, st_index=None):
         else:
             badge = ('<span class="pick-val draw" style="font-size:.75em" '
                      'title="校准后负EV，系统不据此出注">⚠ 负EV</span>')
+        _card_style = ("border-color:var(--green)" if rec
+                       else "border-color:#e6a23c;opacity:.9" if state == "reference"
+                       else "border-color:var(--red);opacity:.85")
         # 市场腿串票用市场口径 ROI 标注（诚实），推荐串用校准口径
         ev = t.get("cal_ev", 0)
         if src == "market" and not rec:
@@ -3325,7 +3393,7 @@ def _parlay_section(ticket, predictions, st_index=None):
                    f'<div class="ts-val" style="color:{("var(--green)" if ev > 0 else "var(--red)")}">'
                    f'{"+" if ev > 0 else ""}{ev:.1f}元 ({roi:+.0%})</div></span>')
         return f"""
-    <div class="ticket-card" style="{'border-color:var(--green)' if rec else 'border-color:var(--red);opacity:.85'}">
+    <div class="ticket-card" style="{_card_style}">
       <h4 class="{'stable' if rec else 'lottery'}" style="display:flex;justify-content:space-between;align-items:center">
         <span>{ptype} {badge}{_settle_badge((st_index or {}).get(_tk_key(t)), t.get('stake', 0))}</span>
         <span style="font-size:.7rem;opacity:.7">全中@{t.get('total_odds', 0):.2f} · 实际命中率 {t.get('hit_prob_cal', 0)*100:.0f}%</span>
@@ -3374,9 +3442,18 @@ def _parlay_section(ticket, predictions, st_index=None):
   </div>"""
 
     cards = "".join(_ticket_html(t) for t in parlay)
-    n_rec = sum(1 for t in parlay if t.get("recommended"))
+    states = [_ticket_state(t) for t in parlay]
+    n_rec = sum(1 for t, s in zip(parlay, states)
+                if t.get("recommended") and s != "reference")
+    n_ref = sum(1 for t, s in zip(parlay, states)
+                if t.get("recommended") and s == "reference")
     _parlay_total = sum(t.get("stake", 0) for t in parlay)
-    _parlay_label = f"· {n_rec} 张推荐" if n_rec else ""
+    _parts = []
+    if n_rec:
+        _parts.append(f"{n_rec} 张推荐")
+    if n_ref:
+        _parts.append(f"{n_ref} 张仅参考")
+    _parlay_label = ("· " + " · ".join(_parts)) if _parts else ""
     _parlay_label += f" · 投入¥{_parlay_total:.2f}"
     # 2026-08-30: 已结算时标题直接给战绩汇总
     _pw = _pl = 0
@@ -3394,8 +3471,12 @@ def _parlay_section(ticket, predictions, st_index=None):
         _pnet_str = f"{_pnet:+.0f}".replace("+", "+")
         _parlay_label += (f' · 已结算 <span style="color:{("var(--green)" if _pnet >= 0 else "var(--red)")}'
                           f'">中{_pw} 亏{_pl} 净{_pnet_str}元</span>')
+    _spf_note = ("在售状态以站点赔率快照为准；标「仅参考」的串票含竞彩未开售/未确认在售的腿"
+                 if snap_dates else
+                 "⚠ 今日未找到站点赔率快照，「竞彩在售」未验证；串票按参考盘口展示")
     return f"""
   <div class="section-title">串关方案（过关玩法）{_parlay_label}</div>
+  <div style="font-size:.7rem;opacity:.6;margin:2px 0 8px">{_spf_note}</div>
   <div class="ticket-grid">{cards}</div>
   {cal_html}"""
 
