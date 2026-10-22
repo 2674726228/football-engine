@@ -39,6 +39,22 @@ _A_RE = re.compile(
     r'<a[^>]+href="(//news\.zhibo8\.com/zuqiu/(\d{4}-\d{2}-\d{2})/[^"]+)"[^>]*>(.*?)</a>',
     re.S,
 )
+_INJURY_RE = re.compile(
+    r"伤|缺阵|停赛|复出|报销|伤愈|大名单|首发|阵容|替补|轮换|禁赛|红牌|手术|拉伤|肌肉|脚踝|膝"
+)
+_TRANSFER_RE = re.compile(
+    r"转会|报价|谈判|签约|目标|有意|传闻|绯闻|续约|解约|租借|挖角|冬窗|夏窗|引援|关注"
+)
+KIND_ORDER = {"injury": 0, "other": 1, "transfer": 2}
+
+
+def classify(title: str) -> str:
+    """伤病/首发优先于转会传闻；剩下的是前瞻/战报等。"""
+    if _INJURY_RE.search(title):
+        return "injury"
+    if _TRANSFER_RE.search(title):
+        return "transfer"
+    return "other"
 
 
 def fetch_html(url: str = SOURCE_URL, timeout: int = 15) -> str:
@@ -115,8 +131,11 @@ def match_items(items: list[dict], predictions: list[dict], target: str,
         if not teams:
             continue
         mids = sorted({m for t in teams for m in by_team.get(t, []) if m})
-        matched.append({**it, "teams": teams, "match_ids": mids})
+        matched.append({**it, "teams": teams, "match_ids": mids,
+                        "kind": classify(it["title"])})
+    # 最新在前，再按类别稳定排序：伤病/首发 → 其他 → 转会传闻
     matched.sort(key=lambda x: (x["date"], x["title"]), reverse=True)
+    matched.sort(key=lambda x: KIND_ORDER.get(x["kind"], 1))
     return matched[:limit]
 
 
@@ -141,11 +160,13 @@ def main(argv=None) -> int:
 
     items = parse_list(page)
     matched = match_items(items, preds, args.date)
+    counts = {k: sum(1 for x in matched if x["kind"] == k) for k in KIND_ORDER}
     out = {
         "generated_at": datetime.now(BJT).strftime("%Y-%m-%d %H:%M:%S"),
         "source": SOURCE_NAME,
         "source_url": SOURCE_URL,
         "total_scanned": len(items),
+        "counts": counts,
         "items": matched,
     }
     out_file = ROOT / "data" / "daily" / args.date / "news.json"

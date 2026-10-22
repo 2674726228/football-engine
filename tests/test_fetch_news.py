@@ -46,6 +46,21 @@ def test_match_uses_aliases_and_date_window():
     assert "伯恩茅斯" in first["teams"]
 
 
+def test_classify_and_kind_sort():
+    assert fn.classify("尤文伤情：主力缺阵，首发存疑") == "injury"
+    assert fn.classify("尤文有意签下前锋，谈判中") == "transfer"
+    assert fn.classify("尤文vs雷恩前瞻") == "other"
+    preds = [{"match_id": "m1", "home_team": "尤文图斯", "away_team": "雷恩"}]
+    items = [
+        {"date": "2026-10-22", "title": "尤文有意签下前锋",
+         "url": "https://news.zhibo8.com/zuqiu/2026-10-22/a.htm"},
+        {"date": "2026-10-22", "title": "尤文伤情：主力缺阵",
+         "url": "https://news.zhibo8.com/zuqiu/2026-10-22/b.htm"},
+    ]
+    got = fn.match_items(items, preds, "2026-10-22")
+    assert [x["kind"] for x in got] == ["injury", "transfer"], "伤病/首发必须排前"
+
+
 def test_main_writes_file(tmp_path, monkeypatch):
     monkeypatch.setattr(fn, "ROOT", tmp_path)
     monkeypatch.setattr(fn, "fetch_html", lambda *a, **k: PAGE)
@@ -58,6 +73,7 @@ def test_main_writes_file(tmp_path, monkeypatch):
     assert out["source_url"].endswith("/zuqiu/")
     assert out["total_scanned"] == 3
     assert out["items"] and out["items"][0]["teams"]
+    assert set(out["counts"]) == {"injury", "other", "transfer"}
 
 
 def test_fetch_failure_does_not_overwrite(tmp_path, monkeypatch, capsys):

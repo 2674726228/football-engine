@@ -3303,32 +3303,44 @@ def _news_section(today):
     """赛前情报：第三方新闻标题（store-only，不进模型/账本）。
 
     issue #1 与新闻源同一原则：外链内容只做展示，不做投注依据；
-    标题来自外部，必须转义后再进 HTML。
+    标题来自外部，必须转义后再进 HTML。伤病/首发类排在最前。
     """
     f = ROOT / "data" / "daily" / today / "news.json"
     try:
         d = json.loads(f.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return ""
+    _order = {"injury": 0, "other": 1, "transfer": 2}
+    _kind = {"injury": ("伤病/首发", "#e6a23c"), "transfer": ("转会", "#909399")}
+    items = sorted(d.get("items") or [],
+                   key=lambda x: _order.get(x.get("kind") or "other", 1))
     rows = []
-    for it in (d.get("items") or [])[:12]:
+    for it in items[:12]:
         url = str(it.get("url") or "")
         if not url.startswith("https://news.zhibo8.com/"):
             continue
         title = _esc(str(it.get("title") or ""))
         teams = _esc("、".join((it.get("teams") or [])[:3]))
+        _label, _color = _kind.get(it.get("kind") or "other", ("", ""))
+        badge = (f'<span style="font-size:.68em;color:{_color};border:1px solid {_color};'
+                 f'border-radius:3px;padding:0 4px;margin-right:4px">{_label}</span>'
+                 if _label else "")
         rows.append(
-            f'<li style="margin:3px 0"><a href="{_esc(url)}" target="_blank" '
+            f'<li style="margin:3px 0">{badge}<a href="{_esc(url)}" target="_blank" '
             f'rel="noopener noreferrer">{title}</a>'
             f'<span style="opacity:.55;font-size:.72em;margin-left:6px">{teams}</span></li>'
         )
     if not rows:
         return ""
+    counts = d.get("counts") or {}
+    _count_txt = (" · ".join(f"{k} {counts[k]}" for k in ("injury", "transfer", "other")
+                             if counts.get(k)))
     return f"""
   <div class="section-title">赛前情报（第三方新闻）</div>
   <div class="ticket-card" style="opacity:.95">
     <div style="font-size:.72rem;opacity:.65;margin-bottom:4px">
-      来源：{_esc(str(d.get('source') or ''))} · 抓取于 {_esc(str(d.get('generated_at') or ''))} ·
+      来源：{_esc(str(d.get('source') or ''))} · 抓取于 {_esc(str(d.get('generated_at') or ''))}
+      {(' · ' + _esc(_count_txt)) if _count_txt else ''} ·
       按预测队名关键词自动匹配，未经核实，不构成投注建议。
     </div>
     <ul style="margin:4px 0 0 16px;padding:0;font-size:.82rem">{''.join(rows)}</ul>
