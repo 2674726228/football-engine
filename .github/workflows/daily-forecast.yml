@@ -202,7 +202,12 @@ jobs:
             echo "::error::检测到冲突标记残留（web/ 或 data/），中止提交，避免污染线上"
             exit 1
           fi
+          # 2026-10-22：rho MLE 在 settlement 里每轮写回 config/prediction.json，
+          # 但这里原先只 add data/ web/，而 Actions 工作区是临时的 → 写回永远丢失，
+          # 线上 rho 自 10-12 起停在 -0.0748（实测当前拟合 -0.0711）。只加这一份
+          # 配置，不整目录 add——evolution-loop 也会改 config，提交范围要各自明确。
           git add data/ web/
+          if [ -f config/prediction.json ]; then git add config/prediction.json; fi
           if git diff --cached --quiet; then
             echo "无变更，跳过提交"
             exit 0
