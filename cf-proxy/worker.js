@@ -48,6 +48,70 @@ export default {
       return Response.json({ status: 'ok', timestamp: Date.now() });
     }
 
+    // 上游挑战归因用：只有 env.DJYY_DIAG=1 时开放，平时 404。
+    // 2026-10-22 的探针显示同一次 Worker 调用里 3 次重试全 403（IAD），
+    // 需要区分「header/缺 cookie」与「出口 IP 被判定为 bot」。
+    if (url.pathname === '/api/djyy/_diag') {
+      if (!env || env.DJYY_DIAG !== '1') {
+        return Response.json({ error: 'not_found' }, { status: 404 });
+      }
+      const mode = url.searchParams.get('mode') || 'api';
+      const n = Math.min(Math.max(parseInt(url.searchParams.get('n') || '3', 10) || 3, 1), 8);
+      const delayMs = Math.min(Math.max(parseInt(url.searchParams.get('delay') || '0', 10) || 0, 0), 10000);
+      const d0 = new Date().toISOString().slice(0, 10);
+      const d1 = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+      const apiPath = `/api/leagues/fixtures?date_from=${d0}&date_to=${d1}&category=tier1%2Beuro%2Btier2%2Bother%2Bworld`;
+
+      const jsonH = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+          + 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Referer': 'https://djyylive.com/',
+      };
+      const navH = {
+        'User-Agent': jsonH['User-Agent'],
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': jsonH['Accept-Language'],
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+      };
+
+      const out = { colo: (request.cf && request.cf.colo) || null, mode, runs: [], cookies: [] };
+      let cookie = '';
+      try {
+        if (mode === 'cookie' || mode === 'home') {
+          const hr = await fetch(`${DJYY_UPSTREAM}/`, { headers: navH, redirect: 'manual' });
+          const sc = hr.headers.getSetCookie ? hr.headers.getSetCookie() : [];
+          out.home = { status: hr.status, setCookieCount: sc.length };
+          out.cookies = sc.map(c => c.split(';')[0]);
+          cookie = out.cookies.join('; ');
+          await hr.body?.cancel();
+        }
+        for (let i = 0; i < n; i++) {
+          const t0 = Date.now();
+          const h = { ...jsonH };
+          if (cookie) h['Cookie'] = cookie;
+          const r = await fetch(`${DJYY_UPSTREAM}${apiPath}`, { headers: h });
+          const text = await r.text();
+          out.runs.push({
+            status: r.status,
+            ms: Date.now() - t0,
+            mitigated: r.headers.get('cf-mitigated'),
+            cfRay: r.headers.get('cf-ray'),
+            body: text.slice(0, 80),
+          });
+          if (i < n - 1 && delayMs) {
+            await new Promise(res => setTimeout(res, delayMs));
+          }
+        }
+      } catch (err) {
+        out.error = err.message;
+      }
+      return Response.json(out, { headers: { 'X-Proxy': 'cf-worker-djyy-diag', 'Cache-Control': 'no-store' } });
+    }
+
     // 代理 DJYY: /api/djyy/... → djyylive.com/...
     // 存在的唯一理由：djyylive.com 的 Cloudflare 对 GitHub Actions IP 返回 403
     // （Bot Fight Mode 挑战页），而 Cloudflare→Cloudflare 不触发。
