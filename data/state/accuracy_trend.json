@@ -1,16 +1,16 @@
 {
   "generated_at": "2026-10-22",
-  "total_matches": 1158,
+  "total_matches": 1163,
   "date_range": [
     "2026-07-19",
-    "2026-10-21"
+    "2026-10-22"
   ],
   "overall": {
-    "hit_rate": 0.5475,
-    "brier_final": 0.5763,
-    "brier_model": 0.6151,
-    "brier_market": 0.5672,
-    "brier_djyy": 0.6184
+    "hit_rate": 0.546,
+    "brier_final": 0.5778,
+    "brier_model": 0.6156,
+    "brier_market": 0.5694,
+    "brier_djyy": 0.6215
   },
   "daily": [
     {
@@ -1104,21 +1104,33 @@
       "brier_market": 0.5949,
       "brier_djyy": null,
       "pnl": 0.0
+    },
+    {
+      "date": "2026-10-22",
+      "n": 5,
+      "hits": 1,
+      "hit_rate": 0.2,
+      "cum_hit_rate": 0.546,
+      "brier_final": 0.918,
+      "brier_model": 0.7393,
+      "brier_market": 1.1531,
+      "brier_djyy": 0.7976,
+      "pnl": 0.0
     }
   ],
   "rolling7": {
-    "n": 110,
-    "hit_rate": 0.6091,
-    "brier_final": 0.5644,
+    "n": 102,
+    "hit_rate": 0.598,
+    "brier_final": 0.6221,
     "pnl": 0.0
   },
   "prev7": {
-    "n": 111,
-    "hit_rate": 0.5766,
-    "brier_final": 0.5448,
+    "n": 118,
+    "hit_rate": 0.5763,
+    "brier_final": 0.5384,
     "pnl": 0.0
   },
-  "verdict": "命中率提升 +3pt",
+  "verdict": "持平（±3pt 内）",
   "by_league": [
     {
       "layer": "西甲",
@@ -1146,9 +1158,9 @@
     },
     {
       "layer": "欧罗巴",
-      "n": 54,
-      "hit_rate": 0.5185,
-      "brier_final": 0.5851
+      "n": 59,
+      "hit_rate": 0.4915,
+      "brier_final": 0.6133
     },
     {
       "layer": "德甲",
@@ -1412,9 +1424,9 @@
     },
     {
       "layer": "L1 大热(<1.5)",
-      "n": 53,
-      "hit_rate": 0.7736,
-      "brier_final": 0.3809
+      "n": 57,
+      "hit_rate": 0.7368,
+      "brier_final": 0.417
     },
     {
       "layer": "3.0+",
@@ -1430,9 +1442,9 @@
     },
     {
       "layer": "L2 热(1.5-1.8)",
-      "n": 33,
-      "hit_rate": 0.4848,
-      "brier_final": 0.6549
+      "n": 34,
+      "hit_rate": 0.4706,
+      "brier_final": 0.6653
     },
     {
       "layer": "L4 冷(2.2-3.0)",
@@ -1450,9 +1462,9 @@
     },
     {
       "layer": "high",
-      "n": 402,
-      "hit_rate": 0.6766,
-      "brier_final": 0.4754
+      "n": 407,
+      "hit_rate": 0.6708,
+      "brier_final": 0.4809
     },
     {
       "layer": "low",
