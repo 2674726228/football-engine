@@ -37,17 +37,6 @@ _SSL_CTX = ssl.create_default_context()
 _SSL_CTX.check_hostname = False
 _SSL_CTX.verify_mode = ssl.CERT_NONE
 
-# 显式禁用系统代理：macOS 的 urllib 会自动读系统代理（本机 127.0.0.1:7897），
-# 把 duty 想要的「住宅 IP 直连」悄悄变成走代理——2026-10-23 00:10 实测抓到
-# 7897 连接，同一首页直连 1.6s / 代理 3.9s。DJYY_PROXY 是 Worker 地址而非
-# 网络代理，同样不该再叠一层系统代理。
-_OPENER = urllib.request.build_opener(
-    # 空 dict 的 ProxyHandler 只用来让 build_opener 跳过默认代理处理器；
-    # 它自身没有 *_open 方法，不会被注册——净效果就是「不代理」。
-    urllib.request.ProxyHandler({}),
-    urllib.request.HTTPSHandler(context=_SSL_CTX),
-)
-
 
 # 2026-10-22：djyylive 的 Cloudflare 挑战是间歇性的（CI 实测 6 次里 2 次 403），
 # 单次请求等于把整份快照押在骰子上。403/429/5xx 属于"过一会儿可能就好"，
@@ -76,7 +65,7 @@ def _fetch_json(url: str, timeout: int = 15, attempts: int = _ATTEMPTS) -> dict 
     for i in range(attempts):
         req = urllib.request.Request(url, headers=_headers())
         try:
-            with _OPENER.open(req, timeout=timeout) as resp:
+            with urllib.request.urlopen(req, timeout=timeout, context=_SSL_CTX) as resp:
                 return json.loads(resp.read().decode("utf-8", errors="replace"))
         except urllib.error.HTTPError as e:
             last = f"HTTP {e.code}"
