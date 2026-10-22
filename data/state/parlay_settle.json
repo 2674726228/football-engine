@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-22T15:17:58.530295+00:00",
+  "generated_at": "2026-10-22T17:35:02.242181+00:00",
   "parlay": {
     "n_tickets": 121,
     "n_pending": 0,
@@ -31,14 +31,14 @@
     }
   },
   "score_parlay": {
-    "n_tickets": 220,
-    "n_pending": 0,
+    "n_tickets": 221,
+    "n_pending": 1,
     "n_settled": 220,
     "n_won": 0,
     "hit_rate": 0.0,
     "stake": 686.0,
-    "stake_committed": 686.0,
-    "stake_pending": 0,
+    "stake_committed": 688.0,
+    "stake_pending": 2.0,
     "return": 0.0,
     "roi": -1.0,
     "avg_odds": 1023.38,
@@ -13559,6 +13559,42 @@
             "score": "0-1",
             "odds": 25.0,
             "hit": false
+          }
+        ]
+      },
+      {
+        "date": "2026-10-23",
+        "type": "比分2串1",
+        "stake": 2.0,
+        "potential": 532.0,
+        "total_odds": 266.0,
+        "odds_source": "official",
+        "note": "待赛",
+        "won": false,
+        "pending": true,
+        "leg_results": [
+          null,
+          null
+        ],
+        "return": 0.0,
+        "legs": [
+          {
+            "match": "2026-10-23_周五006",
+            "home": "斯图加特",
+            "away": "门兴格拉德巴赫",
+            "sel": null,
+            "score": "1-0",
+            "odds": 14.0,
+            "hit": null
+          },
+          {
+            "match": "2026-10-23_周五010",
+            "home": "博尔顿",
+            "away": "米德尔斯堡",
+            "sel": null,
+            "score": "1-0",
+            "odds": 19.0,
+            "hit": null
           }
         ]
       }
@@ -30347,6 +30383,68 @@
                 "score": "0-1",
                 "odds": 25.0,
                 "hit": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2026-10-23": {
+      "parlay": {
+        "stats": null,
+        "tickets": []
+      },
+      "score_parlay": {
+        "stats": {
+          "n_tickets": 1,
+          "n_pending": 1,
+          "n_settled": 0,
+          "n_won": 0,
+          "hit_rate": null,
+          "stake": 0,
+          "stake_committed": 2.0,
+          "stake_pending": 2.0,
+          "return": 0,
+          "roi": null,
+          "avg_odds": null,
+          "by_type": {},
+          "leg_hit_rate": null,
+          "n_legs_settled": 0
+        },
+        "tickets": [
+          {
+            "date": "2026-10-23",
+            "type": "比分2串1",
+            "stake": 2.0,
+            "potential": 532.0,
+            "total_odds": 266.0,
+            "odds_source": "official",
+            "note": "待赛",
+            "won": false,
+            "pending": true,
+            "leg_results": [
+              null,
+              null
+            ],
+            "return": 0.0,
+            "legs": [
+              {
+                "match": "2026-10-23_周五006",
+                "home": "斯图加特",
+                "away": "门兴格拉德巴赫",
+                "sel": null,
+                "score": "1-0",
+                "odds": 14.0,
+                "hit": null
+              },
+              {
+                "match": "2026-10-23_周五010",
+                "home": "博尔顿",
+                "away": "米德尔斯堡",
+                "sel": null,
+                "score": "1-0",
+                "odds": 19.0,
+                "hit": null
               }
             ]
           }
