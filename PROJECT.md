@@ -1,7 +1,7 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-22 01:30（外部审计后四批修复，三条分支待 PR）
+> 状态: doing　更新: 2026-10-22 10:00（外部审计后修复已全部合入 main：#37 #38 #39 #40 #41）
 > 在干什么: ① **E8 换闸门量纲**：`edge` 档实测**不可达**（7 场对照 P−market_fair 全负，
 >           最大 −0.23pp；10-19 起连续 131 轮零合格），改成
 >           `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），开关在
@@ -27,9 +27,8 @@
 >       ③ 站点板 333 场 ∩ 我方预测 13 场 = 可评 10 场：**闸门放开后瓶颈变成覆盖率**；
 >          10-22 那轮新口径只放 1 场。④ `rank_diff` 恒 0（djyy.py 解出了 _rank_home/_rank_away
 >          但 main.py 一个没传）—— 已接，但 lgbm 仍 ready:false，今天不改变任何输出。
-> 下一步: ① 三条分支待推 origin + 开 PR：`exp/e8-site-price-gate`、
->           `fix/sources-and-odds-coverage`、`chore/qoder-automation-and-harness-retire`
->           （AGENTS.md 规定挑战子系统必须走独立 PR，PR 描述要含「拔除影响评估」）。
+> 下一步: ① 上述五批修复已随 PR #37/#38/#39/#40/#41 合入 main，E8 从下一个整点轮起
+>           按新口径（ev_site 2%~25%）真实攒注——此前所有「零合格」都是 edge 档的结果。
 >         ② E8 攒注：n≥60 或 2026-11-22 收尾；每小时确定性保留在 launchd
 >           （本机合盖会漏轮，10-21 实测 20:00/21:00 零日志）。
 >         ③ 独立信息源整体**卡在 DJYY 恢复**上：context 层是 store-only（72/1163 条带 context，

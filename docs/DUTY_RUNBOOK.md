@@ -3,8 +3,8 @@
 > 2026-10-22：本文件取代 `harness/`（DeepSeek 值守 agent + run_duty.sh 壳脚本），
 > 那套东西整个赛季没真正跑过——`~/.football-engine/deepseek_key` 不存在，
 > 每一轮都在 `无 DeepSeek key，降级跑确定性脚本` 分支上，等于死代码。
-> 调度改由两处承担：launchd（直接调 venv 跑脚本）+ Qoder 自动化
-> 「竞彩值守 duty（NJStats 挑战 + 每日快照）」（每小时 :05/:35，多一个独立触发源）。
+> 调度改由两处承担：launchd（直接调 venv 跑脚本，每小时 :05/:35）
+> + Qoder 自动化「竞彩值守 巡检」（每日 03/09/15/21 点 :35，补跑一轮并核对日志/快照）。
 
 ## 一、主链是什么
 
