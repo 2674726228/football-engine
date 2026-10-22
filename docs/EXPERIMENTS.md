@@ -476,34 +476,39 @@ BLOCKED! Body: <html>...
   日期窗口从硬编码的 2026-07-20 改为当天
   （原先即使 DJYY 正常也只报 "0 fixtures"，与"被拦截"无法区分）
 
-### 仍需你在 Cloudflare 后台操作
+### 2026-10-22 归因：Worker 出口被整体挑战，A/B 都不是解
 
-> **2026-10-22 更新**：方案 A 此前**只存在于文档里**。`cf-proxy/worker.js`
-> 的 DJYY 分支自建 headers，既不透传调用方的 `X-DJYY-Key`，也从没读过
-> `env.DJYY_KEY`；而生产 job 只注入 `DJYY_PROXY`，`DJYY_KEY` 只在
-> `api-test.yml` 里出现过。现在两端都接上了（Worker 校验+透传、
-> daily-forecast.yml 四处注入），但**仍需要你**：
-> ① `wrangler secret put DJYY_KEY`（在 Cloudflare 那边）；
-> ② 仓库 Secret `DJYY_KEY` 设成同一个值；
-> ③ `gh secret set DJYY_PROXY` 确认指向已部署的 Worker（这个值仓库里没有记录）。
-> 现场证据：`data/djyy_status.json`（10-21 13:15，github-actions 生成）
-> 已是 `proxy_configured: true` 却仍 `blocked_by_edge HTTP 403`
-> —— 说明"经 Worker 就绕开 Bot Fight Mode"这个前提本身待验证。
-> 另外 health-check 现在会读 `data/djyy_status.json` 并对 403 发 `::error::`，
-> 不再依赖有人去看那个文件。
+部署带重试与浏览器头的 Worker 后，CI 仍然是 403。探针头
+`x-proxy-attempts: 3` 证明重试确实执行了、但三次全失败。Worker 侧诊断
+（一次调用内顺序探测，`cf-mitigated`/`cf-ray` 随响应返回）：
 
-二选一：
+| 探测 | 结果 |
+|---|---|
+| 首页 GET（浏览器导航头） | 403 `cf-mitigated: challenge` |
+| API GET ×3（JSON 头） | 403，间隔 1s，耗时 2–14ms |
+| 先取首页 cookie 再请求 API | 首页 403、无 Set-Cookie，API 仍 403 |
+| Worker colo | ORD（此前 IAD/SJC/DFW 同样 403） |
 
-- **A（推荐）** Worker 校验 `X-DJYY-Key` + 仓库 Secret `DJYY_KEY`（IP 段会变）
-- **B** WAF Skip 规则放行 GitHub 官方 IP 段（`api.github.com/meta` 的 `actions`）
+挑战页在 2–14ms 内返回，说明不是概率性 bot 评分，而是上游按出口 IP/ASN
+（或 Cloudflare 对 Worker 子请求的标记）**整体拒绝**；header、cookie、
+退避重试都不改变结果。此前偶尔看到的 200 是 Worker 响应 `max-age=60`
+被边缘缓存后的假象（同一 URL 一分钟内的重复探测）。
 
-验证：
-```bash
-gh api repos/wlrwx/football-engine/actions/workflows/api-test.yml/dispatches -X POST -f ref=main
-gh run list --workflow "API Connectivity Test" --limit 1
-gh run view <run-id> --log | grep -A3 "4. DJYY"
-```
-`HTTP: 403` → `HTTP: 200` 即通。
+因此：
+- **方案 A（Worker key）**：key 解决的是"别人白嫖 Worker"，不是上游挑战，无效；
+- **方案 B（放行 GitHub IP 段）**：Worker 出口不是 GitHub IP，而是 Cloudflare
+  AS13335，规则打不到；CI 直连仍是 GitHub IP，但无权改对端 WAF。
+- **实际修复：把抓取放回本机住宅网络**。`njstats_duty.py` 每轮检查
+  `data/djyy_matches.json` 的 `extracted_at`，超过 10h 就直连抓取并提交；
+  CI 每轮仍会尝试，失败时保留仓库快照（`fetch_djyy_ssr.py` 已加
+  "半程失败不写盘"）。2026-10-22 实测本机直连：200 场、200 场带
+  Pinnacle 赔率、200/200 有模型概率。
+- 预测侧补位：`engine/main.py` 在实时源缺失时把快照的 `djyy_model_prob`
+  传给 fusion（日志打 `DJYY 概率补位: n/N 场`），否则快照只能补 xG/赔率，
+  `djyy_weight` 仍会被重新归一化掉。
+
+残留风险：笔记本连续 10h 以上不在线时快照会变旧；`data/djyy_status.json`
+的 403 告警仍会提示。**不需要再配 `DJYY_KEY`，也不需要给 Worker 加白名单。**
 
 ## 尚未解决的开放问题
 

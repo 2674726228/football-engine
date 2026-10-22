@@ -1,7 +1,7 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-22 10:35（#42 修挑战池匹配、#44 零合格归因日志；E9 标阻塞）
+> 状态: doing　更新: 2026-10-22 11:50（DJYY 归因完成：抓取迁回本机 duty，快照恢复 200 场）
 > 在干什么: ① **E8 换闸门量纲**：`edge` 档实测**不可达**（7 场对照 P−market_fair 全负，
 >           最大 −0.23pp；10-19 起连续 131 轮零合格），改成
 >           `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），开关在
@@ -14,9 +14,15 @@
 >           每日快照是覆盖式的，存的是最后一轮的价，不是成交时的价。
 >           ③ PR#9 扩 `--days` 判失败：10 天后收盘覆盖 3.6%→3.5%，真因是采集**次数**
 >           （sina 只挂 daily-forecast，24h 实际 12/48 次）→ fetch_sina_odds 同时挂进 ci-sync。
->           ④ DJYY：`cf-proxy/worker.js` 一直不透传 X-DJYY-Key、也不读 env.DJYY_KEY，
->           即文档里的「方案 A」从未实现，生产 job 也没注入 DJYY_KEY。两端已补齐；
->           但 `proxy_configured: true` 仍 403 → 需要你在 Cloudflare 侧配 secret 并验 Worker 已部署。
+>           ④ DJYY 已恢复：上游 Cloudflare 对 Worker 出口是**整体** challenge
+>           （`x-proxy-attempts: 3` 三次全 403，连首页都 `cf-mitigated: challenge`，
+>           ORD/IAD/SJC/DFW 一致），header/cookie/重试/密钥都不是变量；此前偶发 200
+>           只是 Worker 响应被边缘缓存 60s 的假象。修复：duty 用本机住宅网络直连抓取，
+>           超过 10h 即刷新并提交快照，CI 只消费仓库快照。10-22 实测本机直连 200 场、
+>           200/200 带 Pinnacle 赔率与模型概率，今日 11 场预测命中 9 场；预测侧 fusion
+>           在实时源缺失时用快照 `djyy_model_prob` 补位（日志输出 `DJYY 概率补位`），
+>           第三通道不再被重新归一化掉。**不需要再配 DJYY_KEY 或 Worker 白名单。**
+>           遗留：队名别名仍有 2/11 未命中（萨迪纳摩等）；comparison 接口已无 xG 字段。
 >           ⑤ 删 `harness/`（DeepSeek 值守 agent）——`deepseek_key` 不存在，每轮都走降级分支；
 >           并发锁搬进 `njstats_duty.py`（固定路径 `~/.football-engine/duty.lock`），
 >           launchd 改为直接跑脚本，Qoder 自动化接手「每日 4 次巡检」+「E8 每日对账」。
@@ -33,7 +39,7 @@
 >           都是 edge 档的结果。
 >         ② E8 攒注：n≥60 或 2026-11-22 收尾；每小时确定性保留在 launchd
 >           （本机合盖会漏轮，10-21 实测 20:00/21:00 零日志）。
->         ③ 独立信息源整体**卡在 DJYY 恢复**上：context 层是 store-only（72/1163 条带 context，
+>         ③ 独立信息源剩余项（DJYY 已不再阻塞）：context 层是 store-only（72/1163 条带 context，
 >           `FusionInput` 无字段）、雷速/Qwen 新闻（`leisu_intel` 10-11→10-20 每天 0 命中
 >           且 football-engine 无人读，还依赖本机 Chrome 上不了 CI）。
 >           **SportMonks 是付费墙不是代码**：token 本机可读、CI 已挂，但 90 个

@@ -138,8 +138,8 @@ jobs:
           _host = _up.urlparse(_djyy).hostname or ""
           print(f"proxy: configured={bool(os.environ.get('DJYY_PROXY'))} host={_host}")
           print("headers: " + json.dumps({k: LAST_HEADERS.get(k) for k in
-                ("x-proxy", "cf-mitigated", "server", "cf-ray") if LAST_HEADERS.get(k)},
-                ensure_ascii=False))
+                ("x-proxy", "x-proxy-attempts", "cf-mitigated", "server", "cf-ray")
+                if LAST_HEADERS.get(k)}, ensure_ascii=False))
           if code == "200":
               try:
                   d = json.loads(body)
@@ -161,6 +161,8 @@ jobs:
               print("   B. Cloudflare WAF: ip.src in <GitHub IP 段> AND path starts_with /api/ → Skip")
               print("  GitHub IP 段: https://api.github.com/meta 的 actions 字段")
               print(f"  Body: {body[:200]}")
+              print("  2026-10-22 归因：Worker 出口连首页都被 cf-mitigated 挑战；"
+                    "快照由本机 duty 抓取并提交，CI 只消费仓库快照。")
           else:
               print(f"BLOCKED! Body: {body[:300]}")
 

@@ -191,6 +191,7 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
     from engine.sources.djyy_ssr import DJYYSSRSource
     djyy_ssr = DJYYSSRSource(ROOT / "data" / "djyy_matches.json")
     djyy_ssr_enriched = 0
+    djyy_ssr_probs = 0
     print(f"  DJYY SSR: {len(djyy_ssr.matches)} 场比赛数据可用")
 
     # 3. 加载球队评级
@@ -496,6 +497,13 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
         # 所有融合参数从 config/prediction.json["fusion"] 读取，可由优化器自动调整。
         djyy_data = djyy_enrichment.get(fixture.match_id, {})
         djyy_probs = djyy_data.get("model_probs")
+        _djyy_ssr = djyy_ssr.enrich_prediction(fixture.home_team, fixture.away_team)
+        # 2026-10-22：实时 DJYY 在 CI 侧被上游整体挑战（403），但仓库快照
+        # 由本机 duty 抓取并提交。实时源缺失时用快照的模型概率补位，
+        # 否则 fusion 会把 djyy 权重重新归一化掉，第三通道继续名义存在、实际为零。
+        if not djyy_probs and _djyy_ssr.get("djyy_model_prob"):
+            djyy_probs = _djyy_ssr["djyy_model_prob"]
+            djyy_ssr_probs += 1
 
         # LGBM 第三层（特征构建依赖 fixture/ratings 留在 main，掺混在 fusion.py）
         # 输入快照（2026-10-22）：form / 联赛先验 / 排名 / xG 以前要么没传
@@ -621,7 +629,6 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
 
         # 无真实赔率时, 优先用 DJYY SSR 真实赔率 (Pinnacle), 否则合成赔率
         _odds_synthetic = False
-        _djyy_ssr = djyy_ssr.enrich_prediction(fixture.home_team, fixture.away_team)
         if _djyy_ssr:
             djyy_ssr_enriched += 1
             # 用 DJYY 真实赛前 xG 替代我们模型的 xG
@@ -837,6 +844,9 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
     print(f"  ✓ 完成 {len(predictions)} 场预测（含增强分析）")
     if djyy_ssr_enriched:
         print(f"  DJYY SSR 增强: {djyy_ssr_enriched}/{len(predictions)} 场匹配 (Pinnacle赔率+xG)")
+    if djyy_ssr_probs:
+        print(f"  DJYY 概率补位: {djyy_ssr_probs}/{len(predictions)} 场（实时源不可用，"
+              f"用仓库快照，fusion 第三通道不再被归一化掉）")
 
     # 6. 资金管理 + 投注计划
     print("\n[5/8] 资金管理与投注计划...")
