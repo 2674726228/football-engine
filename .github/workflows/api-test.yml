@@ -161,21 +161,8 @@ jobs:
               print("   B. Cloudflare WAF: ip.src in <GitHub IP 段> AND path starts_with /api/ → Skip")
               print("  GitHub IP 段: https://api.github.com/meta 的 actions 字段")
               print(f"  Body: {body[:200]}")
-          # 2026-10-22：Worker 侧 3 次重试仍全 403（IAD），需要区分
-          # 「出口 IP 被判 bot」与「缺 cookie/header」。诊断路由受 DJYY_DIAG 开关保护。
-          for _mode in ("api", "cookie"):
-              _dc, _db = curl(f"{_djyy}/_diag?mode={_mode}&n=3&delay=1000", _hdr, timeout=45)
-              print(f"diag {_mode}: HTTP {_dc}")
-              try:
-                  _dj = json.loads(_db)
-                  print(f"  colo={_dj.get('colo')} home={_dj.get('home')} "
-                        f"cookies={len(_dj.get('cookies') or [])}")
-                  for _r in _dj.get("runs", []):
-                      print(f"  status={_r.get('status')} ms={_r.get('ms')} "
-                            f"mitigated={_r.get('mitigated')} ray={_r.get('cfRay')} "
-                            f"body={_r.get('body')}")
-              except Exception as _e:
-                  print(f"  parse error: {_e} raw={_db[:200]}")
+              print("  2026-10-22 归因：Worker 出口连首页都被 cf-mitigated 挑战；"
+                    "快照由本机 duty 抓取并提交，CI 只消费仓库快照。")
           else:
               print(f"BLOCKED! Body: {body[:300]}")
 

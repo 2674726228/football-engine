@@ -11,7 +11,9 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -87,6 +89,7 @@ def test_main_wires_the_snapshot_commit(monkeypatch, tmp_path):
     monkeypatch.setattr(duty, "JWT_FILE", tmp_path / "njstats_jwt")
     monkeypatch.setattr(duty, "_maybe_server_records_snapshot", lambda: None)
     monkeypatch.setattr(duty, "_maybe_community_snapshot", lambda: None)
+    monkeypatch.setattr(duty, "_maybe_djyy_snapshot", lambda: None)
     monkeypatch.setattr(duty, "_maybe_dispatch_ci", lambda n: None)
 
     def rec_commit(paths, msg):
@@ -114,3 +117,67 @@ def test_push_failure_is_visible_and_retried(monkeypatch):
     assert duty.commit_push(duty.SNAPSHOT_PATHS, "duty: 快照") is False
     assert len([c for c in calls if c[:2] == ("git", "push")]) == 3, "重试三次"
     assert any("push 失败" in m for m in logged), f"失败必须可见，实际日志：{logged}"
+
+
+# ---------- DJYY 快照（2026-10-22） ----------
+#
+# 上游对 Worker/CI 出口整体 challenge，只有本机住宅网络能直连。把抓取放在
+# duty 里是唯一不依赖第三方代理的路径；CI 消费仓库里的快照。
+
+def _stale_djyy(tmp_path, hours=48):
+    d = tmp_path / "data"
+    d.mkdir(exist_ok=True)
+    ts = datetime.now(timezone.utc) - timedelta(hours=hours)
+    (d / "djyy_matches.json").write_text(json.dumps({
+        "extracted_at": ts.isoformat(), "with_odds": 3, "matches": [],
+    }), encoding="utf-8")
+
+
+def test_djyy_snapshot_fetched_directly_when_stale(tmp_path, monkeypatch):
+    duty = _load_duty()
+    _stale_djyy(tmp_path)
+    monkeypatch.setattr(duty, "ROOT", tmp_path)
+    monkeypatch.setattr(duty, "DJYY_MARKER", tmp_path / "marker")
+    monkeypatch.setattr(duty, "log", lambda m: None)
+    runs, commits = [], []
+    monkeypatch.setattr(duty.subprocess, "run", lambda *a, **k: (
+        runs.append(k), SimpleNamespace(returncode=0, stdout="  ✓ 42 matches", stderr=""))[1])
+    monkeypatch.setattr(duty, "commit_push", lambda p, m: commits.append((p, m)) or True)
+
+    duty._maybe_djyy_snapshot()
+
+    assert runs, "快照陈旧时必须发起抓取"
+    assert runs[0]["env"]["DJYY_PROXY"] == "", "必须清空代理走本机直连"
+    assert "DJYY_KEY" not in runs[0]["env"], "本机直连不需要也不该带 Worker key"
+    assert commits == [([duty.DJYY_PATH], "duty: DJYY 快照（本机住宅网络抓取）")]
+
+
+def test_djyy_snapshot_fresh_is_skipped(tmp_path, monkeypatch):
+    duty = _load_duty()
+    _stale_djyy(tmp_path, hours=1)
+    monkeypatch.setattr(duty, "ROOT", tmp_path)
+    monkeypatch.setattr(duty, "DJYY_MARKER", tmp_path / "marker")
+    runs = []
+    monkeypatch.setattr(duty.subprocess, "run", lambda *a, **k: runs.append(1))
+
+    duty._maybe_djyy_snapshot()
+
+    assert not runs, "10h 内的快照不该重复抓"
+
+
+def test_djyy_failed_fetch_is_rate_limited(tmp_path, monkeypatch):
+    duty = _load_duty()
+    _stale_djyy(tmp_path)
+    monkeypatch.setattr(duty, "ROOT", tmp_path)
+    monkeypatch.setattr(duty, "DJYY_MARKER", tmp_path / "marker")
+    monkeypatch.setattr(duty, "log", lambda m: None)
+    runs, commits = [], []
+    monkeypatch.setattr(duty.subprocess, "run", lambda *a, **k: (
+        runs.append(1), SimpleNamespace(returncode=1, stdout="", stderr="HTTP 403"))[1])
+    monkeypatch.setattr(duty, "commit_push", lambda p, m: commits.append(p) or True)
+
+    duty._maybe_djyy_snapshot()
+    duty._maybe_djyy_snapshot()
+
+    assert len(runs) == 1, "失败后 2h 内不应反复请求上游"
+    assert not commits, "没拿到新数据就不该提交"

@@ -14,6 +14,7 @@ import re
 import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -42,6 +43,11 @@ STATE_PATHS = ["data/state/challenge_state.json"]
 SNAPSHOT_PATHS = ["data/state/njstats/site_odds/",
                   "data/state/njstats/my_predictions/",
                   "data/state/njstats/community/"]
+# DJYY 快照必须由本机住宅网络抓（见 _maybe_djyy_snapshot 的归因）。
+DJYY_PATH = "data/djyy_matches.json"
+DJYY_MAX_AGE_H = 10.0
+DJYY_ATTEMPT_GAP_H = 2.0
+DJYY_MARKER = HOME / ".football-engine" / "djyy_last_attempt"
 PX = {"http": None, "https": None}  # 直连；显式 None 防环境代理回落
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"
 
@@ -224,6 +230,8 @@ def main() -> int:
         _maybe_server_records_snapshot()
     if os.environ.get("DUTY_SKIP_COMMUNITY") != "1":
         _maybe_community_snapshot()
+    if os.environ.get("DUTY_SKIP_DJYY") != "1":
+        _maybe_djyy_snapshot()
     # 快照写完就走提交链。这一步失败不影响本轮采集（文件已落在本地），下一轮
     # 还会再试——但要让它可见，否则又回到「静默不提交、样本只活在笔记本上」。
     commit_push(SNAPSHOT_PATHS, "duty: njstats 每日快照（站点赔率/服务端真值/社区倾向）")
@@ -406,6 +414,53 @@ def _maybe_community_snapshot() -> None:
             marker.write_text(today)
         except OSError:
             pass
+
+
+def _maybe_djyy_snapshot() -> None:
+    """快照超过 10h 才由本机直连抓一次，成功即提交（失败 2h 内不重试）。
+
+    2026-10-22 归因：djyylive 的 Cloudflare 对 Worker 出口整体返回
+    `cf-mitigated: challenge`（ORD/IAD/SJC/DFW 实测，连首页都 403），
+    GitHub Actions 直连同样 403；重试、cookie、浏览器头都不改变结果。
+    本机住宅网络直连 200，所以把「抓取」放在 duty，「消费」留给 CI：
+    CI 每轮仍会尝试刷新，失败时保留仓库里这份快照。
+    """
+    age_h = float("inf")
+    try:
+        prev = json.loads((ROOT / DJYY_PATH).read_text(encoding="utf-8"))
+        ts = datetime.fromisoformat(prev.get("extracted_at", ""))
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        age_h = (datetime.now(timezone.utc) - ts).total_seconds() / 3600
+    except (OSError, ValueError, TypeError):
+        pass
+    if age_h < DJYY_MAX_AGE_H:
+        return
+    try:
+        if time.time() - float(DJYY_MARKER.read_text()) < DJYY_ATTEMPT_GAP_H * 3600:
+            return
+    except (OSError, ValueError):
+        pass
+    try:
+        DJYY_MARKER.parent.mkdir(parents=True, exist_ok=True)
+        DJYY_MARKER.write_text(str(time.time()))
+    except OSError:
+        pass
+    env = dict(os.environ)
+    env.pop("DJYY_KEY", None)
+    env["DJYY_PROXY"] = ""  # 必须直连：Worker 出口被上游整体挑战
+    try:
+        p = subprocess.run([str(ROOT / ".venv" / "bin" / "python3"),
+                            "scripts/fetch_djyy_ssr.py"],
+                           cwd=ROOT, capture_output=True, text=True, env=env,
+                           check=False, timeout=600)
+    except subprocess.TimeoutExpired:
+        log("djyy: 抓取超时（>600s），保留旧快照")
+        return
+    out = (p.stdout or p.stderr).strip().splitlines()
+    log(f"djyy({age_h:.1f}h): " + (out[-1] if out else f"无输出 rc={p.returncode}"))
+    if p.returncode == 0:
+        commit_push([DJYY_PATH], "duty: DJYY 快照（本机住宅网络抓取）")
 
 
 # ------------------------------------------------------------------ 并发锁
