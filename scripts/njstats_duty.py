@@ -38,7 +38,7 @@ CI_STALE_H = 3.0
 # daily-forecast 的看门狗（2026-10-23）：它负责生成当天预测，GitHub 限流会让
 # 「今天还没跑过」变成挑战池匹配 0（10-23 01:30 实测匹配0/候选0）。
 DAILY_WORKFLOW_ID = 316265897
-DAILY_STALE_H = 6.0
+DAILY_STALE_H = 4.0
 DAILY_COOLDOWN_H = 2.0
 BJT = timezone(timedelta(hours=8))
 # duty 自己拥有的落盘路径。分成两组是因为提交时机不同：state 在投完注就要推
@@ -334,12 +334,12 @@ def _dispatch_daily_ci() -> bool:
 
 
 def _maybe_dispatch_daily_ci() -> bool:
-    """daily-forecast 今天还没跑过（或已 6h 没跑）时补一轮。
+    """daily-forecast 今天还没跑过（或已 4h 没跑）时补一轮。
 
     GitHub 对公开仓的 cron 限流实测 24h 只有 4-6 次；而 daily-forecast 负责生成
     当天预测。2026-10-23 01:30 实测：上次 daily 是 10-22 23:15，10-23 的预测
     一直没生成 → 挑战池连续两轮「匹配0/候选0」，页面/结算/rho 也全停。
-    只在「北京时间今天还没跑过」或「已超 DAILY_STALE_H」时补；2h 冷却防叠。
+    只在「北京时间今天还没跑过」或「已超 DAILY_STALE_H（4h）」时补；2h 冷却防叠。
     取不到状态时保守不动。
     """
     info = _daily_last_run_info()
