@@ -42,13 +42,20 @@
 >           ⑤ 删 `harness/`（DeepSeek 值守 agent）——`deepseek_key` 不存在，每轮都走降级分支；
 >           并发锁搬进 `njstats_duty.py`（固定路径 `~/.football-engine/duty.lock`），
 >           launchd 改为直接跑脚本，Qoder 自动化接手「每日 4 次巡检」+「E8 每日对账」。
+>           ⑥ **rho 写回丢失已修（91c1556ad）**：rho MLE 每轮写 config/prediction.json，
+>           但 Actions 工作区一次性、commit 只 add data/ web/ → 线上 rho 自 10-12 停在
+>           -0.0748（实测拟合 -0.0711, n=1142）。现提交步补且只补这一份配置
+>           （存在才 add），回归测试 tests/test_rho_persistence.py。下一轮有新增赛果的
+>           结算后 rho 才会真正跟到拟合值（settlement 无新赛果会提前返回）。
 > 新坑: ① 本机**没有 gh CLI**，AGENTS.md 里那些 `gh ...` 全跑不了（已改写交付节）。
 >       ② `odds_coverage.not_started_yet` 原先语义与名字相反（它数的是「末快照早于开赛」），
 >          这次复核就是被这个字段名骗过 —— 已拆成 assessable / pending_kickoff /
 >          stopped_before_kickoff / post_kickoff_last。
 >       ③ 站点板 333 场 ∩ 我方预测 13 场 = 可评 10 场：**闸门放开后瓶颈变成覆盖率**；
 >          10-22 那轮新口径只放 1 场。④ `rank_diff` 恒 0（djyy.py 解出了 _rank_home/_rank_away
->          但 main.py 一个没传）—— 已接，但 lgbm 仍 ready:false，今天不改变任何输出。
+>          但 main.py 一个没传）—— 已接；**LGBM 仍 ready:false 是影子验证的正常裁决**：
+>          holdout n=339，Brier 0.5583 vs 融合 0.5261 / 市场 0.5301（t=-2.85 / -3.41），
+>          模型文件照常训练，上线闸门不开，不是故障。
 > 下一步: ① 修复已全部合入 main（#37–#44、#50 DJYY 别名、#51 DJYY 观测、E10 PR）：
 >           挑战池匹配 11/11、零合格日志带归因、DJYY 富化 12/13（1 场不在快照池）。
 >         ② E8/E10 攒注（10-22 15:05）：E8 n=4、E10 n=2，周配额 7/28。两池目标
@@ -182,15 +189,14 @@
 >              _vault/challenge_state.json 的过时描述一并对齐到 data/state/
 >           ⑤ 审计产物时间戳「北京日期 + UTC 时分」超前 8h → doctor.py:71 / clv.py:229
 >              统一走 beijing_now()（92e5c93c5，+1 例变异验证过的回归测试）
-> 下一步: ① **rho 自进化在 CI 上一直失效（待定，属模型参数禁触区）**：engine/main.py:2320-2327
->             每轮把 rho 写回 config/prediction.json，而 daily-forecast.yml:193 只
->             `git add data/ web/`（不含 config/）→ 写进工作区无人提交，被
->             `git pull --rebase --autostash`(:220) 卷成 stash 残渣（已清掉 2 个）。
->             现状 rho=-0.0748（10-12 起未变），实测当前拟合为 -0.0705（n=1111）。两条修法待选：
->             让 daily-forecast 提交 config/，或确认 rho 只该在 backtest-weekly 那周更
->             （但上一轮 6d0a22d1f 跑完 rho 仍是 -0.0748，说明那条路也没真写）。
->          ② duty 与 launchd 并发无锁（scripts/njstats_duty.py 与 harness/run_duty.sh 均无 flock）：
->             同一分钟手动跑 + launchd 跑会并发 `git pull --rebase` 与写 njstats_jwt。修法待定。
+> 已解决: ① **rho 自进化写回丢失（2026-10-22，91c1556ad）**：engine/main.py 的 RhoFitter
+>             每轮把 rho 写回 config/prediction.json，而 daily-forecast 的 commit 只
+>             add data/ web/，Actions 工作区又是一次性的 → 写回从未到过 main。
+>             修法取「让 daily-forecast 提交 config/prediction.json」（只此一份、存在才 add），
+>             不动拟合规则与触发时机；回归测试 tests/test_rho_persistence.py。
+>             现状 rho=-0.0748（10-12 起未变），本机实测拟合 -0.0711（n=1142）。
+>          ② duty 并发锁已上线（efb979518）：锁在 scripts/njstats_duty.py（mkdir 原子锁），
+>             launchd 直跑脚本，harness/run_duty.sh 已随 harness/ 整体删除。
 >          ③ 早前汇报的「W42 1x2 2/7」作废——那是 _vault 陈旧快照的产物；
 >             真值是跨周累计 22 注 11 中（50%），单周口径需 records 带 week 字段才能算
 >          ④ GitHub PAT 已装（~/.football-engine/github_token，600，scope repo，已验证推 secret 204）；
@@ -239,14 +245,17 @@
 
 - [ ] **`main.py` god object**：`run_daily_pipeline` 1225 行 + `run_settlement` 955 行。
       风险：任何改动都要在 2000+ 行里定位，且两处逻辑容易各写一份（同口径漂移的高发区）
-- [ ] SportMonks Growth 试用激活（用户暂缓）→ 验 odds 模块是否随套餐
+- [x] ~~SportMonks Growth 试用激活~~ → **2026-10-22 裁决不订阅**：现有 token 仅见
+      丹麦超/苏超 4 联赛，xG 403、Pinnacle 赔率/predictions 不可得；DJYY 后端同源，
+      快照已覆盖，试用到期即断供。不接生产、登录页已关（docs/CLOUD_PLAN.md）。
 - [ ] git 历史端点路径清洗决策（HEAD 已清，历史待用户裁决是否 force-push 重写）
 - [ ] AUT 平局纸面证据累计（双源佐证 +7.5%/+9.24%，t≈1.7 候选，live 证据持续累计）
-- [ ] 洁净样本累积 / LGBM ready / Qwen 新闻源（用户决定）
-- [ ] SportMonks `fixtures_on` / `fixture_odds` / `injuries` 三个方法未接入。
-      **本机无 token 无法验证**（SPORTMONKS_TOKEN 只在 GitHub Secret 里，
-      试用激活用户已暂缓）。要动它们需先在 `~/.football-engine/sportmonks_token`
-      配好 token 再实测——**不要凭文档猜**，这三个的 odds 模块"需订阅"
+- [x] ~~LGBM ready~~ → 2026-10-22 复核：`ready:false` 是影子验证的正常裁决，
+      holdout n=339，Brier 0.5583 vs 融合 0.5261 / 市场 0.5301（t=-2.85 / -3.41），
+      模型照常训练、上线闸门不开；不是接线 bug。
+- [ ] 洁净样本累积 / Qwen 新闻源（用户决定）
+- [x] ~~SportMonks `fixtures_on` / `fixture_odds` / `injuries` 未接入~~ → 随不订阅裁决关闭。
+      **不要凭文档猜**这三个方法；真要接需先有能覆盖竞彩联赛的套餐与 token 再实测
 - [ ] 全仓库 98 处 `except → return None/pass` 静默吞异常。**这是本项目的头号病害**——
       今晚发现的三处静默零产物（代理硬编码、key 文件名、`same_odds` 列名不匹配）
       都是同一个病：不报错，只是没产出。**不要批量改**（会淹没真正需要静默的地方）；
