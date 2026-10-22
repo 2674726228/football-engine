@@ -1,12 +1,18 @@
-# 预测挑战 CI 端（1x2 市场，每小时:35）。让球市场留 Mac（需浏览器弹窗线路/水位）。
-# JWT ~20h：Mac 端每日 08:15 自动续推 secret（ZCode cron）；过期本流程静默跳过零噪音。
+# 预测挑战 CI 端（1x2 市场，每小时:25）。让球市场留 Mac（需浏览器弹窗线路/水位）。
+# JWT ~20h：Mac 端 duty 每日自动续推 secret；过期本流程静默跳过零噪音。
+# :25 而不是 :35——本机 duty 在 :05/:35 提交同一份 challenge_state.json，
+# 2026-10-22 起 CI 这侧开始真提交（原先从不 commit），同分钟必撞车。
 name: Challenge (1x2)
 on:
   schedule:
-    - cron: '35 * * * *'
+    - cron: '25 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  # 定时轮与 duty 看门狗的补触发不许重叠（重叠=两个 runner 写同一份 state）。
+  group: challenge-1x2
+  cancel-in-progress: false
 jobs:
   submit:
     runs-on: ubuntu-latest
@@ -21,9 +27,34 @@ jobs:
           NJSTATS_NOPROXY: "1"
         run: python scripts/challenge_hourly.py
       - name: 状态回仓
+        # 2026-10-22 修：原实现只 `git add` 从不 `git commit`——push 的是 checkout
+        # 出来的旧 HEAD，永远 "Everything up-to-date"（退出码 0）。CI 投出去的注
+        # （预登记记录、成交赔率、used 配额）一条都不进仓，而这一步是绿的。
+        # 看门狗补触发 CI 的时机恰好是本机合盖睡着的轮次，也就是只有 CI 能落记录的时候。
+        # 冲突不靠 -X ours/theirs 猜：上游已被本机 duty 改过就红一轮，
+        # 下一轮由服务端「已预测」列表自愈去重（challenge_hourly 已实现并入去重）。
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/wlrwx/football-engine.git"
-          git add data/state/challenge_state.json || true
-          git diff --cached --quiet || (git pull --rebase origin main || git rebase --abort; git push origin HEAD:main)
+          if git diff --quiet -- data/state/challenge_state.json; then
+            echo "challenge: state 无变化，跳过回仓"
+            exit 0
+          fi
+          git add data/state/challenge_state.json
+          git commit -m "challenge: CI 状态回仓 $(TZ=Asia/Shanghai date '+%m-%d %H:%M')"
+          pushed=0
+          for i in 1 2 3; do
+            if git pull --rebase origin main; then
+              if git push origin HEAD:main; then pushed=1; break; fi
+              sleep 5
+              continue
+            fi
+            git rebase --abort 2>/dev/null || true
+            echo "::error::challenge state 与上游冲突（本机 duty 同轮也写了）——不覆盖上游，红一轮，下一轮服务端去重自愈"
+            exit 1
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "::error::3 轮仍未能 push，CI 记录不会进仓"
+            exit 1
+          fi
