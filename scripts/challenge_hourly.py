@@ -88,8 +88,8 @@ def main() -> int:
             # 先取数再切换：policy 写坏时整条丢弃，不能留下「口径换了、地板没换」
             ev_floor = float(pol.get("ev_floor", 0.02))
             gate_mode = "ev_site"
-    except Exception:
-        pass
+    except Exception as exc:
+        print(f"challenge: policy 读取失败（{exc}），本轮用默认闸门 {gate_mode}/{ev_floor}")
 
     # 用 board_with_odds 而不是 board_items：同一请求（modId=1012/msgId=1）、
     # 同一份响应，只是多带 f2 赔率包。挑战赛按**站点自己的赔率**结算，而
