@@ -17,8 +17,12 @@ ROOT = Path(__file__).resolve().parent.parent
 STATE = ROOT / "data" / "state"
 HISTORY = STATE / "weekly_digest.jsonl"
 
+sys.path.insert(0, str(ROOT / "scripts"))
+import experiment_pace as ep  # noqa: E402  复用 E8/E10 的冻结分池规则
+
 PRECISION = {
     "v2 Brier": 4,
+    "rho (Dixon-Coles)": 4,
     "v2 命中率 (%)": 1,
     "CLV close 均值 (%)": 1,
     "CLV fair 均值 (%)": 1,
@@ -41,12 +45,24 @@ def _pct(part: int, total: int):
     return round(part / total * 100, 1) if total else "—"
 
 
+def _rho() -> float | str:
+    """config/prediction.json 的 rho——它是结算侧自进化写回的量，
+    放进周度趋势正好用来验证「写回有没有真的落到 main」。"""
+    try:
+        cfg = json.loads((ROOT / "config" / "prediction.json").read_text(encoding="utf-8"))
+        v = _num(cfg.get("prediction", {}).get("rho"))
+        return round(v, 4) if v is not None else "—"
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return "—"
+
+
 def collect() -> tuple[dict, dict]:
     up = _load("upgrade_tracker.json")
     clv = _load("clv_report.json")
     ev = _load("eval_registry.json")
     ec = _load("edge_calibration.json")
     ch = _load("challenge_review.json")
+    recs = _load("challenge_state.json").get("records") or []
 
     v2 = up.get("v2_clean") or {}
     overall = clv.get("overall") or {}
@@ -64,6 +80,7 @@ def collect() -> tuple[dict, dict]:
         "v2 样本": v2.get("n", "—"),
         "v2 Brier": round(v2["brier"], 4) if _num(v2.get("brier")) is not None else "—",
         "v2 命中率 (%)": scaled(v2.get("hit_rate"), 100),
+        "rho (Dixon-Coles)": _rho(),
         "CLV 注数": overall.get("n", "—"),
         "CLV close 均值 (%)": scaled(overall.get("clv_close_mean"), 100),
         "CLV fair 均值 (%)": scaled(overall.get("clv_fair_mean"), 100),
@@ -71,6 +88,8 @@ def collect() -> tuple[dict, dict]:
         "评委在线": f"{panel.get('live', 0)}/{panel.get('total', 0)}",
         "评委样本合计": sum(int(j.get("samples") or 0) for j in judges.values()),
         "正 edge 样本": ec.get("n_positive_edge", "—"),
+        "E8 攒注 n": len(ep.pool(recs, "E8")),
+        "E10 攒注 n": len(ep.pool(recs, "E10")),
         "挑战累计结算": len(settled),
         "挑战累计命中率 (%)": _pct(hits, len(settled)),
     }

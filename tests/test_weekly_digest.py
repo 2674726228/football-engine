@@ -31,6 +31,11 @@ def _seed(base: Path, *, brier=0.5511, n=712, hit=0.5772, clv_n=806,
     _write(base, "challenge_review.json",
            {"week": "2026-W43",
             "settled": [{"hit": i < hits} for i in range(challenge)]})
+    _write(base, "challenge_state.json", {"records": [
+        {"gate": "ev_site", "submitted_at": "2026-10-22 12:00:00"},
+        {"gate": "ev_site", "submitted_at": "2026-10-22 12:35:00", "exp": "E10"},
+        {"gate": "edge", "submitted_at": "2026-10-22 12:40:00"},
+    ]})
 
 
 def _use_tmp(tmp_path, monkeypatch):
@@ -46,6 +51,17 @@ def test_first_run_has_no_baseline(tmp_path, monkeypatch, capsys):
     assert "首次周检" in out
     assert "0.5511" in out
     assert not wd.HISTORY.exists(), "不带 --write 不应写历史"
+
+
+def test_experiment_pools_use_frozen_split(tmp_path, monkeypatch, capsys):
+    """E8/E10 行数直接复用 experiment_pace.pool 的冻结规则，不再另算一套口径。"""
+    _use_tmp(tmp_path, monkeypatch)
+    _seed(tmp_path)
+    metrics, _ = wd.collect()
+    assert metrics["E8 攒注 n"] == 1
+    assert metrics["E10 攒注 n"] == 1
+    assert wd.main([]) == 0
+    assert "rho (Dixon-Coles)" in capsys.readouterr().out
 
 
 def test_diff_against_last_weekly_entry(tmp_path, monkeypatch, capsys):

@@ -284,7 +284,8 @@
       刷屏只会掩盖真问题
 - 2026-10-22 **周度体检摘要周报化**（4270e7a7c）：摘要原先只打当次值，且 `upgrade_tracker`/`clv_report`
       每天被 daily-forecast 刷新，**git 里的上一版不是「上周」**，所以基线另存
-      `data/state/weekly_digest.jsonl`（append-only，13 项指标 + 评委判定变化）。顺带修回仓步：
+      `data/state/weekly_digest.jsonl`（append-only，16 项指标 + 评委判定变化；E8/E10 行数
+      复用 `experiment_pace.pool` 的冻结分池，rho 也在表里，用来验证写回是否真落盘）。顺带修回仓步：
       原 `git add a b c 2>/dev/null || true` 在任一文件缺失时**整条 add 原子失败**，把「什么都没暂存」
       伪装成成功 → 改逐文件 `if [ -e ] ; then git add`
 - 2026-10-22 **挑战池队名匹配主客颠倒**：`challenge_hourly.py` 的模糊分支写成「池子主队比预测客队、池子客队比预测主队」，等于只有原文精确匹配生效——10-22 的 11 场预测只进池 6 场，另 5 场明明在板上（4 场译名差异：萨迪纳摩/萨格勒布迪纳摩、克里特/OFI克雷迪、利勒斯特伦/利勒斯特罗姆、拉普大学/拉普拉塔大学生；1 场子串：塞尔塔/维戈塞尔塔）。修法：方向纠正 + 走 `normalize_team` + 保守子串；池子译名映射只放脚本本地（写进 `engine/team_aliases.py` 会合并 team_ratings 的键，属模型层变更）；子串不跨梯队/女队（10-21 板上里尔与里尔U19 并存，不挡会一注变两注），同一预测只取第一条板条目。10-22 进池 6→11、候选 4→5，仍 0 场 ev_site≥2%
