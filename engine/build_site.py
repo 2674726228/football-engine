@@ -8,6 +8,7 @@ import os
 import json
 import sys
 from datetime import datetime
+from html import escape as _esc
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
@@ -1166,6 +1167,7 @@ def _render_html(today, predictions, bundle, ticket, breaker, health, results=No
     except Exception:
         _ps = {}
     parlay_settle_html = _parlay_settle_section(_ps, today)
+    news_html = _news_section(today)
 
     # 赛果复盘（优先用 results.json，fallback review_ledger）
     results_html = _results_section(results, results_preds or predictions, review_ledger, today)
@@ -2113,6 +2115,9 @@ a {{ color:var(--blue); }}
     <!-- MATCH PREDICTIONS -->
     <div class="section-title">比赛预测<span class="st-note">按开赛时间排序 · 点卡片展开模型/赔率/分布 · 详情含融合归因链</span></div>
     {cards if cards else '<p style="color:var(--dim);padding:48px;text-align:center;font-size:0.85rem;">等待每日流水线运行...</p>'}
+
+    <!-- NEWS INTEL (2026-10-23, store-only) -->
+    {news_html}
 
     <!-- BETTING PLAN -->
     {ticket_html}
@@ -3292,6 +3297,42 @@ def _site_spf_status(predictions):
             mid = p.get("match_id")
             status[mid] = "ok" if ok or status.get(mid) == "ok" else "no_spf"
     return status, dates
+
+
+def _news_section(today):
+    """赛前情报：第三方新闻标题（store-only，不进模型/账本）。
+
+    issue #1 与新闻源同一原则：外链内容只做展示，不做投注依据；
+    标题来自外部，必须转义后再进 HTML。
+    """
+    f = ROOT / "data" / "daily" / today / "news.json"
+    try:
+        d = json.loads(f.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return ""
+    rows = []
+    for it in (d.get("items") or [])[:12]:
+        url = str(it.get("url") or "")
+        if not url.startswith("https://news.zhibo8.com/"):
+            continue
+        title = _esc(str(it.get("title") or ""))
+        teams = _esc("、".join((it.get("teams") or [])[:3]))
+        rows.append(
+            f'<li style="margin:3px 0"><a href="{_esc(url)}" target="_blank" '
+            f'rel="noopener noreferrer">{title}</a>'
+            f'<span style="opacity:.55;font-size:.72em;margin-left:6px">{teams}</span></li>'
+        )
+    if not rows:
+        return ""
+    return f"""
+  <div class="section-title">赛前情报（第三方新闻）</div>
+  <div class="ticket-card" style="opacity:.95">
+    <div style="font-size:.72rem;opacity:.65;margin-bottom:4px">
+      来源：{_esc(str(d.get('source') or ''))} · 抓取于 {_esc(str(d.get('generated_at') or ''))} ·
+      按预测队名关键词自动匹配，未经核实，不构成投注建议。
+    </div>
+    <ul style="margin:4px 0 0 16px;padding:0;font-size:.82rem">{''.join(rows)}</ul>
+  </div>"""
 
 
 def _parlay_section(ticket, predictions, st_index=None):

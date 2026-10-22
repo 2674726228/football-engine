@@ -81,9 +81,13 @@
 >           `exp="E10"` 只进 E10 裁决**，否则两边抽样混在一起。每小时确定性保留在
 >           launchd（本机合盖会漏轮，10-21 实测 20:00/21:00 零日志）。
 >         ③ 周体检（周一 03:30）已修为读-合并-写 policy，不再洗掉 E8/E10 开关。
->         ④ 独立信息源剩余项（DJYY 已不再阻塞）：context 层是 store-only（72/1163 条带 context，
->           `FusionInput` 无字段）、雷速/Qwen 新闻（`leisu_intel` 10-11→10-20 每天 0 命中
->           且 football-engine 无人读，还依赖本机 Chrome 上不了 CI）。
+>         ④ 独立信息源（DJYY 已不再阻塞）：context 层仍是 store-only（72/1163 条带 context，
+>           `FusionInput` 无字段）。**新闻展示层 2026-10-23 落地**：`scripts/fetch_news.py`
+>           抓直播吧足球列表（当日更新、无需登录），按预测队名 + `TEAM_ALIASES` 简称 +
+>           挑战池译名反查匹配，落 `data/daily/<date>/news.json`；daily-forecast 每轮跑，
+>           页面「赛前情报」展示最多 12 条外链（标题转义、只允许 zhibo8 域名、带免责声明）。
+>           **只展示，不进模型/账本**；旧 `leisu_intel`（0 命中、依赖本机 Chrome、无读取方）作废。
+>           Qwen 摘要未接——等展示层跑出覆盖率，再决定是否按输入层热插协议立实验。
 >           **SportMonks 是付费墙不是代码**：token 本机可读、CI 已挂，但 90 个
 >           `data/state/sportmonks/*_details.json` 全空 `{}`，odds/xg/predictions 未订阅。
 >           **2026-10-22 裁决：不订阅、不接生产**——现有 token 仅见丹麦超/苏超 4 个联赛，
@@ -271,7 +275,7 @@
 - [x] ~~LGBM ready~~ → 2026-10-22 复核：`ready:false` 是影子验证的正常裁决，
       holdout n=339，Brier 0.5583 vs 融合 0.5261 / 市场 0.5301（t=-2.85 / -3.41），
       模型照常训练、上线闸门不开；不是接线 bug。
-- [ ] 洁净样本累积 / Qwen 新闻源（用户决定）
+- [ ] 洁净样本累积 / 新闻进模型（展示层已做；进模型需覆盖率 + 预登记实验）
 - [x] ~~SportMonks `fixtures_on` / `fixture_odds` / `injuries` 未接入~~ → 随不订阅裁决关闭。
       **不要凭文档猜**这三个方法；真要接需先有能覆盖竞彩联赛的套餐与 token 再实测
 - [ ] 静默吞异常（2026-10-22 AST 重扫：**256 处**，旧记的 98 是漏算）——**不报错，只是没产出**，
@@ -288,6 +292,12 @@
 - [x] `evolution/` 产物（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
+- 2026-10-23 **新闻源（展示层）落地**：旧路径依赖本机 Chrome、10-11→10-18 每天 0 命中，
+  且 football-engine 无任何读取方；Qwen 摘要也上不了 CI。改用**直播吧足球列表**
+  （HTTP、当日更新、无需登录）→ 按预测队名 + `TEAM_ALIASES` 简称 + 挑战池译名反查匹配 →
+  `data/daily/<date>/news.json`；daily-forecast 每轮抓取（失败转 `::warning::`，不阻塞预测），
+  `build_site` 只展示外链标题（HTML 转义、域名白名单、免责声明）。实测 10-22：扫描 583 条、
+  命中 25 条。**不进模型、不进账本**；进模型要等覆盖率并预登记。
 - 2026-10-23 **issue #1「竞彩未开售仍推荐串关」·显示层修复**：根因不是合成赔率
       （排查历史串关腿，踩中 `odds_synthetic` 的是 0 张），而是 fixtures 长期 fallback 到
       500/Bet365 参考盘——竞彩胜平负未开售的场次仍有真实参考赔率，串关照算 EV 并标

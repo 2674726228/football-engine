@@ -198,6 +198,17 @@ jobs:
           python scripts/edge_calibration.py || echo "::warning::edge_calibration 失败"
           python -m engine.config_audit --strict || echo "::warning::config 审计失败"
 
+      - name: 赛前情报（第三方新闻，store-only）
+        # 只抓标题做展示，不喂模型；源不可达时转 warning，不影响预测/结算。
+        # 与 DJYY 不同，这里不需要住宅 IP，失败了下一次 daily 再试。
+        run: |
+          DATE="${{ github.event.inputs.date || '' }}"
+          if [ -z "$DATE" ]; then
+            DATE=$(TZ=Asia/Shanghai date +%Y-%m-%d)
+          fi
+          python scripts/fetch_news.py --date "$DATE" \
+            || echo "::warning::新闻采集失败（不影响预测/结算）"
+
       - name: Build site
         run: python engine/build_site.py
 
