@@ -508,14 +508,31 @@ class SourceManager:
         return fixtures, manifest
 
     def fetch_results(self, target_date: date) -> list[MatchResult]:
-        """按优先级获取比赛结果"""
+        """按优先级获取比赛结果。
+
+        2026-10-23：原先所有源异常都 `continue`、最后静默返回 []，结算层会
+        把「全部源都挂了」当成「今天没有赛果」正常退出——账本静默不涨，
+        与 sporttery/DJYY 之前的静默死亡同型。现在区分两种空：
+          - 有源成功回答（哪怕空列表）→ 正常的「今天无赛果」，返回 []；
+          - 全部源都抛异常 → raise，让结算红掉（主路径 main.py 不吞异常）。
+        有源成功时不再逐源告警，避免 WAF 降级每天都刷屏。
+        """
+        failures: list[str] = []
+        answered = False
         for source in self.sources:
             try:
                 results = source.fetch_results(target_date)
                 if results:
                     return results
-            except Exception:
+                # 只有「空列表可信」的源才算回答了「今天没赛果」；其余源会把
+                # 网络/解析失败自己吞成 []，不能拿来证明不是故障。
+                if getattr(source, "trust_empty_results", False):
+                    answered = True
+            except Exception as e:
+                failures.append(f"{source.name}: {type(e).__name__}: {e}")
                 continue
+        if failures and not answered:
+            raise RuntimeError(f"所有赛果源均失败（{' | '.join(failures)}）")
         return []
 
     def health_check(self) -> dict[str, bool]:

@@ -54,6 +54,9 @@ class SinaSource(DataSource):
     def name(self) -> str:
         return "sina"
 
+    # 新浪用 raise_for_status()/JSON 异常表达失败，返回 [] 只可能是真的没赛果。
+    trust_empty_results = True
+
     @property
     def priority(self) -> int:
         return 2  # 体彩(1)之后，500万(3)之前

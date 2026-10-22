@@ -65,6 +65,11 @@ class ImportManifest:
 class DataSource(ABC):
     """数据源抽象接口"""
 
+    # 空列表是否可信：True 表示该源用异常表达失败、返回 [] 就是真的没赛果；
+    # False（默认）表示它会把网络/解析错误自己吞成 []，不能当作「无赛果」的答案。
+    # SourceManager.fetch_results 靠它区分「全源失败」与「今天确实没比赛」。
+    trust_empty_results: bool = False
+
     @property
     @abstractmethod
     def name(self) -> str:

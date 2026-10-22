@@ -288,6 +288,13 @@
 - [x] `evolution/` 产物（已 gitignore）
 
 ## 已修（现象 → 根因 → 修法）
+- 2026-10-23 **赛果源全挂被当成「今天没比赛」**：`SourceManager.fetch_results` 原先对所有源
+      异常都 `continue`，最后返回 []；结算层看到空列表直接「无新增赛果，快速退出」，
+      账本静默不涨、校准/LGBM 不更新——与 sporttery/DJYY 之前的静默死亡同型。
+      修法：给 `DataSource` 加 `trust_empty_results`（只有 sina 为 True，因为它用
+      `raise_for_status()`/JSON 异常表达失败；500万/ESPN/DJYY 会把网络错误吞成 []）；
+      仅当**没有任何可信源回答**时才 raise。结算主路径 main.py:1529 不吞异常 → CI 会红。
+      回归测试 `tests/test_source_manager_results.py`（5 例，含「不可信空列表不能掩盖失败」）。
 - 2026-10-22 **静默吞异常·预测/结算主链路 10 处留痕**：AST 全仓重扫得 256 处 `except → pass/return 默认值`
       （旧文档的 98 是漏算），按「失败会不会让输出静默退化」筛出主链路 10 处，只加日志不改控制流：
       ① `sina_odds.load_sina_odds_map` 整份赔率文件解析失败原先 `pass` → 市场通道整轮退化却像「今天本来没数据」
