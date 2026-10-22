@@ -85,10 +85,22 @@ def commit_push(paths: list[str], msg: str) -> bool:
         log(f"commit 失败: {msg}")
         return False
     for _ in range(3):
-        if (sh("git", "pull", "--rebase", "--autostash", "origin", "main").returncode == 0
-                and sh("git", "push", "origin", "main").returncode == 0):
-            log(f"已推: {msg}")
-            return True
+        pull = sh("git", "pull", "--rebase", "--autostash", "origin", "main")
+        if pull.returncode == 0:
+            if sh("git", "push", "origin", "main").returncode == 0:
+                log(f"已推: {msg}")
+                return True
+            time.sleep(4)
+            continue
+        # 失败的 rebase 必须 abort，否则仓库停在「rebase 进行中 + 未合并文件」，
+        # 下一轮开头那句 pull --rebase 直接报
+        #   error: Pulling is not possible because you have unmerged files
+        # ——这台机器就再也提交不了任何东西（daily-forecast 已栽过同一坑，
+        # 2026-10-22 CI 状态回仓开始真提交之后，这个窗口才真正会出现）。
+        # 冲突不猜方向：本地提交留在原地，下一轮在新 base 上重放。
+        sh("git", "rebase", "--abort")
+        tail = (pull.stderr or pull.stdout).strip().splitlines()
+        log(f"pull --rebase 冲突，已 abort: {tail[-1] if tail else '无输出'}（本地提交待下一轮重放）")
         time.sleep(4)
     log(f"push 失败（3 次重试）: {msg}")
     return False
