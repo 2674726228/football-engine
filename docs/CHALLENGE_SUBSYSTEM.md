@@ -15,7 +15,7 @@
 | scripts/challenge_review.py | **只读** ledger + data/state/challenge_state.json，零 import |
 | _vault/recon_njstats.md 等侦察笔记 | 仓库外/不追踪 |
 | data/state/challenge_review.json | 产出报告，无下游引擎逻辑消费 |
-| 引擎 → 挑战 数据流 | 单向：读 predictions/ledger。**引擎永不读挑战产物**（原则） |
+| 引擎 → 挑战 数据流 | 单向：读 predictions/ledger。**引擎永不读裁判产物**（见下方「侧挂数据」） |
 | 周一深度体检 | 仅"简报引用+可选自否决条款"，删除该步不影响其它步 |
 
 ## 反馈合同（三层，方向锁死）
@@ -28,6 +28,24 @@
 理由：用被审数据改评分标准=自己批卷（DJYY 门户实证：回测+12.6% 实盘-8.7%）。
 裁判独立是这个子系统最贵的资产；挑战死了可以再找，裁判一污染就全废。
 tests/test_challenge_firewall.py 在 CI 强制此边界（engine/ 出现 challenge 产物引用即红）。
+
+## 侧挂数据（允许进模型；边界是「裁判产物」，不是「数据来源」）
+
+2026-10-22 澄清：NJStats 的旁路数据是**侧挂**，不是**热插拔**。
+侧挂 = 常驻旁路，有就读、缺了就降级，引擎不改一行也能跑；
+热插拔 = 可随时替换数据源/实现而不改变输出——本项目**不做**这个承诺，
+所以侧挂入口收敛成 `engine/sources/njstats_side.py` 一个文件。
+
+| 类别 | 例子 | 能否进模型 | 约束 |
+|---|---|---|---|
+| 赛前公开输入 | NJStats 开盘赔率、主客分离统计 | ✅ 允许 | 只经 `njstats_side.py`；快照须早于开赛，训练侧还须早于当时预测时刻 `as_of` |
+| 目标市场价 | 站点赔率 `site_odds/` | ❌ 不进特征 | 按 `engine/prediction/market_isolation.py` 只能留在策略层（E8 闸门 / EV） |
+| 社区票 | `people` / `votes` | ⏸ 暂不能 | 快照里 `code` 是市场内序号且无市场标识，无法映射 1x2；`dom_tendency` 是方向真值，禁止读 |
+| 裁判产物 | `challenge_*` 三件套、结算结果 | ❌ 禁止 | 自己批卷 |
+
+禁令的对象是**判决**，不是数据来源。把「不许读裁判产物」扩读成「不许读
+NJStats 的任何数据」，是把侧挂误当热插拔。实测覆盖率见
+`python -m engine.sources.njstats_side`。
 
 ## 变更纪律
 本子系统的一切代码/流程变更走**独立 PR**（本文件即示例：feature/challenge-subsystem），
@@ -44,6 +62,13 @@ tests/test_challenge_firewall.py 在 CI 强制此边界（engine/ 出现 challen
 - 2026-10-12 上线（UI 模拟）→ 10-15 纯 API + 预登记纪律 v5.2
 - W42 特例（本周）：填仓模式——门槛 edge>0、K=剩余配额/剩余天数，目标周日 28/28
 - W43 起（常规）：周一~四 ≥1.5pp / 周五~日 ≥0.8pp，K=max(2,⌈剩余/天⌉)，上限 6
+- **2026-10-22：闸门量纲切换到 `ev_site`（E8 前瞻实验，见 docs/EXPERIMENTS.md）**。
+  原 edge 档从 10-19 起连续 131 轮零合格——不是"1.5pp 太少"，而是
+  `P − market_fair` 在实测模型下**恒为负**（7 场对照最大 −0.23pp，与 E3 一致）。
+  新口径 `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），赌的是盘口软而非模型聪明。
+  开关在 `data/state/challenge_policy.json` 的 `gate_mode`/`ev_floor`，改回 `"edge"` 即停实验。
+  实测覆盖率才是下一层天花板：站点板 333 场 ∩ 我方预测 13 场 = 可评 10 场，
+  10-22 这天只有 1 场过新闸门；要放量得先扩赛程/赔率覆盖（见任务：独立信息源）。
 
 ## JWT 续期机制（2026-10-16 逆向定稿）
 - **正道（免验证码）**：浏览器登录 session 调 `GET /api/user/current`（credentials:include）→ `data.token` 返回全新 20h JWT。Mac :35 值守每次 mint 后写文件 + 推 GitHub secret `NJSTATS_JWT`。只要登录时勾了"自动登录"（Spring SESSION cookie 长期有效），即可无限续命，无需再碰验证码。

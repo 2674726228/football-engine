@@ -14,7 +14,7 @@
 
 > 教训：本文件第一版把合并逻辑抄了一份来测，结果把 main() 里的整段去重
 > 代码删掉，测试依然全绿——那是在测我自己写的副本。现在改为
-> monkeypatch `api.my_predictions` / `api.board_items` / `api.submit`，
+> monkeypatch `api.my_predictions` / `api.board_with_odds` / `api.submit`，
 > 断言真实代码路径上的行为。
 """
 
@@ -71,7 +71,10 @@ def _write_predictions(tmp_path, matches, monkeypatch):
 def _board(matches):
     import datetime as _dt
     soon = (_dt.datetime.now(ch.BJT) + _dt.timedelta(hours=6)).timestamp()
-    return [{"sid": m["sid"], "home": m["home"], "away": m["away"], "kick_ts": int(soon)}
+    # odds = 站点结算口径（msgId=1 f2）。给一个比 predictions 里体彩价高的值，
+    # 顺带把 records 的 site_odds/ev_site 两条新字段走一遍真实代码路径。
+    return [{"sid": m["sid"], "home": m["home"], "away": m["away"], "kick_ts": int(soon),
+             "odds": [m.get("odds", 2.0) * 1.1, 3.60, 3.60]}
             for m in matches]
 
 
@@ -83,7 +86,7 @@ def test_server_side_dedupe_blocks_resubmission(tmp_path, monkeypatch, env):
         {"sid": "BBBb", "home": "帕尔马", "away": "都灵", "p": 0.55, "edge": 0.05},
     ]
     _write_predictions(tmp_path, matches, monkeypatch)
-    monkeypatch.setattr(ch.api, "board_items", lambda jwt: _board(matches))
+    monkeypatch.setattr(ch.api, "board_with_odds", lambda jwt: _board(matches))
     # 服务端说「蒙扎那场我已经预测过了」
     monkeypatch.setattr(ch.api, "my_predictions",
                         lambda jwt: [{"sid": "AAAa", "home": "蒙扎", "away": "卡利亚里"}])
@@ -107,7 +110,7 @@ def test_without_server_list_falls_back_to_local_state(tmp_path, monkeypatch, en
         {"sid": "BBBb", "home": "帕尔马", "away": "都灵", "p": 0.55, "edge": 0.05},
     ]
     _write_predictions(tmp_path, matches, monkeypatch)
-    monkeypatch.setattr(ch.api, "board_items", lambda jwt: _board(matches))
+    monkeypatch.setattr(ch.api, "board_with_odds", lambda jwt: _board(matches))
     monkeypatch.setattr(ch.api, "my_predictions", lambda jwt: None)  # 取不到
 
     assert ch.main() == 0
@@ -121,7 +124,7 @@ def test_server_list_marks_state_gap_in_output(tmp_path, monkeypatch, env, capsy
     env
     matches = [{"sid": "AAAa", "home": "蒙扎", "away": "卡利亚里", "p": 0.55, "edge": 0.05}]
     _write_predictions(tmp_path, matches, monkeypatch)
-    monkeypatch.setattr(ch.api, "board_items", lambda jwt: _board(matches))
+    monkeypatch.setattr(ch.api, "board_with_odds", lambda jwt: _board(matches))
     monkeypatch.setattr(ch.api, "my_predictions",
                         lambda jwt: [{"sid": "ZZZz", "home": "朗斯", "away": "葡萄牙体育"}])
 

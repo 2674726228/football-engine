@@ -38,9 +38,9 @@ def isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(ch, "STATE", state)
     monkeypatch.setattr(ch, "POLICY", tmp_path / "challenge_policy.json")
     # 无 JWT 时 main() 直接退 0，测不到翻转路径；这里给一个占位并让
-    # board_items 返回 None（模拟「列表失败」这条同样会提前 return 的分支）。
+    # board_with_odds 返回 None（模拟「列表失败」这条同样会提前 return 的分支）。
     monkeypatch.setenv("NJSTATS_JWT", "test-jwt")
-    monkeypatch.setattr(ch.api, "board_items", lambda jwt: None)
+    monkeypatch.setattr(ch.api, "board_with_odds", lambda jwt: None)
     return state
 
 
