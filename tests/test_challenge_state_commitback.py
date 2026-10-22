@@ -141,3 +141,26 @@ def test_duty_commit_push_aborts_conflicting_rebase(env, monkeypatch):
     assert not (a / ".git" / "rebase-merge").exists() and not (a / ".git" / "rebase-apply").exists(), \
         "仓库停在 rebase 中间态，下一轮 duty 直接瘫掉"
     assert "duty: test state" in sh(f'git -C "{a}" log --oneline', a).stdout, "本地提交被丢掉"
+
+
+def test_duty_distinguishes_network_failure_from_conflict(env, monkeypatch):
+    """远端不可达时 abort 不会成功——日志必须写「pull 失败」而不是「冲突」。
+
+    2026-10-22 20:35 实例：pull 报 "and the repository exists."（远端瞬时不可达），
+    旧日志却统一写成「冲突，已 abort」，会把网络问题和内容冲突混为一谈。
+    """
+    remote, a = env
+    duty = _load_duty()
+    monkeypatch.setattr(duty, "ROOT", a)
+    monkeypatch.setattr(duty.time, "sleep", lambda s: None)
+    logs: list[str] = []
+    monkeypatch.setattr(duty, "log", logs.append)
+
+    sh("git remote set-url origin /nonexistent/repo.git", a)
+    (a / STATE).write_text('{"used":1,"records":[]}', encoding="utf-8")
+    assert duty.commit_push([STATE], "duty: test net") is False
+
+    joined = " | ".join(logs)
+    assert "pull 失败（未进入 rebase）" in joined, joined
+    assert "pull 冲突" not in joined, joined
+    assert not (a / ".git" / "rebase-merge").exists()

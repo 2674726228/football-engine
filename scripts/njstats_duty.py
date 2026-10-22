@@ -98,9 +98,14 @@ def commit_push(paths: list[str], msg: str) -> bool:
         # ——这台机器就再也提交不了任何东西（daily-forecast 已栽过同一坑，
         # 2026-10-22 CI 状态回仓开始真提交之后，这个窗口才真正会出现）。
         # 冲突不猜方向：本地提交留在原地，下一轮在新 base 上重放。
-        sh("git", "rebase", "--abort")
-        tail = (pull.stderr or pull.stdout).strip().splitlines()
-        log(f"pull --rebase 冲突，已 abort: {tail[-1] if tail else '无输出'}（本地提交待下一轮重放）")
+        # abort 的退出码同时用来区分病因：成功=真有 rebase 被中止（内容冲突），
+        # 失败=根本没进 rebase（网络/凭据/远端不可达），别把两者混成「冲突」。
+        aborted = sh("git", "rebase", "--abort").returncode == 0
+        lines = [l.strip() for l in (pull.stderr or pull.stdout).splitlines() if l.strip()]
+        msg_line = next((l for l in lines if l.startswith(("fatal:", "error:"))),
+                        lines[-1] if lines else "无输出")
+        log(("pull 冲突，已 abort" if aborted else "pull 失败（未进入 rebase）")
+            + f": {msg_line}（本地提交待下一轮重放）")
         time.sleep(4)
     log(f"push 失败（3 次重试）: {msg}")
     return False
