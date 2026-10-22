@@ -79,14 +79,26 @@ def build_training_rows(records: list[dict], daily_root: Path,
         if not p:
             continue
         try:
+            # 2026-10-22：优先回放服务端冻结的输入快照（form/联赛先验/
+            # 排名/模型 xG）。旧样本没有该字段时退回当时落盘的列——
+            # form_home/away 自 2026-10-09 起有值，home_xg 是模型 xG；
+            # 联赛先验与排名旧样本无从追溯，保持 build_features 默认值，
+            # 而不是拿今天的 league_matrix / 当前排名去回填历史（那时不可见）。
+            inp = p.get("lgbm_inputs") or {}
             sig = (side_index.get(side_mod.key(p.get("home_team", ""), p.get("away_team", "")))
                    if side_mod else None)
             feats = build_features(
                 elo_home=float(p.get("elo_home") or 1500),
                 elo_away=float(p.get("elo_away") or 1500),
                 handicap=p.get("handicap"),
-                xg_home=p.get("home_xg"),
-                xg_away=p.get("away_xg"),
+                home_form=float(inp.get("form_home", p.get("form_home") or 0.0) or 0.0),
+                away_form=float(inp.get("form_away", p.get("form_away") or 0.0) or 0.0),
+                league_avg_goals=float(inp.get("league_avg_goals") or 2.5),
+                league_home_win_rate=float(inp.get("league_home_win_rate") or 0.45),
+                xg_home=inp.get("xg_home", p.get("home_xg")),
+                xg_away=inp.get("xg_away", p.get("away_xg")),
+                rank_home=inp.get("rank_home"),
+                rank_away=inp.get("rank_away"),
                 djyy_probs=p.get("djyy_model_prob"),
                 include_market_odds=False,
                 side=sig.features_as_of(p.get("as_of", "")) if sig else None,

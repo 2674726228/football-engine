@@ -39,12 +39,20 @@ def test_rank_diff_without_ranks_is_zero_not_none():
 
 
 def test_main_passes_fixture_ranks_into_features():
-    """调用点必须真的传 rank_*，否则这条特征又变成死旋钮。"""
+    """调用点必须真的传 rank_*，否则这条特征又变成死旋钮。
+
+    2026-10-22 起 rank 先进 _lgbm_inputs 快照随预测落盘，再由快照
+    传给 build_features——训练端同一份快照回放，两端同值。
+    """
     src = (ROOT / "engine" / "main.py").read_text(encoding="utf-8")
-    assert "rank_home=getattr(fixture, \"_rank_home\", None)" in src, \
-        "main.py 没把 _rank_home 传进 build_features"
-    assert "rank_away=getattr(fixture, \"_rank_away\", None)" in src, \
-        "main.py 没把 _rank_away 传进 build_features"
+    assert "\"rank_home\": getattr(fixture, \"_rank_home\", None)" in src, \
+        "main.py 没把 _rank_home 写进 LGBM 输入快照"
+    assert "\"rank_away\": getattr(fixture, \"_rank_away\", None)" in src, \
+        "main.py 没把 _rank_away 写进 LGBM 输入快照"
+    assert "rank_home=_lgbm_inputs[\"rank_home\"]" in src, \
+        "main.py 没把快照里的 rank_home 传进 build_features"
+    assert "rank_away=_lgbm_inputs[\"rank_away\"]" in src, \
+        "main.py 没把快照里的 rank_away 传进 build_features"
 
 
 def test_djyy_still_populates_rank_fields():
