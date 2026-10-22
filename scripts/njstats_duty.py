@@ -467,7 +467,10 @@ def _maybe_djyy_snapshot() -> None:
         pass
     env = dict(os.environ)
     env.pop("DJYY_KEY", None)
-    env["DJYY_PROXY"] = ""  # 必须直连：Worker 出口被上游整体挑战
+    # 清空 DJYY_PROXY 只是别用 Worker 地址（Worker 出口被上游整体挑战）。
+    # 注意：本机 urllib 会走系统代理，2026-10-23 实测比 Python 直连快 5 倍
+    # （单请求 4.6s vs 26s）——不要为了「直连」去禁系统代理。
+    env["DJYY_PROXY"] = ""
     try:
         p = subprocess.run([str(ROOT / ".venv" / "bin" / "python3"),
                             "scripts/fetch_djyy_ssr.py"],

@@ -25,7 +25,9 @@
 >           ④ DJYY 已恢复：上游 Cloudflare 对 Worker 出口是**整体** challenge
 >           （`x-proxy-attempts: 3` 三次全 403，连首页都 `cf-mitigated: challenge`，
 >           ORD/IAD/SJC/DFW 一致），header/cookie/重试/密钥都不是变量；此前偶发 200
->           只是 Worker 响应被边缘缓存 60s 的假象。修复：duty 用本机住宅网络直连抓取，
+>           只是 Worker 响应被边缘缓存 60s 的假象。修复：duty 用本机网络抓取
+>           （urllib 默认走系统代理，实测比 Python 直连快 5 倍：单请求 4.6s vs 26s；
+>           2026-10-23 并行化 comparison 抓取后 200 场约 2.5 分钟完成，原先串行会撞 600s 超时），
 >           超过 10h 即刷新并提交快照，CI 只消费仓库快照。10-22 实测本机直连 200 场、
 >           200/200 带 Pinnacle 赔率与模型概率；预测侧 fusion 在实时源缺失时用快照
 >           `djyy_model_prob` 补位，第三通道不再被重新归一化掉。E8 在恢复前 n=0，

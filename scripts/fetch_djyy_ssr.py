@@ -19,6 +19,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -102,6 +103,42 @@ def fetch_fixtures(
 def fetch_comparison(match_id: int) -> dict | None:
     url = f"{BASE}/api/match/{match_id}/comparison"
     return _fetch_json(url, timeout=10)
+
+
+def enrich_matches(fixtures: list[dict], workers: int | None = None):
+    """并发抓每场的 comparison，按输入顺序返回 (matches, enriched, comp_failed)。
+
+    2026-10-23：串行抓 200 场 × 单请求 4~26s，duty 侧 600s 超时稳定触发
+    （00:10 实测卡满 10 分钟后放弃，旧快照继续用）。并发数用 6 是保守值，
+    给 Cloudflare 留余地；请求失败仍走 _fetch_json 自己的重试。
+    """
+    if workers is None:
+        try:
+            workers = max(1, int(os.environ.get("DJYY_FETCH_WORKERS", "6")))
+        except ValueError:
+            workers = 6
+    valid = [fx for fx in fixtures if fx.get("id")]
+    matches: list[dict] = []
+    enriched = comp_failed = 0
+
+    def _fetch(fx: dict):
+        try:
+            return fetch_comparison(fx["id"])
+        except Exception:
+            return None
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        comps = pool.map(_fetch, valid)
+        for i, (fx, comp) in enumerate(zip(valid, comps)):
+            if comp is None:
+                comp_failed += 1
+            m = extract_match(fx, comp)
+            matches.append(m)
+            if m.get("home_odds_djyy"):
+                enriched += 1
+            if (i + 1) % 10 == 0:
+                print(f"    ... {i+1}/{len(valid)} ({enriched} with odds)")
+    return matches, enriched, comp_failed
 
 
 def _safe(d: dict | None, key: str, default=None):
@@ -222,30 +259,7 @@ def main():
             print("  ⚠ 赛程为空且无旧快照，本次不产出")
         return
 
-    matches = []
-    enriched = 0
-    comp_failed = 0
-    for i, fx in enumerate(fixtures):
-        mid = fx.get("id")
-        if not mid:
-            continue
-
-        comp = None
-        try:
-            comp = fetch_comparison(mid)
-        except Exception:
-            pass
-        if comp is None:
-            comp_failed += 1
-
-        m = extract_match(fx, comp)
-        matches.append(m)
-
-        if m.get("home_odds_djyy"):
-            enriched += 1
-
-        if (i + 1) % 10 == 0:
-            print(f"    ... {i+1}/{len(fixtures)} ({enriched} with odds)")
+    matches, enriched, comp_failed = enrich_matches(fixtures)
 
     # 赛程拿到了但 comparison 全挂（典型的"半程 403"）：这时写盘会把
     # 有效的 djyy_prob/赔率全部抹成 null，比保留旧快照伤害大得多。
