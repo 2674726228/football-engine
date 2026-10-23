@@ -47,8 +47,9 @@
 >           ⑥ **rho 写回丢失已修（91c1556ad）**：rho MLE 每轮写 config/prediction.json，
 >           但 Actions 工作区一次性、commit 只 add data/ web/ → 线上 rho 自 10-12 停在
 >           -0.0748（实测拟合 -0.0711, n=1142）。现提交步补且只补这一份配置
->           （存在才 add），回归测试 tests/test_rho_persistence.py。下一轮有新增赛果的
->           结算后 rho 才会真正跟到拟合值（settlement 无新赛果会提前返回）。
+>           （存在才 add），回归测试 tests/test_rho_persistence.py。
+>           **2026-10-23 03:33 已验证**（2d22b075f）：10-22 赛果结算后 rho 从 -0.0748
+>           跟到 -0.0711 并随 daily 提交，持久化链路真跑通。
 >           ⑦ **双端写 challenge_state 的两处静默丢记录已修（PR #53）**：CI 的「状态回仓」
 >           原先只 `git add` 从不 `git commit`，push 的是 checkout 出来的旧 HEAD →
 >           永远 `Everything up-to-date`（退出码 0），CI 投的注一条都不进仓而步骤是绿的；
@@ -296,7 +297,8 @@
       （上次 daily 是 10-22 23:15），挑战池连续两轮「匹配0/候选0」，页面/结算/rho 也停。
       duty 的 CI 看门狗扩展到 Daily Forecast：**北京时间今天还没跑过、或距上次超 4h**
       就补触发一轮（2h 冷却；daily 刚补过则本轮不再叠 challenge）。取不到状态时保守不动。
-      回归测试 `tests/test_ci_watchdog.py` 新增 6 例。
+      回归测试 `tests/test_ci_watchdog.py` 新增 6 例。**生产已验证**：06:01 BJT 自动
+      workflow_dispatch 一轮（距上次 4.5h），随后 06:45 schedule 正常。
 - 2026-10-23 **新闻源（展示层）落地**：旧路径依赖本机 Chrome、10-11→10-18 每天 0 命中，
   且 football-engine 无任何读取方；Qwen 摘要也上不了 CI。改用**直播吧足球列表**
   （HTTP、当日更新、无需登录）→ 按预测队名 + `TEAM_ALIASES` 简称 + 挑战池译名反查匹配 →
