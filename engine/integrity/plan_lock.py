@@ -1,5 +1,10 @@
 from __future__ import annotations
 """计划锁定 - 防止已锁定的决策被重写"""
+import json
+import os
+import time
+from pathlib import Path
+
 try:  # POSIX 专用
     import fcntl
 except ImportError:  # Windows 没有 fcntl
@@ -8,10 +13,19 @@ except ImportError:  # Windows 没有 fcntl
     # JSON 锁（lock/verify_lock）不依赖 fcntl，应保持可用；
     # 只有 acquire_file_lock 这个 flock 封装需要降级。
     fcntl = None  # type: ignore[assignment]
-import json
-import os
-import time
-from pathlib import Path
+
+
+def compute_plan_hash(betting_plan: dict) -> str:
+    """计划指纹：覆盖**全部实际出票内容**（单关 + 三票 + 串关 + 总额）。
+
+    2026-10-23 修复（评审 P0#2）：原调用点只哈希 `plan.singles`，而真正
+    落盘的注单还包含串关/三票/总暴露 —— 锁住的"承诺"与实际产物不是同一个
+    对象。现在对最终 betting_plan 结构整体取 SHA-256。
+    """
+    import hashlib
+
+    payload = json.dumps(betting_plan, sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 class PlanLock:
