@@ -6,8 +6,54 @@
   "expected_roi": 0.0,
   "bankroll": 3874.5510999999997,
   "breaker_multiplier": 1.0,
-  "parlay": [],
-  "parlay_pool_n": 1,
+  "parlay": [
+    {
+      "type": "2串1",
+      "legs": [
+        {
+          "match": "2026-10-23_周五005",
+          "home": "布雷达",
+          "away": "赫拉克勒",
+          "league": "荷乙",
+          "sel": "away",
+          "odds": 2.12,
+          "prob": 0.428,
+          "cal_prob": 0.496,
+          "market_prob": 0.418,
+          "source": "fusion",
+          "hit_prob": 0.496
+        },
+        {
+          "match": "2026-10-23_周五009",
+          "home": "伊普斯维奇",
+          "away": "诺丁汉森林",
+          "league": "英超",
+          "sel": "away",
+          "odds": 2.12,
+          "prob": 0.419,
+          "cal_prob": 0.496,
+          "market_prob": 0.418,
+          "source": "fusion",
+          "hit_prob": 0.496
+        }
+      ],
+      "total_odds": 4.49,
+      "model_ev": -0.39,
+      "cal_ev": 1.45,
+      "cal_roi": 0.1039,
+      "market_ev": -0.43,
+      "market_roi": -0.2154,
+      "hit_prob_cal": 0.246,
+      "recommended": true,
+      "stake": 13.95,
+      "n_bets": 1,
+      "potential": 62.7,
+      "worst_win": 0.0,
+      "note": "两场全中才赢",
+      "source": "calibrated"
+    }
+  ],
+  "parlay_pool_n": 2,
   "score_parlay": [
     {
       "type": "比分2串1",
@@ -18,7 +64,7 @@
           "away": "门兴格拉德巴赫",
           "league": "德甲",
           "score": "1-0",
-          "prob": 0.207,
+          "prob": 0.208,
           "cal_prob": 0.092,
           "odds": 14.0
         },
@@ -28,23 +74,23 @@
           "away": "米德尔斯堡",
           "league": "英冠",
           "score": "1-0",
-          "prob": 0.168,
+          "prob": 0.17,
           "cal_prob": 0.092,
-          "odds": 19.0
+          "odds": 20.0
         }
       ],
-      "total_odds": 266.0,
+      "total_odds": 280.0,
       "hit_prob": 0.0085,
       "stake": 2.0,
-      "potential": 532.0,
+      "potential": 560.0,
       "worst_win": 0.0,
       "n_bets": 1,
       "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 0.8% × 赔率 266 倍 = EV +125%）"
+      "note": "两场比分都中才赢（校准命中 0.8% × 赔率 280 倍 = EV +137%）"
     }
   ],
-  "parlay_stake": 2.0,
-  "total_exposure": 2.0,
+  "parlay_stake": 15.95,
+  "total_exposure": 15.95,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5465,
