@@ -1,21 +1,21 @@
 {
-  "total_matches": 1171,
+  "total_matches": 1172,
   "date_range": [
     "2026-07-19",
-    "2026-10-22"
+    "2026-10-23"
   ],
   "metrics": {
-    "brier": 0.5779,
-    "weighted_brier": 0.5746,
+    "brier": 0.5778,
+    "weighted_brier": 0.5745,
     "rps": 0.1984,
     "weighted_rps": 0.1974,
-    "log_loss": 0.9721,
-    "hit_rate": 0.5491,
-    "ece": 0.0852
+    "log_loss": 0.972,
+    "hit_rate": 0.5495,
+    "ece": 0.0861
   },
   "draw_analysis": {
     "actual_draws": 282,
-    "actual_draw_rate": 0.2408,
+    "actual_draw_rate": 0.2406,
     "predicted_draws": 39,
     "predicted_draw_rate": 0.0333,
     "max_draw_prob": 0.5025,
@@ -27,20 +27,20 @@
   },
   "strategy_comparison": {
     "model": {
-      "hit_rate": 0.5465,
-      "n": 1171
+      "hit_rate": 0.5469,
+      "n": 1172
     },
     "market": {
-      "hit_rate": 0.5581,
-      "n": 1050
+      "hit_rate": 0.5585,
+      "n": 1051
     },
     "hybrid_v2": {
-      "hit_rate": 0.5067,
-      "n": 1050
+      "hit_rate": 0.5071,
+      "n": 1051
     },
     "market_d28": {
-      "hit_rate": 0.5248,
-      "n": 1050
+      "hit_rate": 0.5252,
+      "n": 1051
     }
   },
   "by_league": {
@@ -248,6 +248,12 @@
       "brier": 0.5221,
       "rps": 0.1745
     },
+    "澳超": {
+      "n": 4,
+      "hit_rate": 0.5,
+      "brier": 0.6524,
+      "rps": 0.162
+    },
     "韩职": {
       "n": 3,
       "hit_rate": 0.3333,
@@ -271,12 +277,6 @@
       "hit_rate": 0.6667,
       "brier": 0.4702,
       "rps": 0.2072
-    },
-    "澳超": {
-      "n": 3,
-      "hit_rate": 0.3333,
-      "brier": 0.7221,
-      "rps": 0.1533
     }
   }
 }
