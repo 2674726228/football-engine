@@ -18,7 +18,7 @@
           "away": "门兴格拉德巴赫",
           "league": "德甲",
           "score": "1-0",
-          "prob": 0.208,
+          "prob": 0.207,
           "cal_prob": 0.092,
           "odds": 14.0
         },
@@ -28,7 +28,7 @@
           "away": "米德尔斯堡",
           "league": "英冠",
           "score": "1-0",
-          "prob": 0.172,
+          "prob": 0.168,
           "cal_prob": 0.092,
           "odds": 19.0
         }
@@ -47,8 +47,8 @@
   "total_exposure": 2.0,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
-    "overall": 0.547,
-    "n": 1170,
+    "overall": 0.5465,
+    "n": 1171,
     "table": {
       "0.35": 0.4286,
       "0.4": 0.4956,
@@ -57,7 +57,7 @@
       "0.55": 0.5,
       "0.6": 0.6701,
       "0.65": 0.7195,
-      "0.7": 0.8158
+      "0.7": 0.8087
     },
     "note": "串关 EV 用账本校准命中率（模型概率高估，0.55-0.60 段仅 31.6% 命中）；推荐=校准EV>0"
   }
