@@ -3484,12 +3484,19 @@ def _parlay_section(ticket, predictions, st_index=None):
   </details>"""
 
     if not parlay:
+        _pool_n = ticket.get("parlay_pool_n")
+        if isinstance(_pool_n, int) and _pool_n > 0:
+            _why = f"可串池只有 {_pool_n} 条腿（2串1 需要 ≥2 条）"
+        elif _pool_n == 0:
+            _why = "可串池为空：没有腿同时过赔率区间与价值门槛（校准命中率×赔率）"
+        else:
+            _why = "无可串腿：未过价值门槛或不足 2 条"
         return f"""
   <div class="section-title">串关方案（过关玩法）</div>
   <div class="ticket-card" style="border-color:var(--amber);opacity:.9">
     <h4 class="lottery">🎯 今日无串关 <span class="pick-val draw" style="font-size:.75em">空仓</span></h4>
     <div style="font-size:.8rem;opacity:.8;padding:4px 0">
-      缺可串腿（模型 ≥60% 或 市场 ≥55% 置信场次 0 场）—— 竞彩串关吃双重抽水，宁可不串，不送钱。
+      {_why}—— 竞彩串关吃双重抽水，宁可不串，不送钱。
     </div>
     {cal_html}
   </div>"""

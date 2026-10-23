@@ -1142,6 +1142,7 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
     # 负 EV 串票落盘标注 ⚠（页面展示但不出注），无腿/全负则空仓。
     # 2026-08-13 教训：比分串 84 张 0 中（ROI -100%）→ 比分串必须用官方
     # 真实赔率算 EV，无官方赔率一律不出（详见 6.4b）。
+    parlay_pool_n = 0
     try:
         from engine.strategy.parlay import ParlayBuilder, load_calibration
         _cal = load_calibration(
@@ -1156,6 +1157,7 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
             league_forbid=league_forbid,
         )
         parlay_plan = parlay_builder.build(candidates, ticket_plan, predictions)
+        parlay_pool_n = getattr(parlay_builder, "last_pool_n", 0)
         _n_rec = sum(1 for t in parlay_plan if t.recommended)
         if parlay_plan:
             _pl_desc = "、".join(f"{t.parlay_type}{'⭐' if t.recommended else '⚠'}" for t in parlay_plan)
@@ -1300,6 +1302,7 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
     )
     _tp_summary = allocator.summary(ticket_plan)
     _tp_summary["parlay"] = [t.to_dict() for t in parlay_plan]
+    _tp_summary["parlay_pool_n"] = parlay_pool_n
     _tp_summary["score_parlay"] = [t.to_dict() for t in score_plan]
     _tp_summary["parlay_stake"] = round(_parlay_stake, 2)
     _tp_summary["total_exposure"] = round(

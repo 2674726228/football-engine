@@ -195,6 +195,7 @@ class ParlayBuilder:
             self.cfg.max_parlay_stake = float(_stake)
         # 校准表：账本驱动
         self.cal = calibration or {}
+        self.last_pool_n = 0  # 最近一次 build 的可串池腿数（页面空仓文案用）
         self.cal_table = self.cal.get("table") or self.cfg.cal_table or {}
         self.cal_overall = self.cal.get("overall") or self.cfg.cal_overall
         # 送钱区联赛禁投集合（2026-08-14：串关此前绕过联赛禁投，选芬超平局腿）
@@ -422,6 +423,7 @@ class ParlayBuilder:
         predictions: list[dict] | None = None,
     ) -> list[ParlayTicket]:
         pool = self._build_pool(candidates, predictions)
+        self.last_pool_n = len(pool)
         if not pool:
             return []
         n = min(len(pool), self.cfg.max_legs)

@@ -81,3 +81,17 @@ def test_no_snapshot_keeps_old_label_with_warning(tmp_path, monkeypatch):
     html = bs._parlay_section(_ticket(_leg("2026-10-23_a", "Alpha", "Beta")), preds)
     assert "正EV 推荐" in html
     assert "未找到站点赔率快照" in html
+
+
+def test_empty_parlay_explains_pool_size():
+    """空仓文案要说清是「池子只有 1 条腿」还是「一条都没有」，不能再用 8 月的旧门槛描述。"""
+    cal = {"overall": 0.5, "n": 10}
+    one = bs._parlay_section({"parlay": [], "parlay_calibration": cal,
+                              "parlay_pool_n": 1}, [])
+    assert "只有 1 条腿" in one and "≥2" in one
+    assert "模型 ≥60%" not in one
+    zero = bs._parlay_section({"parlay": [], "parlay_calibration": cal,
+                               "parlay_pool_n": 0}, [])
+    assert "可串池为空" in zero
+    old = bs._parlay_section({"parlay": [], "parlay_calibration": cal}, [])
+    assert "无可串腿" in old
