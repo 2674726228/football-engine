@@ -1,16 +1,16 @@
 {
   "generated_at": "2026-10-24",
-  "total_matches": 1201,
+  "total_matches": 1208,
   "date_range": [
     "2026-07-19",
     "2026-10-24"
   ],
   "overall": {
-    "hit_rate": 0.5437,
-    "brier_final": 0.5806,
-    "brier_model": 0.6178,
-    "brier_market": 0.5721,
-    "brier_djyy": 0.6276
+    "hit_rate": 0.543,
+    "brier_final": 0.5812,
+    "brier_model": 0.6183,
+    "brier_market": 0.5729,
+    "brier_djyy": 0.6273
   },
   "daily": [
     {
@@ -1131,21 +1131,21 @@
     },
     {
       "date": "2026-10-24",
-      "n": 18,
-      "hits": 8,
-      "hit_rate": 0.4444,
-      "cum_hit_rate": 0.5437,
-      "brier_final": 0.6952,
-      "brier_model": 0.7338,
-      "brier_market": 0.6543,
-      "brier_djyy": 0.7146,
+      "n": 25,
+      "hits": 11,
+      "hit_rate": 0.44,
+      "cum_hit_rate": 0.543,
+      "brier_final": 0.6936,
+      "brier_model": 0.7263,
+      "brier_market": 0.665,
+      "brier_djyy": 0.6854,
       "pnl": 0.0
     }
   ],
   "rolling7": {
-    "n": 99,
-    "hit_rate": 0.5253,
-    "brier_final": 0.6448,
+    "n": 106,
+    "hit_rate": 0.5189,
+    "brier_final": 0.6446,
     "pnl": 0.0
   },
   "prev7": {
@@ -1158,9 +1158,9 @@
   "by_league": [
     {
       "layer": "西甲",
-      "n": 91,
-      "hit_rate": 0.5495,
-      "brier_final": 0.5671
+      "n": 93,
+      "hit_rate": 0.5591,
+      "brier_final": 0.5648
     },
     {
       "layer": "欧冠",
@@ -1170,15 +1170,15 @@
     },
     {
       "layer": "意甲",
-      "n": 73,
-      "hit_rate": 0.6027,
-      "brier_final": 0.548
+      "n": 74,
+      "hit_rate": 0.5946,
+      "brier_final": 0.5503
     },
     {
       "layer": "英超",
-      "n": 67,
-      "hit_rate": 0.4776,
-      "brier_final": 0.6146
+      "n": 68,
+      "hit_rate": 0.4706,
+      "brier_final": 0.619
     },
     {
       "layer": "欧罗巴",
@@ -1188,9 +1188,15 @@
     },
     {
       "layer": "德甲",
-      "n": 60,
-      "hit_rate": 0.5333,
-      "brier_final": 0.6129
+      "n": 61,
+      "hit_rate": 0.541,
+      "brier_final": 0.6054
+    },
+    {
+      "layer": "荷甲",
+      "n": 52,
+      "hit_rate": 0.6346,
+      "brier_final": 0.5382
     },
     {
       "layer": "欧国联",
@@ -1203,12 +1209,6 @@
       "n": 51,
       "hit_rate": 0.4902,
       "brier_final": 0.6583
-    },
-    {
-      "layer": "荷甲",
-      "n": 51,
-      "hit_rate": 0.6471,
-      "brier_final": 0.5278
     },
     {
       "layer": "挪超",
@@ -1224,9 +1224,9 @@
     },
     {
       "layer": "葡超",
-      "n": 45,
-      "hit_rate": 0.5778,
-      "brier_final": 0.5343
+      "n": 46,
+      "hit_rate": 0.5652,
+      "brier_final": 0.5454
     },
     {
       "layer": "巴甲",
@@ -1448,9 +1448,9 @@
     },
     {
       "layer": "L1 大热(<1.5)",
-      "n": 69,
-      "hit_rate": 0.7101,
-      "brier_final": 0.4493
+      "n": 71,
+      "hit_rate": 0.7042,
+      "brier_final": 0.4539
     },
     {
       "layer": "L3 中(1.8-2.2)",
@@ -1459,42 +1459,42 @@
       "brier_final": 0.5986
     },
     {
+      "layer": "L2 热(1.5-1.8)",
+      "n": 44,
+      "hit_rate": 0.3864,
+      "brier_final": 0.7201
+    },
+    {
       "layer": "3.0+",
       "n": 41,
       "hit_rate": 0.2683,
       "brier_final": 0.6345
     },
     {
-      "layer": "L2 热(1.5-1.8)",
-      "n": 41,
-      "hit_rate": 0.3902,
-      "brier_final": 0.7163
-    },
-    {
       "layer": "L4 冷(2.2-3.0)",
-      "n": 31,
-      "hit_rate": 0.4839,
-      "brier_final": 0.6507
+      "n": 33,
+      "hit_rate": 0.4848,
+      "brier_final": 0.6503
     }
   ],
   "by_conf_tier": [
     {
       "layer": "mid",
-      "n": 614,
-      "hit_rate": 0.4902,
+      "n": 616,
+      "hit_rate": 0.4903,
       "brier_final": 0.6231
     },
     {
       "layer": "high",
-      "n": 422,
-      "hit_rate": 0.6635,
-      "brier_final": 0.4882
+      "n": 425,
+      "hit_rate": 0.6612,
+      "brier_final": 0.4901
     },
     {
       "layer": "low",
-      "n": 165,
-      "hit_rate": 0.4364,
-      "brier_final": 0.6586
+      "n": 167,
+      "hit_rate": 0.4371,
+      "brier_final": 0.6584
     }
   ]
 }
