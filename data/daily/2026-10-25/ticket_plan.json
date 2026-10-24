@@ -4,10 +4,10 @@
   "lottery": [],
   "total_stake": 0,
   "expected_roi": 0.0,
-  "bankroll": 3842.6011,
-  "breaker_multiplier": 1.0,
+  "bankroll": 3830.6011,
+  "breaker_multiplier": 0.5,
   "parlay": [],
-  "parlay_pool_n": 1,
+  "parlay_pool_n": 0,
   "score_parlay": [
     {
       "type": "比分2串1",
@@ -18,8 +18,8 @@
           "away": "皇家马德里",
           "league": "西甲",
           "score": "1-1",
-          "prob": 0.17,
-          "cal_prob": 0.1057,
+          "prob": 0.171,
+          "cal_prob": 0.1058,
           "odds": 13.0
         },
         {
@@ -28,8 +28,8 @@
           "away": "费耶诺德",
           "league": "荷甲",
           "score": "1-0",
-          "prob": 0.231,
-          "cal_prob": 0.091,
+          "prob": 0.228,
+          "cal_prob": 0.0911,
           "odds": 16.0
         }
       ],
@@ -40,7 +40,7 @@
       "worst_win": 0.0,
       "n_bets": 1,
       "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 1.0% × 赔率 208 倍 = EV +100%）"
+      "note": "两场比分都中才赢（校准命中 1.0% × 赔率 208 倍 = EV +101%）"
     },
     {
       "type": "比分2串1",
@@ -51,8 +51,8 @@
           "away": "费耶诺德",
           "league": "荷甲",
           "score": "1-0",
-          "prob": 0.231,
-          "cal_prob": 0.091,
+          "prob": 0.228,
+          "cal_prob": 0.0911,
           "odds": 16.0
         },
         {
@@ -61,8 +61,8 @@
           "away": "纽卡斯尔联",
           "league": "英超",
           "score": "1-0",
-          "prob": 0.255,
-          "cal_prob": 0.091,
+          "prob": 0.257,
+          "cal_prob": 0.0911,
           "odds": 12.5
         }
       ],
@@ -84,8 +84,8 @@
           "away": "费耶诺德",
           "league": "荷甲",
           "score": "1-0",
-          "prob": 0.231,
-          "cal_prob": 0.091,
+          "prob": 0.228,
+          "cal_prob": 0.0911,
           "odds": 16.0
         },
         {
@@ -95,7 +95,7 @@
           "league": "法甲",
           "score": "1-0",
           "prob": 0.19,
-          "cal_prob": 0.091,
+          "cal_prob": 0.0911,
           "odds": 12.0
         }
       ],
@@ -106,7 +106,7 @@
       "worst_win": 0.0,
       "n_bets": 1,
       "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 0.8% × 赔率 192 倍 = EV +59%）"
+      "note": "两场比分都中才赢（校准命中 0.8% × 赔率 192 倍 = EV +60%）"
     },
     {
       "type": "比分3串1",
@@ -117,8 +117,8 @@
           "away": "皇家马德里",
           "league": "西甲",
           "score": "1-1",
-          "prob": 0.17,
-          "cal_prob": 0.1057,
+          "prob": 0.171,
+          "cal_prob": 0.1058,
           "odds": 13.0
         },
         {
@@ -127,8 +127,8 @@
           "away": "费耶诺德",
           "league": "荷甲",
           "score": "1-0",
-          "prob": 0.231,
-          "cal_prob": 0.091,
+          "prob": 0.228,
+          "cal_prob": 0.0911,
           "odds": 16.0
         },
         {
@@ -137,8 +137,8 @@
           "away": "纽卡斯尔联",
           "league": "英超",
           "score": "1-0",
-          "prob": 0.255,
-          "cal_prob": 0.091,
+          "prob": 0.257,
+          "cal_prob": 0.0911,
           "odds": 12.5
         }
       ],
@@ -160,8 +160,8 @@
           "away": "皇家马德里",
           "league": "西甲",
           "score": "1-1",
-          "prob": 0.17,
-          "cal_prob": 0.1057,
+          "prob": 0.171,
+          "cal_prob": 0.1058,
           "odds": 13.0
         },
         {
@@ -170,8 +170,8 @@
           "away": "费耶诺德",
           "league": "荷甲",
           "score": "1-0",
-          "prob": 0.231,
-          "cal_prob": 0.091,
+          "prob": 0.228,
+          "cal_prob": 0.0911,
           "odds": 16.0
         },
         {
@@ -180,8 +180,8 @@
           "away": "纽卡斯尔联",
           "league": "英超",
           "score": "1-0",
-          "prob": 0.255,
-          "cal_prob": 0.091,
+          "prob": 0.257,
+          "cal_prob": 0.0911,
           "odds": 12.5
         }
       ],
@@ -199,16 +199,16 @@
   "total_exposure": 16.0,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
-    "overall": 0.5437,
-    "n": 1201,
+    "overall": 0.543,
+    "n": 1208,
     "table": {
-      "0.35": 0.4329,
+      "0.35": 0.4337,
       "0.4": 0.4894,
       "0.45": 0.5,
-      "0.5": 0.4911,
-      "0.55": 0.4874,
-      "0.6": 0.66,
-      "0.65": 0.7294,
+      "0.5": 0.4912,
+      "0.55": 0.4833,
+      "0.6": 0.6535,
+      "0.65": 0.7326,
       "0.7": 0.7983
     },
     "note": "串关 EV 用账本校准命中率（模型概率高估，0.55-0.60 段仅 31.6% 命中）；推荐=校准EV>0"
