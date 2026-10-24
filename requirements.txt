@@ -5,3 +5,7 @@ joblib>=1.4
 requests>=2.31
 httpx>=0.27
 scipy>=1.12
+# 2026-10-23：Windows 没有系统时区库，ZoneInfo("Asia/Shanghai") 会抛
+# ZoneInfoNotFoundError（weekly_digest.py:184）。Linux runner 自带 tzdata，
+# 故只在 Windows 装，避免污染 Linux CI。
+tzdata>=2024.1; platform_system == "Windows"
