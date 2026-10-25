@@ -17,6 +17,40 @@ from pathlib import Path
 
 # 仓库根：按脚本位置推导，不依赖调用时的 CWD（CI 与手工跑都稳）
 ROOT = str(Path(__file__).resolve().parent.parent)
+# 防火墙：challenge_review 不得 import engine.*（tests/test_challenge_firewall.py）。
+# 站点译名 → 预测译名的映射只用于复盘 join，不影响提交池，所以放在本脚本本地。
+_REVIEW_ALIAS = {
+    "维戈塞尔塔": "塞尔塔",
+    "布里斯班狮吼": "布里斯班",
+    "神户胜利船": "神户胜利",
+    "沙尔克04": "沙尔克",
+    "吉维森特": "吉尔维森特",
+    "利勒斯特罗姆": "利勒斯特伦",
+    "萨格勒布迪纳摩": "萨迪纳摩",
+    "OFI克雷迪": "克里特",
+    "拉普拉塔大学生": "拉普大学",
+}
+_SQUAD = ("B队", "二队", "II队", "U21", "U23", "U20", "U19", "U18",
+          "U17", "U16", "预备队", "青年队", "卡斯蒂亚", "女足", "女子")
+
+
+def _review_canon(name: str) -> str:
+    n = str(name or "").strip().replace("FC", "")
+    return _REVIEW_ALIAS.get(n, n)
+
+
+def match_pair_review(ph: str, pa: str, h: str, a: str) -> bool:
+    """队名对匹配（含站点译名 + 保守子串，梯队/女队不混）。"""
+    def eq(x, y):
+        x, y = _review_canon(x), _review_canon(y)
+        if not x or not y:
+            return False
+        if x == y:
+            return True
+        if any(m in x for m in _SQUAD) != any(m in y for m in _SQUAD):
+            return False
+        return len(x) >= 2 and len(y) >= 2 and (x in y or y in x)
+    return eq(ph, h) and eq(pa, a)
 # 线上唯一真值：challenge_hourly.py / submit.js 写的就是这个文件，且它入库、
 # CI 可读。此前这里指向 _vault/challenge_state.json——那是 2026-10-15 的
 # 本地快照（9 条记录），且 .gitignore 排除了 _vault/，于是：
@@ -31,6 +65,42 @@ def load_state():
         # 显式失败，别静默给空数据——复盘产物会进账本级审计
         sys.exit(f"challenge_review: 缺 {STATE_FILE}（应已入库，检查 checkout 是否完整）")
     return json.loads(p.read_text(encoding='utf-8'))
+
+def _record_date(rec: dict):
+    raw = str(rec.get("submitted_at") or "")[:10]
+    try:
+        return datetime.strptime(raw, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def resolve_record(rec: dict, pred_rows: list[tuple[str, dict]]):
+    """站点译名 → 预测记录（2026-10-26）。
+
+    原实现只查原文和两个手写别名，实测漏掉维戈塞尔塔/塞尔塔、布里斯班狮吼/
+    布里斯班、神户胜利船/神户胜利、利勒斯特罗姆/利勒斯特伦——这些注在账本里
+    早已结算，复盘却永远算挂起。现在用 sources 层 match_pair（含子串/别名）
+    并按提交日期就近选择，再退回 challenge_hourly._canon 的整名映射。
+    """
+    m = str(rec.get("match") or "")
+    if " vs " not in m:
+        return None
+    h, a = [t.strip() for t in m.split(" vs ", 1)]
+    rd = _record_date(rec)
+    best = None
+    for d, p in pred_rows:
+        try:
+            gap = abs((datetime.strptime(d, "%Y-%m-%d").date() - rd).days) if rd else 0
+        except ValueError:
+            gap = 99
+        if rd and gap > 3:
+            continue
+        if not match_pair_review(p.get("home_team", ""), p.get("away_team", ""), h, a):
+            continue
+        if best is None or gap < best[0]:
+            best = (gap, p)
+    return best[1] if best else None
+
 
 def parse_pick(pick: str) -> dict:
     """把 pick 字符串解析成 {play, dir, line, side, raw}。
@@ -138,13 +208,13 @@ def main():
         r = json.loads(line)
         ledger[r['match_id']] = r
     # 结算 join：record 用队名；账本行带预测文件可反查 match_id
-    pred_index = {}
+    pred_rows = []
     for d in sorted(set(r['date'] for r in ledger.values())):
         try:
             p = json.load(open(f'{ROOT}/data/daily/{d}/predictions.json'))
             p = p.get('predictions', p) if isinstance(p, dict) else p
             for x in p:
-                pred_index[(x['home_team'], x['away_team'])] = x['match_id']
+                pred_rows.append((d, x))
         except Exception:
             continue
     # 比分索引：让球判定需要精确比分，账本里只有 total_goals_actual，
@@ -171,16 +241,23 @@ def main():
         m = rec.get('match', '')
         if ' vs ' not in m: continue
         h, a = [t.strip() for t in m.split(' vs ')]
-        alias = lambda s: {'艾华卡':'阿尔维卡','KFUM奥斯陆':'奥斯KFUM'}.get(s, s)
-        mid = pred_index.get((alias(h), alias(a))) or pred_index.get((h, a))
+        pred = resolve_record(rec, pred_rows)
+        if not pred: continue
+        mid = pred.get('match_id')
         if not mid or mid not in ledger: continue
         lr = ledger[mid]
+        if lr.get('actual_idx') is None: continue
         pick = rec.get('pick', '')
         parsed = parse_pick(pick)
         claimed_p = rec.get('p')  # 若提交时记了声明概率
         # 让球注需要精确比分：优先从 results_sina 取，支持队名别名
         hs = as_ = None
-        sc = score_index.get((alias(h), alias(a))) or score_index.get((h, a))
+        sc = score_index.get((pred.get('home_team'), pred.get('away_team')))
+        if not sc:
+            for (kh, ka), v in score_index.items():
+                if match_pair_review(kh, ka, pred.get('home_team', ''), pred.get('away_team', '')):
+                    sc = v
+                    break
         if sc:
             hs, as_ = sc
         hit = judge_hit(parsed, lr['actual_idx'], hs, as_)
