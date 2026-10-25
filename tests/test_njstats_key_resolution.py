@@ -41,6 +41,10 @@ def test_load_key_resolves_real_file(monkeypatch, tmp_path):
 
     monkeypatch.delenv("NJSTATS_TOKEN", raising=False)
     monkeypatch.setenv("HOME", str(tmp_path))
+    # 2026-10-23：load_key 用的是 Path.home()，Windows 上它读 USERPROFILE 而不是
+    # HOME（POSIX 才读 HOME），所以只 patch 环境变量在 Windows 不生效——直接替换
+    # Path.home 本身，两种平台行为一致。
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
     d = tmp_path / ".football-engine"
     d.mkdir(parents=True)
     (d / "njstats_apikey.txt").write_text("TESTKEY123", encoding="utf-8")
@@ -74,6 +78,8 @@ def test_load_key_skips_blank_files(monkeypatch, tmp_path):
 
     monkeypatch.delenv("NJSTATS_TOKEN", raising=False)
     monkeypatch.setenv("HOME", str(tmp_path))
+    # 同 test_load_key_resolves_real_file：Path.home() 在 Windows 上不认 HOME。
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
     d = tmp_path / ".football-engine"
     d.mkdir(parents=True)
     (d / "njstats_key").write_text("", encoding="utf-8")

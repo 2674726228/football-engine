@@ -15,12 +15,16 @@ on:
       - 'tests/**'
       - 'scripts/**'
       - 'requirements*.txt'
+      # 2026-10-23：行为开关（模型/策略/阈值）放在 config/ 下，改它们同样
+      # 会改预测行为，不挂触发路径的话这类改动绕过全部回归测试。
+      - 'config/**'
   pull_request:
     paths:
       - 'engine/**'
       - 'evolution/**'
       - '.github/CODEOWNERS'
       - 'tests/**'
+      - 'config/**'
 
 permissions:
   contents: read
