@@ -11,7 +11,6 @@ from __future__ import annotations
 import importlib
 import json
 
-import pytest
 
 from engine.prediction.fusion import FusionInput, fuse_probabilities
 from engine.strategy.circuit_breaker import BreakerState, CircuitBreaker
