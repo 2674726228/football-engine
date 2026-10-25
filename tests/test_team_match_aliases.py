@@ -9,6 +9,7 @@
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -37,9 +38,20 @@ def test_dinamo_alias_does_not_swallow_other_zagreb_club():
     assert not match_team("萨迪纳摩", "萨格勒布")
 
 
-def test_snapshot_enrichment_hits_dinamo_match():
-    """端到端：这条别名存在的意义就是让这场拿得到快照概率。"""
-    snap = ROOT / "data" / "djyy_matches.json"
+def test_snapshot_enrichment_hits_dinamo_match(tmp_path):
+    """端到端：这条别名存在的意义就是让这场拿得到快照概率。
+
+    2026-10-26：原来直接读 data/djyy_matches.json（当天实时快照），
+    10-22 的比赛在几天后自然不在快照里 → 测试随数据过期而红。
+    这里改用固定 fixture，只验证「别名能让这场命中」这条契约。
+    """
+    snap = tmp_path / "djyy.json"
+    snap.write_text(json.dumps({"matches": [{
+        "home_name_cn": "萨格勒布迪纳摩", "away_name_cn": "奈梅亨",
+        "home_name": "Dinamo Zagreb", "away_name": "NEC Nijmegen",
+        "home_odds_djyy": 1.8, "draw_odds_djyy": 3.5, "away_odds_djyy": 4.2,
+        "djyy_model_prob": {"home": 0.52, "draw": 0.27, "away": 0.21},
+    }]}, ensure_ascii=False), encoding="utf-8")
     src = DJYYSSRSource(snap)
     out = src.enrich_prediction("萨迪纳摩", "奈梅亨")
     prob = out.get("djyy_model_prob")

@@ -32,7 +32,10 @@ def _node(script: str) -> str:
     src = f"""
     const fs = require('fs');
     let src = fs.readFileSync({str(SUBMIT_JS)!r}, 'utf-8');
-    src = src.replace(/^#!.*\\n/, '');            // 去掉 shebang，new Function 不认
+    // 2026-10-23：正则从 /^#!.*\\n/ 改为 /^#!.*\\r?\\n/。
+    // JS 的 `.` 不匹配 \\r，Windows（core.autocrlf=true）检出成 CRLF 时
+    // 旧正则剥不掉 shebang → new Function 直接 SyntaxError（26 例全挂）。
+    src = src.replace(/^#!.*\\r?\\n/, '');        // 去掉 shebang，new Function 不认
     // 只取纯函数段（到 main() 之前），避开文件系统/网络副作用
     const cut = src.indexOf('async function main');
     const body = src.slice(0, cut);
