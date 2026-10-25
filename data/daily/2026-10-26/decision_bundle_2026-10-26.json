@@ -1,25 +1,32 @@
 {
-  "version": 2,
+  "version": 3,
   "date": "2026-10-26",
-  "created_at": "2026-10-25T16:50:22",
+  "created_at": "2026-10-25T19:36:53Z",
   "inputs": {
     "import_manifest": {
       "import_date": "2026-10-26",
       "source": "merged(sporttery+500wan)",
-      "fixture_count": 11,
-      "sha256": "520053157079533501f9906e568b8caf203302271186eb0fd3bae1f9cfcf6483",
-      "timestamp": "2026-10-25T16:50:13.304837",
+      "fixture_count": 8,
+      "sha256": "9ab4159868c93a84c46870c861ffe2d0c0edbe4618bf9073d79b73efae0294c8",
+      "timestamp": "2026-10-25T19:36:43.491155",
       "fallback_used": true
     },
     "config_prediction": "dc2415c7e20cb966fdb62d0bcadae57ae707e6bcef44c038bb877e140ef4f9da",
     "config_strategy": "8d84828520a6924a2836389746d65bae4929652a3ac02d50222c781558cbc863",
-    "model_code_hashes": {}
+    "model_code_hashes": {
+      "engine/main.py": "e93d00160317330aaa7b3392c0a340fe3cfe7dad13dabf957b1208b41da6ff0d",
+      "engine/prediction/dixon_coles.py": "180265842c6f6fb3056031b5cea3c3792844635323520be93fd451290c9f971d",
+      "engine/prediction/monte_carlo.py": "cbf7fe1b99cda548f9ca609258ed70e4f5c0401080a5c30581f7ff9a56885e50",
+      "engine/prediction/fusion.py": "6201c75ad71f051a3f424558148a60dfaf4ca8d4f77100fc7a3e354b5c87bf13",
+      "engine/prediction/ensemble.py": "bc2b2885d16b02ee668139e244c203c02a940cd993e9eeff1468ae1767701b79",
+      "engine/strategy/kelly.py": "fdd2507b3ca87da417951c679d3419edb460d2f1549830f2b7820695bc90be96"
+    }
   },
   "outputs": {
-    "predictions_hash": "a584db97a7f06e594152bffa727ae1cdfe638cab8e2bb44e67bc1affbbc9a044",
+    "predictions_hash": "fc3b9d1407b3116a62c7d2497e5501deeb1ebc2e6966d0675222fe11a898be48",
     "predictions_count": 4,
-    "betting_plan_hash": "7aa0b317aae4042d2a362f3eb01897683e8e7549449bfe03f59912a75172ca1a",
+    "betting_plan_hash": "338791f52745382ef60f3d3a5b544aa9b7fb333743287f8c616191c9e4b9ad80",
     "total_stake": 0.0
   },
-  "bundle_sha256": "c681e3f23f999f12346f09d12434cf219e5d1a5a129a6a601e6a0bb02569989b"
+  "bundle_sha256": "09b5f910eed3acfc8deca686d595a133ed99d246201006c2a71a1878579406aa"
 }
