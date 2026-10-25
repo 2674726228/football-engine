@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-18",
+  "date": "2026-10-25",
   "steps": {
     "walk_forward": {
-      "total_matches": 1125
+      "total_matches": 1237
     },
     "fusion_optimizer": {
       "decision": "hold",
@@ -31,51 +31,51 @@
         {
           "horizon": "t6h",
           "label": "开赛前6小时",
-          "n": 194,
-          "brier": 0.5439,
-          "rps": 0.1925,
-          "log_loss": 0.9222,
-          "hit_rate": 0.5619,
-          "avg_ev": -0.3254,
+          "n": 234,
+          "brier": 0.5575,
+          "rps": 0.1966,
+          "log_loss": 0.9422,
+          "hit_rate": 0.5556,
+          "avg_ev": -0.2698,
           "total_ev": -63.13
         },
         {
           "horizon": "t90m",
           "label": "开赛前90分钟",
-          "n": 470,
-          "brier": 0.5479,
-          "rps": 0.1871,
-          "log_loss": 0.9299,
-          "hit_rate": 0.5851,
-          "avg_ev": -0.6436,
+          "n": 533,
+          "brier": 0.5588,
+          "rps": 0.1906,
+          "log_loss": 0.9452,
+          "hit_rate": 0.5741,
+          "avg_ev": -0.5675,
           "total_ev": -302.47
         },
         {
           "horizon": "closing",
           "label": "收盘市场",
-          "n": 186,
-          "brier": 0.5697,
-          "rps": 0.1976,
-          "log_loss": 0.9632,
-          "hit_rate": 0.5806,
-          "avg_ev": -0.2688,
+          "n": 195,
+          "brier": 0.5685,
+          "rps": 0.196,
+          "log_loss": 0.9616,
+          "hit_rate": 0.5795,
+          "avg_ev": -0.2564,
           "total_ev": -50.0
         }
       ]
     },
     "shrinkage_dc": {
-      "n_evaluated": 1114,
+      "n_evaluated": 1226,
       "skipped_dates": 0,
-      "shrinkage_dc_brier": 0.6145,
-      "final_brier": 0.5724,
-      "model_raw_brier": 0.6091,
-      "market_brier": 0.5646,
+      "shrinkage_dc_brier": 0.6172,
+      "final_brier": 0.5773,
+      "model_raw_brier": 0.6142,
+      "market_brier": 0.5709,
       "verdict": "hold",
       "snapshot": {
-        "n_matches": 57918,
-        "teams": 1049,
-        "rho": -0.0456,
-        "fitted_at": "2026-10-18"
+        "n_matches": 58030,
+        "teams": 1052,
+        "rho": -0.0463,
+        "fitted_at": "2026-10-25"
       }
     }
   }
