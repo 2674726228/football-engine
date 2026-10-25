@@ -1,13 +1,13 @@
 {
   "date": "2026-10-25",
-  "n_matches": 17,
-  "hit_rate": 0.5294,
+  "n_matches": 18,
+  "hit_rate": 0.5,
   "hits": 9,
   "source_brier": {
-    "model": 0.6197,
-    "market": 0.5933,
-    "djyy": 0.6776,
-    "final": 0.5956
+    "model": 0.6523,
+    "market": 0.6068,
+    "djyy": 0.6963,
+    "final": 0.6104
   },
   "by_league": {
     "澳超": {
@@ -75,14 +75,20 @@
       "hit_rate": 0.0,
       "wilson_lower": 0.0,
       "avg_brier": 0.8979
+    },
+    "德甲": {
+      "n": 1,
+      "hit_rate": 0.0,
+      "wilson_lower": 0.0,
+      "avg_brier": 0.8623
     }
   },
   "by_confidence_tier": {
     "mid": {
-      "n": 9,
-      "hit_rate": 0.5556,
-      "wilson_lower": 0.2666,
-      "avg_brier": 0.6401
+      "n": 10,
+      "hit_rate": 0.5,
+      "wilson_lower": 0.2366,
+      "avg_brier": 0.6623
     },
     "high": {
       "n": 7,
@@ -105,10 +111,10 @@
       "avg_brier": 0.5358
     },
     "L2 热(1.5-1.8)": {
-      "n": 6,
-      "hit_rate": 0.1667,
-      "wilson_lower": 0.0301,
-      "avg_brier": 0.8433
+      "n": 7,
+      "hit_rate": 0.1429,
+      "wilson_lower": 0.0257,
+      "avg_brier": 0.846
     },
     "L1 大热(<1.5)": {
       "n": 5,
@@ -149,16 +155,16 @@
     }
   },
   "market_signal_stats": {
-    "n": 17,
+    "n": 18,
     "hits": 7
   },
   "layered": {
-    "log_loss_final": 0.9911,
-    "rps_final": 0.1766,
-    "rps_market": 0.1748,
+    "log_loss_final": 1.0094,
+    "rps_final": 0.1896,
+    "rps_market": 0.1872,
     "goal_framework": {
-      "n": 17,
-      "hits": 9
+      "n": 18,
+      "hits": 10
     },
     "prob_bands": {
       "40-50%": {
@@ -166,8 +172,8 @@
         "hit_rate": 0.8
       },
       "50-60%": {
-        "n": 6,
-        "hit_rate": 0.1667
+        "n": 7,
+        "hit_rate": 0.1429
       },
       "60%+": {
         "n": 5,
@@ -184,8 +190,8 @@
         "hit_rate": 0.5
       },
       "ok": {
-        "n": 10,
-        "hit_rate": 0.5
+        "n": 11,
+        "hit_rate": 0.4545
       },
       "watch": {
         "n": 5,
@@ -198,15 +204,15 @@
       "dimension": "outcome",
       "key": "all",
       "outcome": "draw",
-      "predicted_avg": 0.2321,
-      "actual_rate": 0.3529,
-      "gap": -0.1208,
-      "n": 17,
+      "predicted_avg": 0.2303,
+      "actual_rate": 0.3333,
+      "gap": -0.103,
+      "n": 18,
       "severity": "warn",
       "suggested_action": "reduce draw_bias"
     }
   ],
   "total_pnl": 0.0,
-  "generated_at": "2026-10-25T16:07:04.671896",
-  "sha256": "ba2d38d55d4c2b318a920a0e1f9fc557"
+  "generated_at": "2026-10-25T16:50:33.858459",
+  "sha256": "70bc701d2ff5c6825b9512faa04b6345"
 }
