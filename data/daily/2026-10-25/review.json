@@ -1,13 +1,13 @@
 {
   "date": "2026-10-25",
-  "n_matches": 24,
-  "hit_rate": 0.5417,
-  "hits": 13,
+  "n_matches": 27,
+  "hit_rate": 0.5185,
+  "hits": 14,
   "source_brier": {
-    "model": 0.5837,
-    "market": 0.5465,
-    "djyy": 0.6182,
-    "final": 0.5513
+    "model": 0.5713,
+    "market": 0.5617,
+    "djyy": 0.6136,
+    "final": 0.5641
   },
   "by_league": {
     "澳超": {
@@ -29,22 +29,22 @@
       "avg_brier": 0.2123
     },
     "荷甲": {
-      "n": 2,
-      "hit_rate": 0.5,
-      "wilson_lower": 0.0945,
-      "avg_brier": 0.748
+      "n": 3,
+      "hit_rate": 0.3333,
+      "wilson_lower": 0.0615,
+      "avg_brier": 0.7656
     },
     "意甲": {
-      "n": 4,
-      "hit_rate": 0.75,
-      "wilson_lower": 0.3006,
-      "avg_brier": 0.4205
+      "n": 5,
+      "hit_rate": 0.8,
+      "wilson_lower": 0.3755,
+      "avg_brier": 0.3861
     },
     "西甲": {
-      "n": 3,
-      "hit_rate": 0.6667,
-      "wilson_lower": 0.2077,
-      "avg_brier": 0.3972
+      "n": 4,
+      "hit_rate": 0.5,
+      "wilson_lower": 0.15,
+      "avg_brier": 0.5356
     },
     "瑞典超": {
       "n": 1,
@@ -85,16 +85,16 @@
   },
   "by_confidence_tier": {
     "mid": {
-      "n": 11,
-      "hit_rate": 0.4545,
-      "wilson_lower": 0.2127,
-      "avg_brier": 0.6772
+      "n": 12,
+      "hit_rate": 0.4167,
+      "wilson_lower": 0.1933,
+      "avg_brier": 0.6875
     },
     "high": {
-      "n": 11,
-      "hit_rate": 0.7273,
-      "wilson_lower": 0.4343,
-      "avg_brier": 0.3919
+      "n": 13,
+      "hit_rate": 0.6923,
+      "wilson_lower": 0.4237,
+      "avg_brier": 0.4239
     },
     "low": {
       "n": 2,
@@ -105,16 +105,16 @@
   },
   "by_odds_band": {
     "L3 中(1.8-2.2)": {
-      "n": 5,
-      "hit_rate": 0.6,
-      "wilson_lower": 0.2307,
-      "avg_brier": 0.5937
+      "n": 6,
+      "hit_rate": 0.5,
+      "wilson_lower": 0.1876,
+      "avg_brier": 0.6282
     },
     "L2 热(1.5-1.8)": {
-      "n": 8,
-      "hit_rate": 0.25,
-      "wilson_lower": 0.0715,
-      "avg_brier": 0.7703
+      "n": 10,
+      "hit_rate": 0.3,
+      "wilson_lower": 0.1078,
+      "avg_brier": 0.7362
     },
     "L1 大热(<1.5)": {
       "n": 8,
@@ -131,20 +131,20 @@
   },
   "score_stats": {
     "top1": 3,
-    "top3": 5,
-    "top5": 9,
-    "top8": 16,
-    "any": 16
+    "top3": 6,
+    "top5": 11,
+    "top8": 19,
+    "any": 19
   },
   "score_rank_hist": {
-    "6": 3,
+    "6": 4,
     "7": 3,
     "1": 3,
     "5": 3,
-    "4": 1,
+    "4": 2,
     "2": 1,
     "8": 1,
-    "3": 1
+    "3": 2
   },
   "score_source_stats": {
     "djyy": {
@@ -152,30 +152,30 @@
       "hits": 0
     },
     "mc": {
-      "n": 16,
-      "hits": 9
+      "n": 19,
+      "hits": 11
     }
   },
   "market_signal_stats": {
-    "n": 24,
-    "hits": 10
+    "n": 27,
+    "hits": 11
   },
   "layered": {
-    "log_loss_final": 0.9304,
-    "rps_final": 0.1651,
-    "rps_market": 0.1623,
+    "log_loss_final": 0.9453,
+    "rps_final": 0.1813,
+    "rps_market": 0.1799,
     "goal_framework": {
-      "n": 24,
-      "hits": 14
+      "n": 27,
+      "hits": 17
     },
     "prob_bands": {
       "40-50%": {
-        "n": 6,
-        "hit_rate": 0.6667
+        "n": 7,
+        "hit_rate": 0.5714
       },
       "50-60%": {
-        "n": 8,
-        "hit_rate": 0.25
+        "n": 10,
+        "hit_rate": 0.3
       },
       "60%+": {
         "n": 8,
@@ -192,8 +192,8 @@
         "hit_rate": 0.5
       },
       "ok": {
-        "n": 17,
-        "hit_rate": 0.5294
+        "n": 20,
+        "hit_rate": 0.5
       },
       "watch": {
         "n": 5,
@@ -201,20 +201,8 @@
       }
     }
   },
-  "biases": [
-    {
-      "dimension": "outcome",
-      "key": "all",
-      "outcome": "draw",
-      "predicted_avg": 0.2294,
-      "actual_rate": 0.3333,
-      "gap": -0.104,
-      "n": 24,
-      "severity": "warn",
-      "suggested_action": "reduce draw_bias"
-    }
-  ],
+  "biases": [],
   "total_pnl": 0.0,
-  "generated_at": "2026-10-25T19:37:03.250950",
-  "sha256": "161058ad72384ca1990747b217c702c1"
+  "generated_at": "2026-10-25T22:05:00.356656",
+  "sha256": "3f1506df1840be0159f46e659b510047"
 }
