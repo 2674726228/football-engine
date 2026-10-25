@@ -25,8 +25,8 @@ DAILY = ROOT / "data" / "daily"
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT))
 import experiment_pace as ep  # noqa: E402
-from challenge_review import judge_hit, parse_pick  # noqa: E402
-from engine.team_aliases import normalize_team  # noqa: E402
+from challenge_review import (  # noqa: E402
+    judge_hit, match_pair_review, parse_pick, resolve_record)
 
 BJT = timezone(timedelta(hours=8))
 
@@ -52,8 +52,8 @@ def _dates_for(rec: dict) -> list[str]:
     return [(d0 + timedelta(days=i)).isoformat() for i in range(3)]
 
 
-def _scores(dates: list[str]) -> dict:
-    idx = {}
+def _scores(dates: list[str]) -> list[tuple]:
+    idx = []
     for d in dates:
         rows = _load(DAILY / d / "results_sina.json", [])
         for x in rows if isinstance(rows, list) else []:
@@ -61,35 +61,67 @@ def _scores(dates: list[str]) -> dict:
             h, a = x.get("home_team"), x.get("away_team")
             if hs is None or as_ is None or not h or not a:
                 continue
-            idx[(normalize_team(h), normalize_team(a))] = (int(hs), int(as_))
+            idx.append((h, a, int(hs), int(as_)))
     return idx
 
 
-def _judge(rec: dict) -> bool | None:
-    match = str(rec.get("match") or "")
-    if " vs " not in match:
+def _lookup_score(idx: list[tuple], ph: str, pa: str):
+    for h, a, hs, as_ in idx:
+        if match_pair_review(h, a, ph, pa):
+            return hs, as_
+    return None
+
+
+def _load_ctx():
+    """账本（权威 actual_idx）+ 所有预测，用于把站点译名解析到 match_id。"""
+    ledger = {}
+    p = STATE / "review_ledger.jsonl"
+    if p.exists():
+        for line in p.read_text(encoding="utf-8").splitlines():
+            try:
+                r = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            mid = r.get("match_id")
+            if mid and (mid not in ledger or
+                        (ledger[mid].get("actual_idx") is None
+                         and r.get("actual_idx") is not None)):
+                ledger[mid] = r
+    pred_rows = []
+    if DAILY.exists():
+        for d in sorted(x.name for x in DAILY.iterdir() if x.is_dir()):
+            raw = _load(DAILY / d / "predictions.json", [])
+            for x in (raw if isinstance(raw, list) else raw.get("predictions", [])):
+                pred_rows.append((d, x))
+    return ledger, pred_rows
+
+
+def _judge(rec: dict, ctx) -> bool | None:
+    ledger, pred_rows = ctx
+    pred = resolve_record(rec, pred_rows)
+    if not pred:
         return None
-    h, a = [t.strip() for t in match.split(" vs ", 1)]
-    dates = _dates_for(rec)
-    if not dates:
-        dates = (sorted(p.name for p in DAILY.iterdir() if p.is_dir())[-4:]
-                 if DAILY.exists() else [])
-    idx = _scores(dates)
-    sc = idx.get((normalize_team(h), normalize_team(a)))
-    if not sc:
-        return None
-    hs, as_ = sc
-    actual = 0 if hs > as_ else (1 if hs == as_ else 2)
+    mid = pred.get("match_id")
+    dates = _dates_for(rec) or ([str(mid)[:10]] if mid else [])
+    sc = _lookup_score(_scores(dates), pred.get("home_team", ""), pred.get("away_team", ""))
+    hs, as_ = sc if sc else (None, None)
+    lr = ledger.get(mid) if mid else None
+    actual = lr.get("actual_idx") if lr else None
+    if actual is None:
+        if hs is None:
+            return None
+        actual = 0 if hs > as_ else (1 if hs == as_ else 2)
     return judge_hit(parse_pick(str(rec.get("pick") or "")), actual, hs, as_)
 
 
 def pool_stats(records: list[dict], exp: str) -> dict:
+    ctx = _load_ctx()
     pool = ep.pool(records, exp)
     odds = [r.get("site_odds") for r in pool if isinstance(r.get("site_odds"), (int, float))]
     break_even = sum(1 / o for o in odds) / len(odds) if odds else None
     judged, hits, roi = 0, 0, 0.0
     for r in pool:
-        hit = _judge(r)
+        hit = _judge(r, ctx)
         if hit is None:
             continue
         judged += 1
