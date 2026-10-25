@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import socket
 import subprocess
 import sys
 import time
@@ -91,6 +92,21 @@ def _git(args: list[str], cwd: Path = REPO) -> tuple[int, str]:
 def _run(args: list[str], timeout: int = 300) -> tuple[int, str]:
     r = subprocess.run(args, cwd=REPO, capture_output=True, text=True, timeout=timeout)
     return r.returncode, (r.stdout + r.stderr).strip()
+
+
+def _port_open(host: str, port: int, timeout: float = 2.0) -> bool:
+    """TCP 端口连通性探测（等价于 `nc -z -w <timeout>`，但只用标准库）。
+
+    2026-10-23：原来这条探测调 `nc`。Windows 没有 netcat，check_env 里那句
+    `_run(["nc", ...])` 抛 FileNotFoundError 且不在 try 内，直接把整个 doctor
+    冲掉（test_run_smoke_no_net 挂在这）。socket 方案在 macOS/Linux/Windows
+    走同一条代码路径，判定语义不变：能建连 = 端口通。
+    """
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
 
 
 def _beijing_date(days_back: int = 0) -> str:
@@ -361,19 +377,26 @@ def check_env(report: DoctorReport, heal: bool) -> None:
         report.add(Finding("env/cron", "env", "info", "crontab 读取失败（无 cron?）"))
 
     # 代理（收编自 auto_run.heal_proxy；推送与 DJYY 都依赖它）
-    rc, _ = _run(["nc", "-z", "-w", "2", "127.0.0.1", "7897"])
-    if rc != 0:
+    if not _port_open("127.0.0.1", 7897):
         healed = False
-        if heal:
+        # 2026-10-23：`open -a` 是 macOS 命令。_run() 内部不捕获异常（见其实现），
+        # 而这句又不在 try 里——Windows/Linux 上 heal=True 且代理不通时
+        # FileNotFoundError 会直接冲出 check_env 让整个 doctor 崩掉（crontab 那句
+        # 能活下来只是因为外面套了 try）。故只在 macOS 尝试自动拉起。
+        if heal and sys.platform == "darwin":
             _run(["open", "-a", "Clash Verge"])
             for _ in range(12):
                 time.sleep(5)
-                rc2, _ = _run(["nc", "-z", "-w", "2", "127.0.0.1", "7897"])
-                if rc2 == 0:
+                if _port_open("127.0.0.1", 7897):
                     healed = True
                     break
-        report.add(Finding("env/proxy", "env", "warn" if healed else "warn",
-                           "代理 7897 不通" + ("→ 已拉起 Clash Verge" if healed else "（拉起失败）"),
+        if healed:
+            detail = "代理 7897 不通→ 已拉起 Clash Verge"
+        elif sys.platform == "darwin":
+            detail = "代理 7897 不通（拉起失败）"
+        else:
+            detail = "代理 7897 不通（自动拉起仅支持 macOS，请手动启动代理）"
+        report.add(Finding("env/proxy", "env", "warn", detail,
                            healable=True, healed=healed))
     else:
         report.add(Finding("env/proxy", "env", "ok", "代理 7897 通"))

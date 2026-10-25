@@ -1,0 +1,218 @@
+{
+  "date": "2026-10-25",
+  "n_matches": 18,
+  "hit_rate": 0.5,
+  "hits": 9,
+  "source_brier": {
+    "model": 0.6523,
+    "market": 0.6068,
+    "djyy": 0.6963,
+    "final": 0.6104
+  },
+  "by_league": {
+    "澳超": {
+      "n": 1,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.2065,
+      "avg_brier": 0.4614
+    },
+    "日乙": {
+      "n": 1,
+      "hit_rate": 0.0,
+      "wilson_lower": 0.0,
+      "avg_brier": 0.9845
+    },
+    "日职": {
+      "n": 2,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.3424,
+      "avg_brier": 0.2123
+    },
+    "荷甲": {
+      "n": 2,
+      "hit_rate": 0.5,
+      "wilson_lower": 0.0945,
+      "avg_brier": 0.748
+    },
+    "意甲": {
+      "n": 3,
+      "hit_rate": 0.6667,
+      "wilson_lower": 0.2077,
+      "avg_brier": 0.5003
+    },
+    "西甲": {
+      "n": 1,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.2065,
+      "avg_brier": 0.205
+    },
+    "瑞典超": {
+      "n": 1,
+      "hit_rate": 0.0,
+      "wilson_lower": 0.0,
+      "avg_brier": 0.7834
+    },
+    "芬超": {
+      "n": 1,
+      "hit_rate": 0.0,
+      "wilson_lower": 0.0,
+      "avg_brier": 0.8951
+    },
+    "挪超": {
+      "n": 1,
+      "hit_rate": 1.0,
+      "wilson_lower": 0.2065,
+      "avg_brier": 0.1466
+    },
+    "英超": {
+      "n": 3,
+      "hit_rate": 0.3333,
+      "wilson_lower": 0.0615,
+      "avg_brier": 0.7763
+    },
+    "法甲": {
+      "n": 1,
+      "hit_rate": 0.0,
+      "wilson_lower": 0.0,
+      "avg_brier": 0.8979
+    },
+    "德甲": {
+      "n": 1,
+      "hit_rate": 0.0,
+      "wilson_lower": 0.0,
+      "avg_brier": 0.8623
+    }
+  },
+  "by_confidence_tier": {
+    "mid": {
+      "n": 10,
+      "hit_rate": 0.5,
+      "wilson_lower": 0.2366,
+      "avg_brier": 0.6623
+    },
+    "high": {
+      "n": 7,
+      "hit_rate": 0.5714,
+      "wilson_lower": 0.2505,
+      "avg_brier": 0.5114
+    },
+    "low": {
+      "n": 1,
+      "hit_rate": 0.0,
+      "wilson_lower": 0.0,
+      "avg_brier": 0.7834
+    }
+  },
+  "by_odds_band": {
+    "L3 中(1.8-2.2)": {
+      "n": 4,
+      "hit_rate": 0.75,
+      "wilson_lower": 0.3006,
+      "avg_brier": 0.5358
+    },
+    "L2 热(1.5-1.8)": {
+      "n": 7,
+      "hit_rate": 0.1429,
+      "wilson_lower": 0.0257,
+      "avg_brier": 0.846
+    },
+    "L1 大热(<1.5)": {
+      "n": 5,
+      "hit_rate": 0.8,
+      "wilson_lower": 0.3755,
+      "avg_brier": 0.3217
+    },
+    "L4 冷(2.2-3.0)": {
+      "n": 2,
+      "hit_rate": 0.5,
+      "wilson_lower": 0.0945,
+      "avg_brier": 0.6566
+    }
+  },
+  "score_stats": {
+    "top1": 1,
+    "top3": 2,
+    "top5": 6,
+    "top8": 11,
+    "any": 11
+  },
+  "score_rank_hist": {
+    "6": 3,
+    "7": 2,
+    "1": 1,
+    "5": 3,
+    "4": 1,
+    "2": 1
+  },
+  "score_source_stats": {
+    "djyy": {
+      "n": 0,
+      "hits": 0
+    },
+    "mc": {
+      "n": 11,
+      "hits": 6
+    }
+  },
+  "market_signal_stats": {
+    "n": 18,
+    "hits": 7
+  },
+  "layered": {
+    "log_loss_final": 1.0094,
+    "rps_final": 0.1896,
+    "rps_market": 0.1872,
+    "goal_framework": {
+      "n": 18,
+      "hits": 10
+    },
+    "prob_bands": {
+      "40-50%": {
+        "n": 5,
+        "hit_rate": 0.8
+      },
+      "50-60%": {
+        "n": 7,
+        "hit_rate": 0.1429
+      },
+      "60%+": {
+        "n": 5,
+        "hit_rate": 0.8
+      },
+      "<40%": {
+        "n": 1,
+        "hit_rate": 0.0
+      }
+    },
+    "freshness_groups": {
+      "alert": {
+        "n": 2,
+        "hit_rate": 0.5
+      },
+      "ok": {
+        "n": 11,
+        "hit_rate": 0.4545
+      },
+      "watch": {
+        "n": 5,
+        "hit_rate": 0.6
+      }
+    }
+  },
+  "biases": [
+    {
+      "dimension": "outcome",
+      "key": "all",
+      "outcome": "draw",
+      "predicted_avg": 0.2303,
+      "actual_rate": 0.3333,
+      "gap": -0.103,
+      "n": 18,
+      "severity": "warn",
+      "suggested_action": "reduce draw_bias"
+    }
+  ],
+  "total_pnl": 0.0,
+  "generated_at": "2026-10-25T16:50:33.858459",
+  "sha256": "70bc701d2ff5c6825b9512faa04b6345"
+}

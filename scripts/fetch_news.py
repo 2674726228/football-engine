@@ -18,7 +18,6 @@ import html as html_lib
 import json
 import re
 import sys
-import time
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
