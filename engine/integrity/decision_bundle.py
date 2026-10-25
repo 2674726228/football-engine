@@ -4,7 +4,7 @@ import hashlib
 import json
 import os
 import re
-import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 # 决策包默认绑定的"模型代码指纹"清单（2026-10-23，评审 P1#11）
@@ -70,7 +70,9 @@ class DecisionBundle:
         bundle = {
             "version": version,
             "date": date_str,
-            "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            # 2026-10-23：统一用 UTC（原 time.strftime 取本地时间，CI runner
+            # 是 UTC、本机是 +08，同一份 bundle 的 created_at 口径不一致）。
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "inputs": {
                 "import_manifest": import_manifest,
                 "config_prediction": self._canonical_hash(config_prediction),
