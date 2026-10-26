@@ -1,46 +1,46 @@
 {
-  "total_matches": 1241,
+  "total_matches": 1242,
   "date_range": [
     "2026-07-19",
     "2026-10-25"
   ],
   "metrics": {
-    "brier": 0.5805,
-    "weighted_brier": 0.5779,
+    "brier": 0.5808,
+    "weighted_brier": 0.5783,
     "rps": 0.199,
     "weighted_rps": 0.1982,
-    "log_loss": 0.9761,
-    "hit_rate": 0.5455,
-    "ece": 0.0819
+    "log_loss": 0.9765,
+    "hit_rate": 0.5451,
+    "ece": 0.082
   },
   "draw_analysis": {
-    "actual_draws": 303,
-    "actual_draw_rate": 0.2442,
+    "actual_draws": 304,
+    "actual_draw_rate": 0.2448,
     "predicted_draws": 39,
     "predicted_draw_rate": 0.0314,
     "max_draw_prob": 0.5025,
-    "avg_draw_prob": 0.2525,
-    "avg_market_draw": 0.2386,
+    "avg_draw_prob": 0.2524,
+    "avg_market_draw": 0.2385,
     "market_high_draw_n": 223,
     "market_high_draw_actual": 77,
     "market_high_draw_rate": 0.3453
   },
   "strategy_comparison": {
     "model": {
-      "hit_rate": 0.5431,
-      "n": 1241
+      "hit_rate": 0.5427,
+      "n": 1242
     },
     "market": {
-      "hit_rate": 0.5546,
-      "n": 1118
+      "hit_rate": 0.5541,
+      "n": 1119
     },
     "hybrid_v2": {
-      "hit_rate": 0.5036,
-      "n": 1118
+      "hit_rate": 0.5031,
+      "n": 1119
     },
     "market_d28": {
-      "hit_rate": 0.5215,
-      "n": 1118
+      "hit_rate": 0.521,
+      "n": 1119
     }
   },
   "by_league": {
@@ -153,10 +153,10 @@
       "rps": 0.1823
     },
     "美职": {
-      "n": 24,
-      "hit_rate": 0.4583,
-      "brier": 0.6056,
-      "rps": 0.2017
+      "n": 25,
+      "hit_rate": 0.44,
+      "brier": 0.6234,
+      "rps": 0.2021
     },
     "解放者杯": {
       "n": 20,
