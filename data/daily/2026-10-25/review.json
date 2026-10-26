@@ -1,13 +1,13 @@
 {
   "date": "2026-10-25",
-  "n_matches": 27,
-  "hit_rate": 0.5185,
+  "n_matches": 28,
+  "hit_rate": 0.5,
   "hits": 14,
   "source_brier": {
-    "model": 0.5713,
+    "model": 0.5971,
     "market": 0.5617,
-    "djyy": 0.6136,
-    "final": 0.5641
+    "djyy": 0.6464,
+    "final": 0.5901
   },
   "by_league": {
     "澳超": {
@@ -81,6 +81,12 @@
       "hit_rate": 0.5,
       "wilson_lower": 0.0945,
       "avg_brier": 0.5056
+    },
+    "葡超": {
+      "n": 1,
+      "hit_rate": 0.0,
+      "wilson_lower": 0.0,
+      "avg_brier": 1.29
     }
   },
   "by_confidence_tier": {
@@ -91,10 +97,10 @@
       "avg_brier": 0.6875
     },
     "high": {
-      "n": 13,
-      "hit_rate": 0.6923,
-      "wilson_lower": 0.4237,
-      "avg_brier": 0.4239
+      "n": 14,
+      "hit_rate": 0.6429,
+      "wilson_lower": 0.3876,
+      "avg_brier": 0.4857
     },
     "low": {
       "n": 2,
@@ -117,10 +123,10 @@
       "avg_brier": 0.7362
     },
     "L1 大热(<1.5)": {
-      "n": 8,
-      "hit_rate": 0.875,
-      "wilson_lower": 0.5291,
-      "avg_brier": 0.2624
+      "n": 9,
+      "hit_rate": 0.7778,
+      "wilson_lower": 0.4526,
+      "avg_brier": 0.3766
     },
     "L4 冷(2.2-3.0)": {
       "n": 3,
@@ -157,15 +163,15 @@
     }
   },
   "market_signal_stats": {
-    "n": 27,
-    "hits": 11
+    "n": 28,
+    "hits": 12
   },
   "layered": {
-    "log_loss_final": 0.9453,
-    "rps_final": 0.1813,
+    "log_loss_final": 0.9889,
+    "rps_final": 0.1971,
     "rps_market": 0.1799,
     "goal_framework": {
-      "n": 27,
+      "n": 28,
       "hits": 17
     },
     "prob_bands": {
@@ -178,8 +184,8 @@
         "hit_rate": 0.3
       },
       "60%+": {
-        "n": 8,
-        "hit_rate": 0.875
+        "n": 9,
+        "hit_rate": 0.7778
       },
       "<40%": {
         "n": 2,
@@ -196,13 +202,13 @@
         "hit_rate": 0.5
       },
       "watch": {
-        "n": 5,
-        "hit_rate": 0.6
+        "n": 6,
+        "hit_rate": 0.5
       }
     }
   },
   "biases": [],
   "total_pnl": 0.0,
-  "generated_at": "2026-10-25T22:05:00.356656",
-  "sha256": "3f1506df1840be0159f46e659b510047"
+  "generated_at": "2026-10-26T00:23:33.966499",
+  "sha256": "f797713d4f81af56033b1b55550c6a70"
 }
