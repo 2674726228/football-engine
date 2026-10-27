@@ -1,37 +1,37 @@
 {
-  "generated_at": "2026-10-27T08:05:37",
+  "generated_at": "2026-10-27T19:00:36",
   "window_days": 30,
-  "n_ledger_bets": 1244,
+  "n_ledger_bets": 1246,
   "coverage": {
-    "ok": 892,
+    "ok": 894,
     "no_taken_odds": 12,
     "no_close": 340,
     "bad_close_data": 0
   },
   "median_close_horizon_h": 9.5,
   "overall": {
-    "n": 892,
-    "clv_close_mean": -0.0281,
+    "n": 894,
+    "clv_close_mean": -0.0282,
     "clv_close_median": -0.0414,
     "clv_close_pos_pct": 0.201,
-    "clv_close_t": -7.02,
-    "clv_fair_mean": -0.1313,
+    "clv_close_t": -7.05,
+    "clv_fair_mean": -0.1314,
     "clv_fair_median": -0.1418,
     "clv_fair_pos_pct": 0.049,
-    "clv_fair_t": -36.39,
+    "clv_fair_t": -36.48,
     "verdict": "NEGATIVE_CLV（下注价格系统性输给收盘）"
   },
   "by_tier": {
     "high": {
-      "n": 371,
-      "clv_close_mean": -0.0104,
+      "n": 373,
+      "clv_close_mean": -0.0107,
       "clv_close_median": -0.034,
-      "clv_close_pos_pct": 0.199,
-      "clv_close_t": -1.61,
-      "clv_fair_mean": -0.1146,
+      "clv_close_pos_pct": 0.201,
+      "clv_close_t": -1.66,
+      "clv_fair_mean": -0.1149,
       "clv_fair_median": -0.1372,
       "clv_fair_pos_pct": 0.094,
-      "clv_fair_t": -19.47,
+      "clv_fair_t": -19.59,
       "verdict": "NEGATIVE_CLV（下注价格系统性输给收盘）"
     },
     "low": {
@@ -12335,6 +12335,28 @@
       "clv_close": -0.09326424870466321,
       "clv_fair": -0.2305238045050828,
       "close_horizon_h": 12.1
+    },
+    {
+      "date": "2026-10-26",
+      "match_id": "2026-10-26_周一003",
+      "sel": 0,
+      "tier": "high",
+      "status": "ok",
+      "taken": 1.61,
+      "clv_close": -0.13440860215053763,
+      "clv_fair": -0.21968882635897746,
+      "close_horizon_h": 12.4
+    },
+    {
+      "date": "2026-10-26",
+      "match_id": "2026-10-26_周一004",
+      "sel": 0,
+      "tier": "high",
+      "status": "ok",
+      "taken": 1.17,
+      "clv_close": 0.008620689655172376,
+      "clv_fair": -0.10142715137744962,
+      "close_horizon_h": 15.4
     }
   ]
 }
