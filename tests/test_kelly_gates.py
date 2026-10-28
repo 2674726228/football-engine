@@ -95,7 +95,7 @@ class TestEdgeCap:
     def test_config_has_cap(self):
         import json
         from pathlib import Path
-        cfg = json.loads((Path(__file__).parent.parent / "config" / "strategy.json").read_text())
+        cfg = json.loads((Path(__file__).parent.parent / "config" / "strategy.json").read_text(encoding="utf-8"))
         cap = cfg["edge_gates"]["max_edge"]
         assert 0.05 <= cap <= 0.30, f"edge 上限异常: {cap}"
 

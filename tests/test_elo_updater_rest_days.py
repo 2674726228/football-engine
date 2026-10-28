@@ -74,7 +74,7 @@ def test_prediction_side_refresh_without_persisting(updater: EloUpdater):
     assert updater.refresh_rest_for(r, "2026-10-08") == 3
     assert r.last_match_date == "2026-10-05"
     updater.save()
-    on_disk = json.loads(updater.ratings_path.read_text())
+    on_disk = json.loads(updater.ratings_path.read_text(encoding="utf-8"))
     # 键经过 normalize_team 归一化（"曼城"→"曼彻斯特城"），不能用中文原名找
     key = next(k for k in on_disk if "曼彻斯特城" in k)
     assert on_disk[key]["last_match_date"] == "2026-10-05"
@@ -125,7 +125,7 @@ def test_legacy_json_without_last_match_date(updater: EloUpdater):
                  "form": 0.4276, "injury": 0.0, "rest_days": 3},
     }
     updater.ratings_path.parent.mkdir(parents=True, exist_ok=True)
-    updater.ratings_path.write_text(json.dumps(legacy))
+    updater.ratings_path.write_text(json.dumps(legacy), encoding="utf-8")
     loaded = EloUpdater(updater.ratings_path, EloConfig())
     r = loaded.get_rating("巴西")
     assert r.rest_days == 3

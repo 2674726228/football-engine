@@ -50,7 +50,7 @@ class PlanLock:
         lock_path = self._lock_path(date_str)
 
         if lock_path.exists():
-            existing = json.loads(lock_path.read_text())
+            existing = json.loads(lock_path.read_text(encoding="utf-8"))
             if existing.get("plan_hash") == plan_hash:
                 return existing  # 已锁定且一致
             raise ValueError(f"计划已锁定且内容不同，拒绝覆盖: {date_str}")
@@ -66,7 +66,7 @@ class PlanLock:
 
         # 原子写入
         tmp_path = lock_path.with_suffix(".tmp")
-        tmp_path.write_text(json.dumps(lock_data, indent=2))
+        tmp_path.write_text(json.dumps(lock_data, indent=2), encoding="utf-8")
         os.replace(str(tmp_path), str(lock_path))
 
         return lock_data
@@ -80,7 +80,7 @@ class PlanLock:
         lock_path = self._lock_path(date_str)
         if not lock_path.exists():
             return None
-        return json.loads(lock_path.read_text())
+        return json.loads(lock_path.read_text(encoding="utf-8"))
 
     def verify_lock(self, date_str: str, plan_hash: str, bundle_hash: str) -> tuple[bool, str]:
         """验证锁是否有效"""
@@ -101,7 +101,7 @@ class PlanLock:
             )
         lock_file_path = self.lock_dir / f".flock_{date_str}"
         lock_file_path.touch(exist_ok=True)
-        self._lock_fd = open(lock_file_path, "w")
+        self._lock_fd = open(lock_file_path, "w", encoding="utf-8")
 
         start = time.time()
         while True:

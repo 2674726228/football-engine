@@ -40,7 +40,7 @@ def _make_daily(tmp_path: Path, n: int = 3, v2_from: int = 0):
             if d_idx >= v2_from:
                 rec["chain"] = "v2"
             recs.append(rec)
-        (dd / "predictions.json").write_text(json.dumps(preds, ensure_ascii=False))
+        (dd / "predictions.json").write_text(json.dumps(preds, ensure_ascii=False), encoding="utf-8")
     return recs
 
 

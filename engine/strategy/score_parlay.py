@@ -272,7 +272,7 @@ class ScoreParlayBuilder:
 if __name__ == "__main__":
     import sys
     day = sys.argv[1] if len(sys.argv) > 1 else "2026-08-08"
-    preds = json.load(open(f"data/daily/{day}/predictions.json"))
+    preds = json.load(open(f"data/daily/{day}/predictions.json", encoding="utf-8"))
     if isinstance(preds, dict):
         preds = preds.get("predictions", [])
     b = ScoreParlayBuilder()

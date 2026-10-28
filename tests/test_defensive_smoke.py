@@ -74,17 +74,17 @@ def test_fusion_compression_non_dict_does_not_crash() -> None:
 
 
 def test_fusion_djyy_only_low_confidence_current_contract() -> None:
-    """固定**当前契约**：djyy-only 分支没有 djyy_min_confidence 门槛。
+    """固定**当前契约**：djyy-only 分支与三路分支共用 djyy_min_confidence 门槛。
 
-    这是评审 P1#7 指出的已知缺口，但补门槛会改变低置信 DJYY 场的输出
-    概率（预测语义变更），需作者裁决——届时同步修改本测试。
+    2026-10-28：评审 P1#7 已由 PR #60 修复（原缺口：低置信 DJYY 可单独驱动
+    出票）。低置信时退化为裸模型，不再参与融合。
     """
     inp = _base_inp(
         market_probs=None,
         djyy_probs={"home": 0.40, "draw": 0.25, "away": 0.35},  # max=0.40 < 0.50
     )
     res = fuse_probabilities(inp)
-    assert res.source == "fuse_djyy_only"  # 现状：仍然参与融合（待决策）
+    assert res.source == "fuse_model_only"
     assert abs(sum(res.probs) - 1.0) < 1e-6
 
 

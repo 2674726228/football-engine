@@ -45,7 +45,7 @@ class _Resp:
 def fake_session(tmp_path, monkeypatch):
     """把 SESS 指向 tmp 文件，并记录发给 mint 的 cookie。"""
     sess = tmp_path / "njstats_session.json"
-    sess.write_text('{"SESSION": "oldcookie"}')
+    sess.write_text('{"SESSION": "oldcookie"}', encoding="utf-8")
     monkeypatch.setattr(duty, "SESS", sess)
     # duty.log() 写的是真实 ~/.football-engine/duty.log；不隔离的话跑一次测试
     # 就会往值守日志里塞几行假的「mint 401」，把人引去查不存在的故障。
@@ -68,7 +68,7 @@ def test_mint_retries_with_fresh_cookie_after_autoheal(fake_session, monkeypatch
     sess, seen = fake_session
 
     def _heal():
-        sess.write_text('{"SESSION": "newcookie"}')
+        sess.write_text('{"SESSION": "newcookie"}', encoding="utf-8")
         return True
 
     monkeypatch.setattr(duty, "autoheal_session", _heal)

@@ -276,7 +276,7 @@ def main() -> int:
 
     # 保存报告
     out = state_dir / "weekly_backtest.json"
-    out.write_text(json.dumps(report, ensure_ascii=False, indent=2))
+    out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  ✓ 报告已保存: {out.relative_to(ROOT)}")
     return 0
 

@@ -138,7 +138,7 @@ def load_calibration(
     """
     recs = []
     try:
-        with open(ledger_path) as f:
+        with open(ledger_path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -516,7 +516,7 @@ if __name__ == "__main__":
     cal = load_calibration()
     print(f"校准表: {cal.get('n', 0)} 场 | 整体 {cal.get('overall', 0.433):.1%} | "
           f"分段 { {f'{k:.2f}+': f'{v:.0%}' for k, v in (cal.get('table') or {}).items()} }")
-    preds = json.load(open(f"data/daily/{day}/predictions.json"))
+    preds = json.load(open(f"data/daily/{day}/predictions.json", encoding="utf-8"))
     if isinstance(preds, dict):
         preds = preds.get("predictions", [])
     cands = []

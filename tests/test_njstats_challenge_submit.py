@@ -45,7 +45,8 @@ def _node(script: str) -> str:
     const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, handicapProb, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, isSubmitOk, isYouth, PLAY_TYPE, LIST_TYPE}};')();
     {script}
     """
-    p = subprocess.run(["node", "-e", src], capture_output=True, text=True, timeout=60)
+    p = subprocess.run(["node", "-e", src], capture_output=True, text=True,
+                       timeout=60, encoding="utf-8", errors="replace")
     if p.returncode != 0:
         raise AssertionError(f"node 失败: {p.stderr}")
     return p.stdout.strip()

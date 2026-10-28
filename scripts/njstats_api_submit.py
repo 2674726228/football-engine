@@ -114,7 +114,7 @@ def _gets(fields, fn):
 # ---------- HTTP ----------
 
 def _hdrs(mod_id: str, msg_id: str) -> dict:
-    tok = JWT_FILE.read_text().strip() if JWT_FILE.exists() else ""
+    tok = JWT_FILE.read_text(encoding="utf-8").strip() if JWT_FILE.exists() else ""
     if not tok:
         raise SystemExit("缺 JWT: 从浏览器 localStorage('token') 存入 ~/.football-engine/njstats_jwt")
     return {"Authorization": f"Bearer {tok}", "Content-Type": "application/x-protobuf",
@@ -140,7 +140,7 @@ def _post_jwt(jwt: str, mod_id: str, msg_id: str, body: bytes):
 
 def list_items(jwt: str | None = None, page: int = 1, size: int = 60):
     """可导入：[{sid,home,away,kick_ts}] 或 None。"""
-    jwt = jwt or (JWT_FILE.read_text().strip() if JWT_FILE.exists() else "")
+    jwt = jwt or (JWT_FILE.read_text(encoding="utf-8").strip() if JWT_FILE.exists() else "")
     if not jwt:
         return None
     body = _field(2, _field_v(1, page) + _field_v(2, size))
@@ -292,7 +292,7 @@ def parse_board(raw: bytes) -> list[dict]:
 
 def board_items(jwt: str | None = None) -> list[dict] | None:
     """可提交全板（345 场级），替代已死掉的 msgId=11 周列表。"""
-    jwt = jwt or (JWT_FILE.read_text().strip() if JWT_FILE.exists() else "")
+    jwt = jwt or (JWT_FILE.read_text(encoding="utf-8").strip() if JWT_FILE.exists() else "")
     if not jwt:
         return None
     st, raw = _post_jwt(jwt, "1012", "1", _field(3, b""))
@@ -351,7 +351,7 @@ def parse_my_predictions(raw: bytes) -> list[dict]:
 
 def my_predictions(jwt: str | None = None) -> list[dict] | None:
     """本账号已预测场次（服务端真值）。取不到返回 None。"""
-    jwt = jwt or (JWT_FILE.read_text().strip() if JWT_FILE.exists() else "")
+    jwt = jwt or (JWT_FILE.read_text(encoding="utf-8").strip() if JWT_FILE.exists() else "")
     if not jwt:
         return None
     body = _field(2, _field_v(1, 1) + _field_v(2, 60))
@@ -420,7 +420,7 @@ def parse_board_with_odds(raw: bytes) -> list[dict]:
 
 def board_with_odds(jwt: str | None = None) -> list[dict] | None:
     """全板 + 站点赔率。取不到返回 None。"""
-    jwt = jwt or (JWT_FILE.read_text().strip() if JWT_FILE.exists() else "")
+    jwt = jwt or (JWT_FILE.read_text(encoding="utf-8").strip() if JWT_FILE.exists() else "")
     if not jwt:
         return None
     st, raw = _post_jwt(jwt, "1012", "1", _field(3, b""))

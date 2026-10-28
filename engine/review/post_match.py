@@ -416,7 +416,7 @@ class ReviewLedger:
     def count(self) -> int:
         if not self.path.exists():
             return 0
-        return sum(1 for line in self.path.read_text().strip().split("\n") if line.strip())
+        return sum(1 for line in self.path.read_text(encoding="utf-8").strip().split("\n") if line.strip())
 
 
 class PostMatchReviewer:
@@ -744,7 +744,7 @@ class PostMatchReviewer:
 
         # 写 review.json
         review_path = daily_dir / "review.json"
-        review_path.write_text(json.dumps(report, ensure_ascii=False, indent=2))
+        review_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 
         return report
 

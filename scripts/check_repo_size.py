@@ -25,12 +25,12 @@ LEGACY_ALLOW: set[str] = {
 
 def tracked_files(root: Path) -> list[str]:
     r = subprocess.run(
-        ["git", "ls-files", "-z"], cwd=root, capture_output=True, text=True, timeout=120
+        ["git", "ls-files", "-z"], cwd=root, capture_output=True, text=True, timeout=120, encoding="utf-8", errors="replace"
     )
     if r.returncode != 0:
         print(f"git ls-files 失败: {r.stderr.strip()}", file=sys.stderr)
         return []
-    return [f for f in r.stdout.split("\0") if f]
+    return [f for f in (r.stdout or "").split("\0") if f]
 
 
 def main() -> int:
@@ -72,4 +72,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # Windows 控制台默认 cp936，打印 ✓/✗ 会 UnicodeEncodeError（本机实测）。
+    for _s in (sys.stdout, sys.stderr):
+        if hasattr(_s, "reconfigure"):
+            _s.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(main())

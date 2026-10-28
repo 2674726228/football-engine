@@ -29,12 +29,12 @@ from evolution.harness.counterfactual import (  # noqa: E402
 
 
 def _gh(args: list[str]) -> subprocess.CompletedProcess:
-    return subprocess.run(["gh"] + args, capture_output=True, text=True)
+    return subprocess.run(["gh"] + args, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 def _gh_available() -> bool:
     try:
-        r = subprocess.run(["gh", "--version"], capture_output=True, text=True)
+        r = subprocess.run(["gh", "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace")
         return r.returncode == 0
     except FileNotFoundError:
         # 本地/无 gh 环境：闭环降级为 dry-run，不报错
@@ -108,26 +108,26 @@ def push_and_pr(repo_dir: Path, metas: list[dict], dry_run: bool) -> list[str]:
                 continue
             # 从 main 切新分支
             r = subprocess.run(["git", "checkout", "-q", "-B", branch, "main"],
-                               cwd=repo_dir, capture_output=True, text=True)
+                               cwd=repo_dir, capture_output=True, text=True, encoding="utf-8", errors="replace")
             if r.returncode != 0:
                 print(f"[fail] {issue}: 切分支失败: {r.stderr[:200]}")
                 continue
             r = subprocess.run(["git", "apply", str(patch_path)],
-                               cwd=repo_dir, capture_output=True, text=True)
+                               cwd=repo_dir, capture_output=True, text=True, encoding="utf-8", errors="replace")
             if r.returncode != 0:
                 print(f"[fail] {issue}: git apply 失败: {r.stderr[:200]}")
                 continue
             r = subprocess.run(
                 ["git", "-c", "user.name=evolution", "-c", "user.email=evolution@local",
                  "commit", "-q", "-am", f"fix({issue}): 自动进化闭环修复"],
-                cwd=repo_dir, capture_output=True, text=True)
+                cwd=repo_dir, capture_output=True, text=True, encoding="utf-8", errors="replace")
             if r.returncode != 0:
                 print(f"[fail] {issue}: commit 失败: {r.stderr[:200]}")
                 continue
 
         # 推分支
         r = subprocess.run(["git", "push", "origin", branch],
-                           cwd=repo_dir, capture_output=True, text=True)
+                           cwd=repo_dir, capture_output=True, text=True, encoding="utf-8", errors="replace")
         if r.returncode != 0:
             print(f"[fail] {issue}: push 失败: {r.stderr[:200]}")
             continue

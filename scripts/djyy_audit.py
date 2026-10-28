@@ -32,9 +32,9 @@ def main():
         print(f"djyy_audit: 跳过——{SRC.relative_to(ROOT)} 不存在（_vault 仅本地，CI 上不参与）")
         return 0
     fdc = defaultdict(list)
-    for line in open(FDC):
+    for line in open(FDC, encoding="utf-8"):
         r = json.loads(line); fdc[r["date"]].append(r)
-    d = json.loads(SRC.read_text())
+    d = json.loads(SRC.read_text(encoding="utf-8"))
     sel_map = {"Home value": 0, "Draw value": 1, "Away value": 2}
     at_floor, at_close, stats = [], [], {"total": len(d["records"]), "matched": 0, "skipped": 0}
     for rec in d["records"]:

@@ -148,7 +148,7 @@ def main() -> int:
     gate_mode, ev_floor = "edge", 0.02
     pol = {}
     try:
-        pol = json.loads(POLICY.read_text()) if POLICY.exists() else {}
+        pol = json.loads(POLICY.read_text(encoding="utf-8")) if POLICY.exists() else {}
         if pol.get("gate_hint") == "tighten" and (pol.get("n_settled") or 0) >= 80:
             g += 0.005
         if pol.get("gate_mode") == "ev_site":

@@ -47,7 +47,7 @@ def test_build_seed_stable_across_processes() -> None:
         env = dict(os.environ, PYTHONHASHSEED=hashseed)
         r = subprocess.run(
             [sys.executable, "-c", code],
-            cwd=str(ROOT), capture_output=True, text=True, timeout=60, env=env,
+            cwd=str(ROOT), capture_output=True, text=True, timeout=60, env=env, encoding="utf-8", errors="replace",
         )
         assert r.returncode == 0, f"subprocess 失败: {r.stderr}"
         outputs.append(r.stdout.strip())

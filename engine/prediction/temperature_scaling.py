@@ -45,7 +45,7 @@ class TemperatureScaler:
 
     def _load(self):
         try:
-            data = json.loads(self.save_path.read_text())
+            data = json.loads(self.save_path.read_text(encoding="utf-8"))
             self.temperature = data.get("temperature", 1.0)
             self._n_samples = data.get("n_samples", 0)
             self._ece_before = data.get("ece_before", 0.0)
@@ -62,7 +62,7 @@ class TemperatureScaler:
             "ece_before": round(self._ece_before, 4),
             "ece_after": round(self._ece_after, 4),
             "fitted": self._fitted,
-        }, indent=2))
+        }, indent=2), encoding="utf-8")
 
     def fit(self, predicted_probs: np.ndarray, actuals: np.ndarray):
         """拟合温度参数 T

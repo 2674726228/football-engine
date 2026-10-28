@@ -71,7 +71,7 @@ def refresh(check_only: bool = False) -> int:
         print(f"可无头续期（SESSION len={len(cookies['SESSION'])}, 另有 {sorted(k for k in cookies if k != 'SESSION')}）")
         return 0
 
-    OUT.write_text(json.dumps({"SESSION": cookies["SESSION"], "seeded_at": time.strftime("%F %T")}))
+    OUT.write_text(json.dumps({"SESSION": cookies["SESSION"], "seeded_at": time.strftime("%F %T")}), encoding="utf-8")
     OUT.chmod(0o600)
     print(f"✅ SESSION 已续期 → {OUT}（seeded_at {time.strftime('%F %T')}）")
     return 0

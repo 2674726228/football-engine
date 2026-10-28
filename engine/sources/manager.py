@@ -613,7 +613,10 @@ class SourceManager:
 
         # 逐场匹配并获取 comparison
         for fixture in fixtures:
-            if time.monotonic() > deadline:
+            # 2026-10-28：用 >= 而不是 >。预算 0（本次不抓）时 deadline == now，
+            # Windows 的 monotonic 精度约 15.6ms，`>` 会因两次读数相等而放行整场，
+            # 预算耗尽标记永远不置位（本机实测）。>= 让"零预算=立即截止"确定成立。
+            if time.monotonic() >= deadline:
                 # 2026-10-11: 不再静默 break —— 截断本身就是需要被看见的故障
                 _stats["budget_exhausted"] = True
                 _stats["truncated_at"] = fixture.match_id
@@ -648,7 +651,7 @@ class SourceManager:
                 continue
 
             try:
-                if time.monotonic() > deadline:
+                if time.monotonic() >= deadline:
                     _stats["budget_exhausted"] = True
                     _stats["truncated_at"] = fixture.match_id
                     break
@@ -915,7 +918,7 @@ class SourceManager:
         manifest_path = manifest_dir / "import_manifest.json"
         if not manifest_path.exists():
             manifest_path.write_text(
-                json.dumps(manifest.__dict__, ensure_ascii=False, indent=2)
+                json.dumps(manifest.__dict__, ensure_ascii=False, indent=2), encoding="utf-8"
             )
 
         return manifest

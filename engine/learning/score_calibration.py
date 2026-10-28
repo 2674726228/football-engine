@@ -70,7 +70,7 @@ def build_score_prior(daily_root: Path | None = None, out_path: Path | None = No
     from datetime import datetime
     prior["built_at"] = datetime.now().isoformat()
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(prior, ensure_ascii=False, indent=1))
+    out_path.write_text(json.dumps(prior, ensure_ascii=False, indent=1), encoding="utf-8")
     return prior
 
 

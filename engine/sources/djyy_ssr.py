@@ -35,7 +35,7 @@ class DJYYSSRSource:
             return
         if self.cache_path.exists():
             try:
-                data = json.loads(self.cache_path.read_text())
+                data = json.loads(self.cache_path.read_text(encoding="utf-8"))
                 if isinstance(data, list):
                     self._matches = data
                 elif isinstance(data, dict) and "matches" in data:

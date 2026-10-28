@@ -142,7 +142,7 @@ def run_prediction_pipeline() -> bool:
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=180
+            timeout=180, encoding="utf-8", errors="replace"
         )
         if result.returncode != 0:
             log(f"❌ 预测失败: {result.stderr}")
@@ -156,7 +156,7 @@ def run_prediction_pipeline() -> bool:
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=120, encoding="utf-8", errors="replace"
         )
         if result.returncode != 0:
             log(f"❌ 页面构建失败: {result.stderr}")
@@ -187,7 +187,7 @@ def git_push_with_retry(max_retries: int = 5, retry_delay: int = 10) -> bool:
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10, encoding="utf-8", errors="replace"
         )
         if not result.stdout.strip():
             log("没有文件变更，跳过提交")
@@ -219,7 +219,7 @@ def git_push_with_retry(max_retries: int = 5, retry_delay: int = 10) -> bool:
                 cwd=PROJECT_ROOT,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60, encoding="utf-8", errors="replace"
             )
             if pull.returncode != 0:
                 # pull --rebase 停在空提交/冲突上会残留 rebase-merge、HEAD 游离
@@ -234,7 +234,7 @@ def git_push_with_retry(max_retries: int = 5, retry_delay: int = 10) -> bool:
                 cwd=PROJECT_ROOT,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60, encoding="utf-8", errors="replace"
             )
             
             if result.returncode == 0:
@@ -320,7 +320,7 @@ def main():
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60, encoding="utf-8", errors="replace"
         )
         log("✓ 页面构建完成")
     except Exception as e:

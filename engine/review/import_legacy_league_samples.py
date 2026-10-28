@@ -118,7 +118,7 @@ def main(legacy_root: str) -> int:
 
     out = Path("data/state/legacy_league_samples.json")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(samples, ensure_ascii=False, indent=2))
+    out.write_text(json.dumps(samples, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"✓ 迁移 {len(samples)} 场老系统联赛复盘 → {out}")
     print(f"  跳过 {skipped} 场（世界杯场次/无赛果/无方向）")
     return 0

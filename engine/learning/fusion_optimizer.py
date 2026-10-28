@@ -104,7 +104,7 @@ class FusionOptimizer:
         if not self.state_path.exists():
             return default
         try:
-            state = json.loads(self.state_path.read_text())
+            state = json.loads(self.state_path.read_text(encoding="utf-8"))
             w = state.get("champion", {})
             champ = FusionWeights(
                 model=w.get("model", default.model),
@@ -397,13 +397,13 @@ class FusionOptimizer:
             "updated_at": datetime.now().isoformat(),
         }
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
-        self.state_path.write_text(json.dumps(state, indent=2))
+        self.state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
 
     def _load_previous(self) -> FusionWeights | None:
         if not self.state_path.exists():
             return None
         try:
-            state = json.loads(self.state_path.read_text())
+            state = json.loads(self.state_path.read_text(encoding="utf-8"))
             prev = state.get("previous")
             if prev:
                 w = FusionWeights(prev.get("model", 0.6), prev.get("market", 0.25), prev.get("djyy", 0.15))
@@ -415,7 +415,7 @@ class FusionOptimizer:
     def _last_decision_hash(self) -> str:
         if not self.log_path.exists():
             return "genesis"
-        lines = self.log_path.read_text().strip().split("\n")
+        lines = self.log_path.read_text(encoding="utf-8").strip().split("\n")
         if lines and lines[-1].strip():
             try:
                 return json.loads(lines[-1]).get("sha256", "unknown")

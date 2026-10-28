@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 def load_config(name: str) -> dict:
     path = ROOT / "config" / f"{name}.json"
     if path.exists():
-        return json.loads(path.read_text())
+        return json.loads(path.read_text(encoding="utf-8"))
     return {}
 
 

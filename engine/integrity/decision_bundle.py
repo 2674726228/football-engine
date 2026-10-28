@@ -95,7 +95,7 @@ class DecisionBundle:
         bundle_path = self.output_dir / f"decision_bundle_{date_str}_v{version}.json"
         if bundle_path.exists():
             # 同版本同内容 → 幂等返回
-            existing = json.loads(bundle_path.read_text())
+            existing = json.loads(bundle_path.read_text(encoding="utf-8"))
             if existing.get("bundle_sha256") == bundle["bundle_sha256"]:
                 return existing
             # 同版本不同内容 → 递增版本
@@ -107,13 +107,13 @@ class DecisionBundle:
 
         # 原子写入
         tmp_path = bundle_path.with_suffix(".tmp")
-        tmp_path.write_text(json.dumps(bundle, indent=2, ensure_ascii=False))
+        tmp_path.write_text(json.dumps(bundle, indent=2, ensure_ascii=False), encoding="utf-8")
         os.replace(str(tmp_path), str(bundle_path))
 
         # 更新 latest 指针
         latest_path = self.output_dir / f"decision_bundle_{date_str}.json"
         latest_tmp = latest_path.with_suffix(".tmp")
-        latest_tmp.write_text(json.dumps(bundle, indent=2, ensure_ascii=False))
+        latest_tmp.write_text(json.dumps(bundle, indent=2, ensure_ascii=False), encoding="utf-8")
         os.replace(str(latest_tmp), str(latest_path))
 
         return bundle
@@ -187,7 +187,7 @@ class DecisionBundle:
         if not bundle_path.exists():
             return False, "决策包不存在"
 
-        bundle = json.loads(bundle_path.read_text())
+        bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
         stored_hash = bundle.pop("bundle_sha256", "")
         content = json.dumps(bundle, sort_keys=True, ensure_ascii=False)
         computed_hash = hashlib.sha256(content.encode()).hexdigest()

@@ -69,14 +69,14 @@ def main():
     # 合议结论：主审们（permanent 且 live）的模型vs市场方向一致性
     quorums = []
     try:
-        tr = json.loads((ST / 'upgrade_tracker.json').read_text())
+        tr = json.loads((ST / 'upgrade_tracker.json').read_text(encoding="utf-8"))
         if tr.get('paired_vs_market'):
             pm = tr['paired_vs_market']
             quorums.append({'judge': 'tracker', 'delta': pm.get('delta'), 'significant': (pm.get('t') or 0) >= 1.96})
     except Exception:
         pass
     try:
-        cr = json.loads((ST / 'clv_report.json').read_text())
+        cr = json.loads((ST / 'clv_report.json').read_text(encoding="utf-8"))
         o = cr.get('overall', {})
         quorums.append({'judge': 'ledger_clv', 'mean_clv': o.get('clv_fair_mean'),
                         'significant': abs(o.get('clv_fair_t') or 0) >= 1.96})
@@ -86,7 +86,7 @@ def main():
            'panel': {'total': len(JUDGES), 'live': live, 'offline': dead,
                      'doctrine': '评模型的与喂模型的是两条独立管道，各自多源冗余；任何单席失联只降级不崩溃'},
            'judges': judges, 'quorums': quorums}
-    (ST / 'eval_registry.json').write_text(json.dumps(out, ensure_ascii=False, indent=1))
+    (ST / 'eval_registry.json').write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps(out['panel'] | {'detail': {k: v['status'] for k, v in judges.items()}},
                      ensure_ascii=False))
 

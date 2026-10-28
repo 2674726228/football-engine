@@ -246,7 +246,7 @@ def parse_community(raw: bytes) -> list[dict]:
 
 
 def fetch() -> list[dict] | None:
-    jwt = api.JWT_FILE.read_text().strip() if api.JWT_FILE.exists() else ""
+    jwt = api.JWT_FILE.read_text(encoding="utf-8").strip() if api.JWT_FILE.exists() else ""
     if not jwt:
         print("community: 无 JWT，跳过", file=sys.stderr)
         return None

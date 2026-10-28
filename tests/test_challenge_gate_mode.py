@@ -66,7 +66,7 @@ def test_default_gate_is_edge_and_stores_site_price(tmp_path, monkeypatch):
         {"sid": "AAAa", "home": "蒙扎", "away": "卡利亚里", "p": 0.55, "edge": 0.05, "site": 2.20}])
     assert ch.main() == 0
     assert submitted == ["AAAa"]
-    rec = json.loads(state.read_text())["records"][0]
+    rec = json.loads(state.read_text(encoding="utf-8"))["records"][0]
     assert rec["gate"] == "edge"
     assert rec["site_odds"] == pytest.approx(2.2)
     assert rec["ev_site"] == pytest.approx(0.55 * 2.2 - 1, abs=1e-4)
@@ -80,7 +80,7 @@ def test_ev_site_gate_admits_a_negative_edge_bet(tmp_path, monkeypatch):
         policy={"gate_mode": "ev_site", "ev_floor": 0.02})
     assert ch.main() == 0
     assert submitted == ["BBBb"], "ev_site=+0.05 应过 2% 档（edge 为负不影响）"
-    rec = json.loads(state.read_text())["records"][0]
+    rec = json.loads(state.read_text(encoding="utf-8"))["records"][0]
     assert rec["gate"] == "ev_site"
     assert rec["ev_site"] == pytest.approx(0.05, abs=1e-4)
 
@@ -113,7 +113,7 @@ def test_broken_policy_falls_back_to_edge(tmp_path, monkeypatch):
         policy={"gate_mode": "ev_site", "ev_floor": "不是数"})
     assert ch.main() == 0
     assert submitted == ["EEEe"]
-    assert json.loads(state.read_text())["records"][0]["gate"] == "edge", \
+    assert json.loads(state.read_text(encoding="utf-8"))["records"][0]["gate"] == "edge", \
         "口径切换必须原子：ev_floor 取不到时 gate_mode 也不能已经换掉"
 
 

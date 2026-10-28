@@ -348,7 +348,7 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
     # 洁净样本通过验证段显著性检验后自动放行 isotonic，无需人工改 config
     _cal_auto_enabled = False
     try:
-        _cal_status = json.loads((ROOT / "data" / "state" / "calibration_status.json").read_text())
+        _cal_status = json.loads((ROOT / "data" / "state" / "calibration_status.json").read_text(encoding="utf-8"))
         _cal_auto_enabled = bool(_cal_status.get("enabled", False))
     except Exception:
         _cal_auto_enabled = False
@@ -1313,7 +1313,7 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
     output_dir = ROOT / "data" / "daily" / target_date.isoformat()
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "predictions.json").write_text(
-        json.dumps(predictions, indent=2, ensure_ascii=False)
+        json.dumps(predictions, indent=2, ensure_ascii=False), encoding="utf-8"
     )
     _tp_summary = allocator.summary(ticket_plan)
     _tp_summary["parlay"] = [t.to_dict() for t in parlay_plan]
@@ -1332,7 +1332,7 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
         "note": "串关 EV 用账本校准命中率（模型概率高估，0.55-0.60 段仅 31.6% 命中）；推荐=校准EV>0",
     }
     (output_dir / "ticket_plan.json").write_text(
-        json.dumps(_tp_summary, indent=2, ensure_ascii=False)
+        json.dumps(_tp_summary, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
     print(f"\n{'='*60}")
@@ -1462,9 +1462,9 @@ def _backfill_sina_results(
                 print(f"  ✓ 补结算回写 {back_date}: {r.home_team} {hs}-{as_} {r.away_team} "
                       f"预测{best_sel[0]} {'✅' if best_sel[0] == actual else '❌'}")
         if changed:
-            rj.write_text(json.dumps(existing, ensure_ascii=False, indent=2))
+            rj.write_text(json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
         if preds:
-            pj.write_text(json.dumps(preds, ensure_ascii=False, indent=2))
+            pj.write_text(json.dumps(preds, ensure_ascii=False, indent=2), encoding="utf-8")
     return added_total
 
 
@@ -1838,7 +1838,7 @@ def run_settlement(target_date: date):
             existing_ids.add(item["match_id"])
             added += 1
         if added or fixed or _dedup_changed:
-            r_file.write_text(json.dumps(existing, ensure_ascii=False, indent=2))
+            r_file.write_text(json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
         stored_total += added + fixed
         print(f"  ✓ results.json 已保存到 {r_date} (+{added}, total={len(existing)})")
     print(f"  ✓ 赛果落盘: 新增 {stored_total} 条")
@@ -1948,7 +1948,7 @@ def run_settlement(target_date: date):
     ticket_file = daily_dir / "ticket_plan.json"
     ticket_data = {}
     if ticket_file.exists():
-        ticket_data = json.loads(ticket_file.read_text())
+        ticket_data = json.loads(ticket_file.read_text(encoding="utf-8"))
     ticket_map = {}
     for grp in ("stable", "value", "lottery"):
         for s in ticket_data.get(grp, []):
@@ -2248,7 +2248,7 @@ def run_settlement(target_date: date):
                     if _new is not None and _new != _cur:
                         _by_mid[_m].update(_src)
                         _chg += 1
-            _pf.write_text(json.dumps(_pl, ensure_ascii=False, indent=2))
+            _pf.write_text(json.dumps(_pl, ensure_ascii=False, indent=2), encoding="utf-8")
             _updated += _chg
         print(f"  ✓ 已更新 {_updated} 场预测赛果")
 
@@ -2331,7 +2331,7 @@ def run_settlement(target_date: date):
     all_records = []
     _bad_ledger = 0
     if ledger_path.exists():
-        for line in ledger_path.read_text().strip().split("\n"):
+        for line in ledger_path.read_text(encoding="utf-8").strip().split("\n"):
             if line.strip():
                 try:
                     all_records.append(json.loads(line))
@@ -2362,7 +2362,7 @@ def run_settlement(target_date: date):
     _prev_status = {}
     if _cal_status_path.exists():
         try:
-            _prev_status = json.loads(_cal_status_path.read_text())
+            _prev_status = json.loads(_cal_status_path.read_text(encoding="utf-8"))
         except Exception:
             _prev_status = {}
     from engine.learning.calibration_auto import decide_calibration
@@ -2370,7 +2370,7 @@ def run_settlement(target_date: date):
         clean_records, bool(_prev_status.get("enabled", False)),
         pred_cfg.get("calibration_auto", {}),
     )
-    _cal_status_path.write_text(json.dumps(_cal_status, ensure_ascii=False, indent=2))
+    _cal_status_path.write_text(json.dumps(_cal_status, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"    洁净样本 {len(clean_records)} | isotonic 自动启用: {_cal_status['enabled']}"
           f" | {_cal_status.get('reason', '')}")
 
@@ -2409,7 +2409,7 @@ def run_settlement(target_date: date):
             lgbm_cfg=_lgbm_cfg, config=pred_cfg.get("lgbm_shadow", {}),
         )
         (ROOT / "data" / "state" / "lgbm_status.json").write_text(
-            json.dumps(_lgbm_status, ensure_ascii=False, indent=2))
+            json.dumps(_lgbm_status, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"    洁净可用 {_lgbm_status['usable_rows']} | trained={_lgbm_status['trained']} "
               f"ready={_lgbm_status['ready']} | {_lgbm_status['reason']}")
     except Exception as _lgbm_err:
@@ -2423,7 +2423,7 @@ def run_settlement(target_date: date):
         # 写入 config
         config_path = ROOT / "config" / "prediction.json"
         if config_path.exists():
-            cfg = json.loads(config_path.read_text())
+            cfg = json.loads(config_path.read_text(encoding="utf-8"))
             cfg.setdefault("prediction", {})["rho"] = rho_result["rho"]
             # 2026-10-23：原子写。原为裸 write_text —— 每日自动 commit 的场景下，
             # 进程被杀/并发轮次会留下半截 JSON，把下一轮的配置读崩。
@@ -2438,7 +2438,7 @@ def run_settlement(target_date: date):
     wf_eval = WalkForwardEvaluator(ROOT / "data")
     wf_report = wf_eval.evaluate()
     wf_path = ROOT / "data" / "state" / "walk_forward_report.json"
-    wf_path.write_text(json.dumps(wf_report, indent=2, ensure_ascii=False))
+    wf_path.write_text(json.dumps(wf_report, indent=2, ensure_ascii=False), encoding="utf-8")
     metrics = wf_report.get("metrics", {})
     draw_a = wf_report.get("draw_analysis", {})
     strat = wf_report.get("strategy_comparison", {})
@@ -2486,7 +2486,7 @@ def main():
             "by_confidence": report.by_confidence,
             "calibration": report.calibration,
             "source_comparison": report.source_comparison,
-        }, indent=2, ensure_ascii=False))
+        }, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"\n报告已保存: {out}")
         return
 

@@ -40,7 +40,7 @@ class EloUpdater:
     def _load(self):
         """加载现有评级（归一化键，合并重复译名条目）"""
         if self.ratings_path.exists():
-            data = json.loads(self.ratings_path.read_text())
+            data = json.loads(self.ratings_path.read_text(encoding="utf-8"))
             for name, r in data.items():
                 # 归一化键存储（2026-08-05 修复：同一队多译名条目分裂，
                 # 如"塞伊奈"/"塞那乔其"各自独立演进，Elo 差 200+ 分导致方向性错误）

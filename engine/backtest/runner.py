@@ -236,7 +236,7 @@ class BacktestRunner:
 
             date_str = day_dir.name
             try:
-                predictions = json.loads(pred_file.read_text())
+                predictions = json.loads(pred_file.read_text(encoding="utf-8"))
             except Exception:
                 continue
 
@@ -319,7 +319,7 @@ class BacktestRunner:
 
         source_briers = defaultdict(list)
         try:
-            for line in ledger_path.read_text().strip().split("\n"):
+            for line in ledger_path.read_text(encoding="utf-8").strip().split("\n"):
                 if not line:
                     continue
                 entry = json.loads(line)

@@ -111,7 +111,7 @@ class WalkForwardEvaluator:
             return []
 
         records = []
-        for line in self.ledger_path.read_text().strip().split("\n"):
+        for line in self.ledger_path.read_text(encoding="utf-8").strip().split("\n"):
             if not line:
                 continue
             try:
