@@ -15,7 +15,10 @@
 >           ④ **语义变更待你复核**：`market_blend_weight` 0.28→0（市场不再双重计入）、
 >           djyy-only 补置信门槛、账本 `result_version`、loose 规则收紧——回滚方式都在
 >           UPGRADE_20261028.md 第五节。
->           本地实跑：845 passed / 13 skipped / 0 failed（Windows，无环境变量）。
+>           ⑤ 收尾 PR：`submit.js` 的 HOME 未定义回退 `os.homedir()`（Windows
+>           计划任务会崩在模块加载）、doctor 的 crontab 假结论（没命令 ≠ 已验证无残留）、
+>           关闭 issue #1（合成赔率早已不出票 + 页面标「不可投注」）、删远端合并分支。
+>           本地实跑：849 passed / 13 skipped / 0 failed（Windows，无环境变量）。
 > 在干什么: ① **E8 换闸门量纲**：`edge` 档实测**不可达**（7 场对照 P−market_fair 全负，
 >           最大 −0.23pp；10-19 起连续 131 轮零合格），改成
 >           `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），开关在

@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -27,7 +28,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def _node(script: str) -> str:
+def _node(script: str, env: dict | None = None) -> str:
     """在 node 里执行一段脚本，把被测函数 load 进来。"""
     src = f"""
     const fs = require('fs');
@@ -42,14 +43,27 @@ def _node(script: str) -> str:
     // ROOT 的基准：submit.js 优先用 process.argv[1]，被 new Function 载入时
     // argv[1] 是 node -e 的占位符，所以这里显式喂真实路径进去。
     process.argv[1] = {str(SUBMIT_JS)!r};
-    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, handicapProb, loadCandidates, ROOT, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, isSubmitOk, isYouth, PLAY_TYPE, LIST_TYPE}};')();
+    const mod = new Function(body + '; return {{weekKey, pickBest, validateHandicapSign, handicapProb, loadCandidates, ROOT, STATE_DIR, encodeSubmitReq, encodeMatchListReq, encodeWeekQuotaReq, encodeEnvelope, decodeEnvelope, decodeName, readFields, firstField, allFields, num, str, normName, normalizeTeamNames, matchPool, fetchPool, fetchQuota, weekIdOf, isSubmitOk, isYouth, PLAY_TYPE, LIST_TYPE}};')();
     {script}
     """
     p = subprocess.run(["node", "-e", src], capture_output=True, text=True,
-                       timeout=60, encoding="utf-8", errors="replace")
+                       timeout=60, encoding="utf-8", errors="replace", env=env)
     if p.returncode != 0:
         raise AssertionError(f"node 失败: {p.stderr}")
     return p.stdout.strip()
+
+
+def test_state_dir_falls_back_to_os_homedir_without_HOME():
+    """HOME 未定义时必须回退 os.homedir()，不能在模块加载时崩。
+
+    2026-10-28：Windows 的计划任务 / PowerShell 不设 HOME（Git Bash 才设），
+    原实现 path.join(process.env.HOME, '.football-engine') 直接 TypeError。
+    """
+    env = {k: v for k, v in os.environ.items() if k != "HOME"}
+    out = _node("console.log(JSON.stringify({ dir: mod.STATE_DIR }));", env=env)
+    d = json.loads(out)["dir"]
+    assert Path(d).is_absolute(), d
+    assert d.replace("\\", "/").endswith(".football-engine"), d
 
 
 def test_weekkey_is_beijing_not_utc():
