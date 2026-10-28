@@ -271,6 +271,9 @@ def _write_status(ok: bool, reason: str = "", matches: int = 0,
         # 与「本次抓取成功与否」是两个信息，缺一个就说不清"现在到底有没有数据"。
         "snapshot_age_h": _snapshot_age_hours(),
         "base": BASE,
+        # 同一份状态文件会被 CI 与本机 duty 交替覆盖。标明写入方才能解释
+        # 「为什么 ok 一会儿 true 一会儿 false」：CI 侧被 Cloudflare 拦是常态。
+        "source": "ci" if os.environ.get("GITHUB_ACTIONS") else "local",
     }
     try:
         status_path.parent.mkdir(parents=True, exist_ok=True)

@@ -162,10 +162,12 @@ jobs:
           if [ "$AGE_H" != "-1" ] && [ "$AGE_H" -gt 30 ]; then
             echo "::error::DJYY 快照状态已 ${AGE_H}h 未更新（阈值 30h）—— fetch_djyy_ssr 步骤可能根本没跑（workflow 被禁用/定时丢失），双通道无人值守"
           fi
+          # 2026-10-28：ok=false **不等于**通道死。这份状态文件被 CI 与本机 duty
+          # 交替覆盖，而 CI 侧被 Cloudflare 拦是常态 → 每次 CI 写入都是 ok=false。
+          # 真正的判据是盘上快照的年龄（下面是 error）；这里只记录本次尝试结果。
           if [ "$(echo "$SNAP" | jq -r '.ok')" != "true" ]; then
-            echo "::error::DJYY 快照抓取失败（$(echo "$SNAP" | jq -r '.reason')）—— 实时源若同时被 403，两条通道即全断，djyy 权重实际为 0"
-            exit 0
+            echo "::warning::最近一次抓取失败（$(echo "$SNAP" | jq -r '.reason')，写入方 $(echo "$SNAP" | jq -r '.source // "?"')）——CI 侧被拦属预期，看盘上快照龄判定是否双通道全断"
           fi
-          if echo "$SNAP" | jq -e '.snapshot_age_h != null and .snapshot_age_h > 24' >/dev/null; then
-            echo "::error::DJYY 快照已 $(echo "$SNAP" | jq -r '.snapshot_age_h')h 未更新（阈值 24h）—— 本机 duty 可能长期离线，实时源一旦被拦就没有兜底"
+          if echo "$SNAP" | jq -e '.snapshot_age_h == null or .snapshot_age_h > 24' >/dev/null; then
+            echo "::error::DJYY 快照已 $(echo "$SNAP" | jq -r '.snapshot_age_h // "无快照"')h 未更新（阈值 24h）—— 本机 duty 可能长期离线，实时源一旦被拦就没有兜底"
           fi

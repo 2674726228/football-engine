@@ -44,8 +44,8 @@ fusion djyy ──┤
 
 | 文件 | 改动 | 解决什么 |
 |---|---|---|
-| `scripts/fetch_djyy_ssr.py` | 每次抓取结果写 `data/djyy_snapshot_status.json`（含 `ok` / `reason` / `at_epoch` / 盘上快照真实年龄）；异常也写；状态文件跟随 `OUTPUT` 目录 | 失败此前只有一行 stdout + workflow 里的 `\|\| echo ⚠`，CI 恒绿 |
-| `.github/workflows/health-check.yml` | 新增「快照通道」步骤：抓取失败 → `::error`；状态 30h 未更新 → `::error`；盘上快照 >24h → `::error` | 「实时被拦 + 快照死」= 双通道全断，必须红 |
+| `scripts/fetch_djyy_ssr.py` | 每次抓取结果写 `data/djyy_snapshot_status.json`（含 `ok` / `reason` / `at_epoch` / 盘上快照真实年龄 / `source`）；异常也写；状态文件跟随 `OUTPUT` 目录 | 失败此前只有一行 stdout + workflow 里的 `\|\| echo ⚠`，CI 恒绿 |
+| `.github/workflows/health-check.yml` | 新增「快照通道」步骤：抓取失败 → `::warning`（CI 侧被拦是常态，且状态文件被 CI 与 duty 交替覆盖）；状态 30h 未更新 / 盘上快照 >24h（或无快照）→ `::error` | 「实时被拦 + 快照死」= 双通道全断，必须红；同时不把「CI 正常被拦」误报成故障 |
 | `engine/main.py` | 状态文件无论成败都写 `snapshot_*` + `live_channel_used` + `fallback`（`live`/`ssr_snapshot`/`none`） | 以前只在补位成功时写，导致「实时活着时无法判断快照死没死」；两条都死时一个字段都不写 |
 | `scripts/djyy_market_paired_test.py` | 新增配对 Brier 检验（配对 t + bootstrap CI） | 0.3 权重从来没有和实测对照过 |
 
