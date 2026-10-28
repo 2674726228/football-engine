@@ -56,6 +56,12 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      # 2026-10-28：windows-latest 的 locale 是 cp1252，生产代码会 print 中文
+      # 全角括号（U+FF08）。必须在解释器启动前把默认编码钉成 UTF-8 ——
+      # pytest capture 会替换 sys.stdout，conftest 里再 reconfigure 来不及。
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
     steps:
       - uses: actions/checkout@v4
 
