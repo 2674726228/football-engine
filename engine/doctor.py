@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import socket
 import subprocess
 import sys
@@ -364,17 +365,26 @@ CRON_JOBS_FORBIDDEN = ("run_realtime_monitor.sh", "auto_run.sh")
 def check_env(report: DoctorReport, heal: bool) -> None:
     """事故史：cron 静默丢失、代理挂掉整夜推送全灭；反向事故史：本机 cron 与
     ci-sync 抢写 data/state/，状态不可追溯。"""
-    try:
-        _, crontab = _run(["crontab", "-l"])
-        present = [j for j in CRON_JOBS_FORBIDDEN if j in crontab]
-        if present:
-            report.add(Finding("env/cron", "env", "warn",
-                               f"本机残留 hourly cron: {present}——会与 ci-sync 抢写 "
-                               f"data/state/（机器分工：本地只负责预测挑战提交）"))
-        else:
-            report.add(Finding("env/cron", "env", "ok", "本机无残留 hourly cron（符合机器分工）"))
-    except Exception:
-        report.add(Finding("env/cron", "env", "info", "crontab 读取失败（无 cron?）"))
+    # 2026-10-28：先区分「没有 crontab」与「有 crontab 但没残留」。
+    # 原实现把 FileNotFoundError 吞成 info「crontab 读取失败（无 cron?）」，
+    # 在 Windows 上看起来结论正确，其实是命令不存在——检查从未真正执行。
+    cron_bin = shutil.which("crontab")
+    if cron_bin is None:
+        report.add(Finding("env/cron", "env", "info",
+                           "本机没有 crontab 命令（Windows/精简容器）：残留 cron 检查未执行，"
+                           "不等同于已验证无残留"))
+    else:
+        try:
+            _, crontab = _run([cron_bin, "-l"])
+            present = [j for j in CRON_JOBS_FORBIDDEN if j in crontab]
+            if present:
+                report.add(Finding("env/cron", "env", "warn",
+                                   f"本机残留 hourly cron: {present}——会与 ci-sync 抢写 "
+                                   f"data/state/（机器分工：本地只负责预测挑战提交）"))
+            else:
+                report.add(Finding("env/cron", "env", "ok", "本机无残留 hourly cron（符合机器分工）"))
+        except Exception as e:
+            report.add(Finding("env/cron", "env", "info", f"crontab 读取失败: {e}"))
 
     # 代理（收编自 auto_run.heal_proxy；推送与 DJYY 都依赖它）
     if not _port_open("127.0.0.1", 7897):

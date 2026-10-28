@@ -54,6 +54,7 @@
 'use strict';
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 // ---------------------------------------------------------------- 配置
@@ -72,7 +73,9 @@ const SELF_DIR = (() => {
 })();
 const ROOT = path.resolve(SELF_DIR, '..', '..');
 
-const STATE_DIR = path.join(process.env.HOME, '.football-engine');
+// 2026-10-28：Windows 的计划任务/PowerShell 里 HOME 可能未定义
+// （Git Bash 会设，cmd 不会）→ path.join(undefined, ...) 在模块加载时就 TypeError。
+const STATE_DIR = path.join(process.env.HOME || os.homedir(), '.football-engine');
 const STATE_FILE = path.join(STATE_DIR, 'challenge_state.json');
 const APIKEY_FILE = path.join(STATE_DIR, 'njstats_apikey.txt');
 const TOKEN_FILE = path.join(STATE_DIR, 'njstats_token.txt');
