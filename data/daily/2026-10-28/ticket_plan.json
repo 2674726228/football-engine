@@ -6,8 +6,54 @@
   "expected_roi": 0.0,
   "bankroll": 3812.6011,
   "breaker_multiplier": 1.0,
-  "parlay": [],
-  "parlay_pool_n": 0,
+  "parlay": [
+    {
+      "type": "2串1",
+      "legs": [
+        {
+          "match": "2026-10-28_周三011",
+          "home": "伯恩茅斯",
+          "away": "阿斯顿维拉",
+          "league": "英联赛杯",
+          "sel": "home",
+          "odds": 2.17,
+          "prob": 0.404,
+          "cal_prob": 0.492,
+          "market_prob": 0.408,
+          "source": "fusion",
+          "hit_prob": 0.492
+        },
+        {
+          "match": "2026-10-28_周三007",
+          "home": "帕尔马",
+          "away": "乌迪内斯",
+          "league": "意甲",
+          "sel": "away",
+          "odds": 2.43,
+          "prob": 0.364,
+          "cal_prob": 0.435,
+          "market_prob": 0.365,
+          "source": "fusion",
+          "hit_prob": 0.435
+        }
+      ],
+      "total_odds": 5.27,
+      "model_ev": -0.45,
+      "cal_ev": 1.77,
+      "cal_roi": 0.1286,
+      "market_ev": -0.43,
+      "market_roi": -0.2156,
+      "hit_prob_cal": 0.214,
+      "recommended": true,
+      "stake": 13.73,
+      "n_bets": 1,
+      "potential": 72.4,
+      "worst_win": 0.0,
+      "note": "两场全中才赢",
+      "source": "calibrated"
+    }
+  ],
+  "parlay_pool_n": 2,
   "score_parlay": [
     {
       "type": "比分2串1",
@@ -20,7 +66,7 @@
           "score": "1-0",
           "prob": 0.262,
           "cal_prob": 0.09,
-          "odds": 16.0
+          "odds": 18.0
         },
         {
           "match": "2026-10-28_周三017",
@@ -33,14 +79,14 @@
           "odds": 20.0
         }
       ],
-      "total_odds": 320.0,
+      "total_odds": 360.0,
       "hit_prob": 0.0081,
       "stake": 2.0,
-      "potential": 640.0,
+      "potential": 720.0,
       "worst_win": 0.0,
       "n_bets": 1,
       "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 0.8% × 赔率 320 倍 = EV +159%）"
+      "note": "两场比分都中才赢（校准命中 0.8% × 赔率 360 倍 = EV +192%）"
     },
     {
       "type": "比分2串1",
@@ -86,7 +132,7 @@
           "score": "1-0",
           "prob": 0.262,
           "cal_prob": 0.09,
-          "odds": 16.0
+          "odds": 18.0
         },
         {
           "match": "2026-10-28_周三015",
@@ -99,14 +145,14 @@
           "odds": 12.5
         }
       ],
-      "total_odds": 200.0,
+      "total_odds": 225.0,
       "hit_prob": 0.0081,
       "stake": 2.0,
-      "potential": 400.0,
+      "potential": 450.0,
       "worst_win": 0.0,
       "n_bets": 1,
       "odds_source": "official",
-      "note": "两场比分都中才赢（校准命中 0.8% × 赔率 200 倍 = EV +62%）"
+      "note": "两场比分都中才赢（校准命中 0.8% × 赔率 225 倍 = EV +82%）"
     },
     {
       "type": "比分3串1",
@@ -119,7 +165,7 @@
           "score": "1-0",
           "prob": 0.262,
           "cal_prob": 0.09,
-          "odds": 16.0
+          "odds": 18.0
         },
         {
           "match": "2026-10-28_周三015",
@@ -142,14 +188,14 @@
           "odds": 20.0
         }
       ],
-      "total_odds": 4000.0,
+      "total_odds": 4500.0,
       "hit_prob": 0.0007,
       "stake": 2.0,
-      "potential": 8000.0,
+      "potential": 9000.0,
       "worst_win": 0.0,
       "n_bets": 1,
       "odds_source": "official",
-      "note": "三场比分全中才赢（赔率 4000 倍，校准命中 0.07%）"
+      "note": "三场比分全中才赢（赔率 4500 倍，校准命中 0.07%）"
     },
     {
       "type": "比分3串4(容错)",
@@ -162,7 +208,7 @@
           "score": "1-0",
           "prob": 0.262,
           "cal_prob": 0.09,
-          "odds": 16.0
+          "odds": 18.0
         },
         {
           "match": "2026-10-28_周三015",
@@ -185,18 +231,18 @@
           "odds": 20.0
         }
       ],
-      "total_odds": 4000.0,
+      "total_odds": 4500.0,
       "hit_prob": 0.0007,
       "stake": 8.0,
-      "potential": 9540.0,
-      "worst_win": 640.0,
+      "potential": 10670.0,
+      "worst_win": 720.0,
       "n_bets": 4,
       "odds_source": "official",
-      "note": "3场出4注（3×2串1+1×3串1）错1场仍中1注2串1≈¥640，全中≈¥9540"
+      "note": "3场出4注（3×2串1+1×3串1）错1场仍中1注2串1≈¥720，全中≈¥10670"
     }
   ],
-  "parlay_stake": 16.0,
-  "total_exposure": 16.0,
+  "parlay_stake": 29.73,
+  "total_exposure": 29.73,
   "_stake_note": "total_stake = Kelly 分配池（stable/value/lottery）；total_exposure = total_stake + parlay_stake，才是真实投注额",
   "parlay_calibration": {
     "overall": 0.5454,
