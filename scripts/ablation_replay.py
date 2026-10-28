@@ -26,6 +26,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from engine.beijing_time import beijing_now  # noqa: E402
 from engine.pipeline.helpers import _canon_league  # noqa: E402
 from engine.prediction.fusion import (  # noqa: E402
     DEFAULT_POST_FUSION,
@@ -205,6 +206,37 @@ def paired_stats(diffs):
     return {"mean": mean, "se": se, "t": mean / se if se > 0 else 0.0, "n": n}
 
 
+def reweight_model(cfg: dict, w: float) -> dict:
+    """把模型槽设为 w，其余源（市场/DJYY）按原比例分掉 1-w。
+
+    单变量扫描必须保持非模型源的相对比例，否则"归零模型"同时改变了
+    市场/DJYY 的内部配比，测到的就不是单一的 model_weight 效应。
+    """
+    market = float(cfg["market_weight"])
+    djyy = float(cfg["djyy_weight"])
+    if abs(w - float(cfg["model_weight"])) < 1e-12:
+        return dict(cfg)  # 同一权重必须逐位相同，否则浮点重分配会造出假的 t 值
+    base = market + djyy
+    rest = max(0.0, 1.0 - w)
+    return {
+        **cfg,
+        "model_weight": w,
+        "market_weight": rest * market / base if base > 0 else rest,
+        "djyy_weight": rest * djyy / base if base > 0 else 0.0,
+    }
+
+
+def direction_change_rate(recs, feats, cfg_a, cfg_b, switches):
+    """两套权重下 argmax 方向不一致的场次占比（归零影响的"可见面"）。"""
+    changed = 0
+    for r in recs:
+        a = fuse_probabilities(build_input(r, feats, cfg_a, switches)).probs
+        b = fuse_probabilities(build_input(r, feats, cfg_b, switches)).probs
+        if max(range(3), key=lambda i: a[i]) != max(range(3), key=lambda i: b[i]):
+            changed += 1
+    return changed / len(recs) if recs else 0.0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="data/state/ablation_report.json")
@@ -303,8 +335,61 @@ def main():
     vbs = paired_stats(v_best["diffs"])
     print(f"val 段配对 vs 现行权重(纯融合): Δ={vbs['mean']:+.4f}  t={vbs['t']:.1f}  n={vbs['n']}")
 
+    # --- 模型权重单变量扫描（2026-10-28）---
+    # 目的：回答"把 model_weight 归零会不会更好"。与上面的网格搜索的区别：
+    #   1. 用**生产**后处理开关（网格用的是纯融合 all_off）
+    #   2. 单变量：market/djyy 按原比例分掉剩余权重，不混入内部配比变化
+    #   3. 报告配对 Δ 的 95%CI、验证段结果，以及 argmax 方向变化率（归零的"可见面"）
+    print("\n=== 模型权重单变量扫描（生产后处理开关，ΔBrier<0 = 比 champion 好） ===")
+    prod_switches = {
+        k: bool(cfg.get("post_fusion", {}).get(k, False))
+        for k in DEFAULT_POST_FUSION
+    }
+    champ_full = evaluate(recs, feats, cfg, prod_switches)
+    print(f"champion: model={cfg['model_weight']:.2f} market={cfg['market_weight']:.2f} "
+          f"djyy={cfg['djyy_weight']:.2f}  Brier={champ_full['brier']:.4f}  "
+          f"命中={champ_full['hit_rate']:.1%}  n={champ_full['n']}")
+    print(f"{'w_model':>8}{'Brier':>9}{'命中':>8}{'Δ全样本':>10}{'t':>7}{'Δ验证段':>10}{'t':>7}{'方向变化':>9}")
+    sweep = []
+    for w in (0.0, 0.01, 0.02, 0.03, 0.05, 0.08, 0.10):
+        c = reweight_model(cfg, w)
+        full = evaluate(recs, feats, c, prod_switches,
+                        ref_switches=prod_switches, ref_cfg=cfg)
+        v = evaluate(val, feats, c, prod_switches,
+                     ref_switches=prod_switches, ref_cfg=cfg)
+        fs, vst = paired_stats(full["diffs"]), paired_stats(v["diffs"])
+        # diffs = ref − arm（正 = arm 更好）；报告按项目惯例 Δ = arm − ref（负 = 更好）
+        delta, delta_val = -fs["mean"], -vst["mean"]
+        ci = 1.96 * fs["se"]
+        churn = direction_change_rate(recs, feats, c, cfg, prod_switches)
+        print(f"{w:>8.2f}{full['brier']:>9.4f}{full['hit_rate']:>8.1%}"
+              f"{delta:>+10.4f}{fs['t']:>7.1f}{delta_val:>+10.4f}{vst['t']:>7.1f}{churn:>9.1%}")
+        sweep.append({
+            "model_weight": w,
+            "market_weight": round(c["market_weight"], 4),
+            "djyy_weight": round(c["djyy_weight"], 4),
+            "brier": full["brier"], "hit_rate": full["hit_rate"],
+            "delta_vs_champion": delta, "t": fs["t"],
+            "ci95": [delta - ci, delta + ci],
+            "val_delta": delta_val, "val_t": vst["t"],
+            "direction_change_rate": churn, "n": full["n"],
+        })
+
+    # 纯市场臂：不走比例重分配（市场 100%），作为"归零"的下限参照
+    pure_mkt_cfg = {**cfg, "model_weight": 0.0, "market_weight": 1.0, "djyy_weight": 0.0}
+    pm = evaluate(recs, feats, pure_mkt_cfg, prod_switches,
+                  ref_switches=prod_switches, ref_cfg=cfg)
+    pms = paired_stats(pm["diffs"])
+    print(f"{'纯市场':>8}{pm['brier']:>9.4f}{pm['hit_rate']:>8.1%}"
+          f"{-pms['mean']:>+10.4f}{pms['t']:>7.1f}")
+    sweep_pure_market = {
+        "brier": pm["brier"], "hit_rate": pm["hit_rate"],
+        "delta_vs_champion": -pms["mean"], "t": pms["t"], "n": pm["n"],
+    }
+
     report = {
-        "generated_at": str(Path(args.out).stat().st_mtime) if Path(args.out).exists() else "",
+        # 2026-10-28 修：原实现写的是**上一次**报告文件的 mtime，不是本次生成时间。
+        "generated_at": beijing_now().isoformat(timespec="seconds"),
         "meta": {
             "records": len(recs), "train": len(train), "val": len(val),
             "feature_join_rate": round(join_rate, 3),
@@ -324,6 +409,16 @@ def main():
             "train_brier": best[1],
             "val_paired_vs_current": {"delta": vbs["mean"], "t": vbs["t"], "n": vbs["n"]},
         },
+        "model_weight_sweep": {
+            "switches": "production",
+            "champion": {
+                "model": cfg["model_weight"], "market": cfg["market_weight"],
+                "djyy": cfg["djyy_weight"],
+                "brier": champ_full["brier"], "hit_rate": champ_full["hit_rate"],
+            },
+            "arms": sweep,
+            "pure_market": sweep_pure_market,
+        },
     }
     out_path = ROOT / args.out
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -332,4 +427,8 @@ def main():
 
 
 if __name__ == "__main__":
+    # Windows 控制台默认 cp936，报告里的 ↳/Δ 等符号会 UnicodeEncodeError
+    for _s in (sys.stdout, sys.stderr):
+        if hasattr(_s, "reconfigure"):
+            _s.reconfigure(encoding="utf-8", errors="replace")
     main()
