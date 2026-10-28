@@ -1,7 +1,21 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-22 17:39（静默吞异常关键路径留痕 + rho 持久化 + 周报化）
+> 状态: doing　更新: 2026-10-28 11:20（三条悬挂 PR 合并 + Windows 门禁 24 红清零）
+> 本轮(10-28): 见 `docs/UPGRADE_20261028.md`。① PR #59/#60/#61 全部 cherry-pick 进
+>           `feat/consolidated-upgrade-20261028`（23 条评审项落地；冲突仅 plan_lock/
+>           main.py 导入/fusion.py 的 _djyy_confidence 复用/config 的 rho 保留最新）。
+>           ② **三 PR 的 CI 一直是红的，原因是分支陈旧**：都带着 10-23 的
+>           `scripts/fetch_news.py`（F401 未用 import），pytest 根本没跑。
+>           ③ Windows 门禁从 24 红到 0：文本 IO 补 encoding 106 处、subprocess 26 处、
+>           .gitattributes 补 yml（workflow 被检出 CRLF → 抠出的 shell 每行带 \r）、
+>           测试改用 Git Bash 绝对路径（System32 的 `bash` 是 WSL 垫片，Windows 路径
+>           被翻成 /mnt/c → 裸库 remote 全丢）、submit.js 的 python3→python 回退、
+>           DJYY 预算判定 `>`→`>=`。新增 `tests/test_io_encoding.py` 静态守卫。
+>           ④ **语义变更待你复核**：`market_blend_weight` 0.28→0（市场不再双重计入）、
+>           djyy-only 补置信门槛、账本 `result_version`、loose 规则收紧——回滚方式都在
+>           UPGRADE_20261028.md 第五节。
+>           本地实跑：845 passed / 13 skipped / 0 failed（Windows，无环境变量）。
 > 在干什么: ① **E8 换闸门量纲**：`edge` 档实测**不可达**（7 场对照 P−market_fair 全负，
 >           最大 −0.23pp；10-19 起连续 131 轮零合格），改成
 >           `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），开关在
