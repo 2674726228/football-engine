@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-10-28T07:31:51",
+  "generated_at": "2026-10-28T09:10:29",
   "schema": 2,
   "baseline_pre_upgrade": {
-    "brier": 0.6172206898122067,
-    "hit_rate": 0.5164319248826291,
+    "brier": 0.5575906206419753,
+    "hit_rate": 0.5703703703703704,
     "n": 426,
     "note": "ablation_report.json 冻结的升级前全量基线（与下方 market_reference 同子集）"
   },
   "market_reference_frozen": {
-    "brier": 0.5833607748076923,
-    "hit_rate": 0.5467032967032966,
-    "n": 364,
+    "brier": 0.5651994876635514,
+    "hit_rate": 0.5594125500667557,
+    "n": 749,
     "note": "⚠ 这是 legacy 子集的市场分，**不可与 v2_clean 直接相减**（比赛集合不同）。与市场的有效比较一律以 paired_vs_market 为准。"
   },
   "legacy_unchanged": {
