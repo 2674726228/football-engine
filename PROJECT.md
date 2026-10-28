@@ -1,7 +1,7 @@
 # PROJECT.md — football-engine（竞彩足球概率引擎）
 
 > [!IMPORTANT] 交接卡（收工必更新；冷启动只读这块）
-> 状态: doing　更新: 2026-10-28 11:20（三条悬挂 PR 合并 + Windows 门禁 24 红清零）
+> 状态: doing　更新: 2026-10-28 16:20（三条 PR 合并 + Windows 门禁 + 模型权重归零研究）
 > 本轮(10-28): 见 `docs/UPGRADE_20261028.md`。① PR #59/#60/#61 全部 cherry-pick 进
 >           `feat/consolidated-upgrade-20261028`（23 条评审项落地；冲突仅 plan_lock/
 >           main.py 导入/fusion.py 的 _djyy_confidence 复用/config 的 rho 保留最新）。
@@ -18,7 +18,14 @@
 >           ⑤ 收尾 PR：`submit.js` 的 HOME 未定义回退 `os.homedir()`（Windows
 >           计划任务会崩在模块加载）、doctor 的 crontab 假结论（没命令 ≠ 已验证无残留）、
 >           关闭 issue #1（合成赔率早已不出票 + 页面标「不可投注」）、删远端合并分支。
->           本地实跑：849 passed / 13 skipped / 0 failed（Windows，无环境变量）。
+>           ⑥ **模型权重归零研究（10-28）**：扩 `ablation_replay.py` 的
+>           `model_weight_sweep`，810 场 v2 洁净样本、生产后处理开关、单变量配对。
+>           结论：w0 vs w5 的 Brier Δ=−0.0003（95%CI 跨 0，t=0.73），但 argmax
+>           命中率 57.0%→56.7%、方向只变 0.9% —— **不显著、不占优**。归零的真实成本
+>           在 chain（Q1 会被市场化样本抬高，或需升 v3 作废 810 场）。**暂不归零**，
+>           生产权重未改；登记 E11，确认性判定需 n≥8,300。详见
+>           `docs/MODEL_WEIGHT_ZEROING_20261028.md`。
+>           本地实跑：852 passed / 13 skipped / 0 failed（Windows，无环境变量）。
 > 在干什么: ① **E8 换闸门量纲**：`edge` 档实测**不可达**（7 场对照 P−market_fair 全负，
 >           最大 −0.23pp；10-19 起连续 131 轮零合格），改成
 >           `ev_site = P×站点结算价 − 1 ≥ 2%`（上界 25% 判脏价），开关在
