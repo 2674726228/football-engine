@@ -137,3 +137,37 @@ jobs:
                    "—— 修法见 docs/EXPERIMENTS.md「DJYY 在 CI 侧被 Cloudflare 拦截」节"
             fi
           fi
+
+      # 2026-10-28：快照通道自身的存活探测。
+      # fetch_djyy_ssr.py 现在把每次抓取结果写进 data/djyy_snapshot_status.json
+      # （此前失败只有一行 stdout + workflow 里的 `|| echo ⚠`，CI 恒绿）。
+      # 实时源被 403 时 fusion 第三通道全靠快照兜底；快照也抓不到 = 双通道全断，
+      # 此时 djyy 权重被静默归一化掉、账本前后不可比 —— 必须红，不能 warn。
+      - name: DJYY snapshot channel health (read-only)
+        if: ${{ github.event_name == 'schedule' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL="repos/${{ github.repository }}/contents/data/djyy_snapshot_status.json"
+          SNAP=$(gh api "$URL" --jq '.content' 2>/dev/null | base64 -d) || SNAP=""
+          if [ -z "$SNAP" ]; then
+            echo "::warning::没有 data/djyy_snapshot_status.json —— 快照通道尚未上报过状态"
+            exit 0
+          fi
+          echo "$SNAP" | jq -r '"→ DJYY 快照通道: "
+            + (if .ok then "抓取成功" else "抓取失败(\(.reason))" end)
+            + " | 于 \(.at) | 场次 \(.matches // 0)（含赔率 \(.with_odds // 0)）"
+            + " | 盘上快照龄 \(.snapshot_age_h // "?")h"'
+          AGE_H=$(echo "$SNAP" | jq -r 'if .at_epoch then ((now - .at_epoch) / 3600 | floor) else -1 end')
+          if [ "$AGE_H" != "-1" ] && [ "$AGE_H" -gt 30 ]; then
+            echo "::error::DJYY 快照状态已 ${AGE_H}h 未更新（阈值 30h）—— fetch_djyy_ssr 步骤可能根本没跑（workflow 被禁用/定时丢失），双通道无人值守"
+          fi
+          # 2026-10-28：ok=false **不等于**通道死。这份状态文件被 CI 与本机 duty
+          # 交替覆盖，而 CI 侧被 Cloudflare 拦是常态 → 每次 CI 写入都是 ok=false。
+          # 真正的判据是盘上快照的年龄（下面是 error）；这里只记录本次尝试结果。
+          if [ "$(echo "$SNAP" | jq -r '.ok')" != "true" ]; then
+            echo "::warning::最近一次抓取失败（$(echo "$SNAP" | jq -r '.reason')，写入方 $(echo "$SNAP" | jq -r '.source // "?"')）——CI 侧被拦属预期，看盘上快照龄判定是否双通道全断"
+          fi
+          if echo "$SNAP" | jq -e '.snapshot_age_h == null or .snapshot_age_h > 24' >/dev/null; then
+            echo "::error::DJYY 快照已 $(echo "$SNAP" | jq -r '.snapshot_age_h // "无快照"')h 未更新（阈值 24h）—— 本机 duty 可能长期离线，实时源一旦被拦就没有兜底"
+          fi

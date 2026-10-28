@@ -861,22 +861,36 @@ def run_daily_pipeline(target_date: date, predict_only: bool = False):
     if djyy_ssr_probs:
         print(f"  DJYY 概率补位: {djyy_ssr_probs}/{len(predictions)} 场（实时源不可用，"
               f"用仓库快照，fusion 第三通道不再被归一化掉）")
-        # 实时源被 Cloudflare 系统性拦截期间，manager 写的 djyy_status.json
-        # 仍是 healthy=false/blocked_by_edge。不把补位事实带进状态文件，
-        # health-check 就会在第三通道实际健康时报「贡献 0」——又一种假告警。
-        _status_path = ROOT / "data" / "djyy_status.json"
-        try:
-            _status = (json.loads(_status_path.read_text(encoding="utf-8"))
-                       if _status_path.exists() else {})
-            _status["snapshot_probs"] = djyy_ssr_probs
-            _status["snapshot_total"] = len(predictions)
-            _status["snapshot_age_h"] = (round(_snap_age_h, 1)
-                                         if _snap_age_h is not None else None)
-            _status["snapshot_updated_at"] = datetime.now().isoformat(timespec="seconds")
-            _status_path.write_text(
-                json.dumps(_status, ensure_ascii=False, indent=2), encoding="utf-8")
-        except Exception as exc:
-            print(f"  ⚠ DJYY 状态回写失败: {exc}")
+    # 2026-10-28：无论成败都把「三条通道各自有没有数据」写进状态文件。
+    # 以前只在补位成功时回写 snapshot_* 字段，于是：
+    #   ① 实时源活着时状态文件里根本没有 snapshot 字段 —— 无法判断快照通道死没死；
+    #   ② 两条通道都死时一个字段都不写 —— health-check 只看到 403，
+    #      分不清「实时被拦但快照在」与「两条都死」。
+    # 实时源被 Cloudflare 系统性拦截期间，manager 写的 djyy_status.json 仍是
+    # healthy=false/blocked_by_edge；不把补位事实带进状态文件，health-check 就会在
+    # 第三通道实际健康时报「贡献 0」——又一种假告警。
+    _snapshot_used = djyy_ssr_probs > 0
+    _live_channel = bool(djyy_enrichment)
+    _fallback = ("ssr_snapshot" if _snapshot_used
+                 else ("live" if _live_channel else "none"))
+    if _fallback == "none":
+        print("  ⚠ DJYY 两条通道均无数据（实时不可用 + 快照为空/过期）—— "
+              "融合里 djyy 权重会被归一化掉，见账本 fusion_effective_weights.djyy")
+    _status_path = ROOT / "data" / "djyy_status.json"
+    try:
+        _status = (json.loads(_status_path.read_text(encoding="utf-8"))
+                   if _status_path.exists() else {})
+        _status["snapshot_probs"] = djyy_ssr_probs
+        _status["snapshot_total"] = len(predictions)
+        _status["snapshot_age_h"] = (round(_snap_age_h, 1)
+                                     if _snap_age_h is not None else None)
+        _status["snapshot_updated_at"] = datetime.now().isoformat(timespec="seconds")
+        _status["live_channel_used"] = _live_channel
+        _status["fallback"] = _fallback
+        _status_path.write_text(
+            json.dumps(_status, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as exc:
+        print(f"  ⚠ DJYY 状态回写失败: {exc}")
 
     # 6. 资金管理 + 投注计划
     print("\n[5/8] 资金管理与投注计划...")

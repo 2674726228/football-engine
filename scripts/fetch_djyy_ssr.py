@@ -228,6 +228,61 @@ def _existing_snapshot() -> dict | None:
     return data if isinstance(data, dict) else None
 
 
+def _snapshot_age_hours() -> float | None:
+    """磁盘上那份快照的年龄（小时）。抓取失败时它就是下游真正吃到的东西。"""
+    prev = _existing_snapshot() or {}
+    raw = prev.get("extracted_at")
+    if not raw:
+        return None
+    try:
+        ts = datetime.fromisoformat(str(raw))
+    except (TypeError, ValueError):
+        return None
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    return round((datetime.now(timezone.utc) - ts).total_seconds() / 3600.0, 1)
+
+
+def _write_status(ok: bool, reason: str = "", matches: int = 0,
+                  with_odds: int = 0) -> None:
+    """把本次抓取结果落盘，供 health-check 判定「快照通道」是否还活着。
+
+    2026-10-28：此前抓取失败只打一行 stdout，而 workflow 里是
+    `python scripts/fetch_djyy_ssr.py || echo "⚠ ..."` —— CI 永远是绿的。
+    实时源被 403、快照又抓不到时两条通道同时死掉，外部却只能从日志里
+    翻一个 ⚠。状态文件让「双通道全断」变成可判定的条件（health-check 读它）。
+
+    状态文件跟着 OUTPUT 走（同目录），不写模块级常量：测试把 OUTPUT
+    指到 tmp_path 时不会污染仓库。
+    """
+    status_path = OUTPUT.parent / "djyy_snapshot_status.json"
+    now = datetime.now(timezone.utc)
+    payload = {
+        "at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        # epoch 是给 health-check 用的：用 jq 算"这份状态多久没更新"比解析
+        # 时区字符串稳（status 文件是提交进仓的，冻结的 snapshot_age_h 不会随时间增长，
+        # 只有 at 能反映"抓取步骤本身是不是停了"）。
+        "at_epoch": int(now.timestamp()),
+        "ok": bool(ok),
+        "reason": reason,
+        "matches": matches,
+        "with_odds": with_odds,
+        # 无论成败都记磁盘快照的真实年龄：这是下游实际吃到的数据年龄，
+        # 与「本次抓取成功与否」是两个信息，缺一个就说不清"现在到底有没有数据"。
+        "snapshot_age_h": _snapshot_age_hours(),
+        "base": BASE,
+        # 同一份状态文件会被 CI 与本机 duty 交替覆盖。标明写入方才能解释
+        # 「为什么 ok 一会儿 true 一会儿 false」：CI 侧被 Cloudflare 拦是常态。
+        "source": "ci" if os.environ.get("GITHUB_ACTIONS") else "local",
+    }
+    try:
+        status_path.parent.mkdir(parents=True, exist_ok=True)
+        status_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
+                               encoding="utf-8")
+    except OSError as exc:
+        print(f"  ⚠ 快照状态写入失败: {exc}", file=sys.stderr)
+
+
 def _age_days(extracted_at: str) -> int | None:
     try:
         ts = datetime.fromisoformat(extracted_at)
@@ -239,6 +294,15 @@ def _age_days(extracted_at: str) -> int | None:
 
 
 def main():
+    """抓取入口。异常也必须留下状态文件——否则 CI 只看到一条 ⚠ 就过去了。"""
+    try:
+        _run()
+    except Exception as exc:  # noqa: BLE001 — 失败要落盘 + 向上抛，不能静默
+        _write_status(False, f"exception {type(exc).__name__}: {exc}")
+        raise
+
+
+def _run():
     print("[fetch_djyy_v2] Fetching from djyylive.com API...")
 
     # 抓今明两天（UTC 日期，多抓一天覆盖时区差异）
@@ -257,6 +321,7 @@ def main():
                   + (f"（{age} 天前，下游将拿到过期 DJYY 数据）" if age is not None else ""))
         else:
             print("  ⚠ 赛程为空且无旧快照，本次不产出")
+        _write_status(False, "fixtures_empty")
         return
 
     matches, enriched, comp_failed = enrich_matches(fixtures)
@@ -267,6 +332,7 @@ def main():
     if enriched == 0 and comp_failed and (prev.get("with_odds") or 0) > 0:
         print(f"  ⚠ {comp_failed}/{len(fixtures)} 场 comparison 抓取失败，"
               f"保留旧快照（with_odds={prev.get('with_odds')}），不覆盖为全 null")
+        _write_status(False, f"comparison_failed {comp_failed}/{len(fixtures)}")
         return
 
     output = {
@@ -279,6 +345,7 @@ def main():
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
+    _write_status(True, "", matches=len(matches), with_odds=enriched)
     print(f"  ✓ {len(matches)} matches ({enriched} with Pinnacle odds) → {OUTPUT}")
 
 
