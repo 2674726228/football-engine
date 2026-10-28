@@ -602,4 +602,9 @@ def _locked_main() -> int:
 
 
 if __name__ == "__main__":
+    # 本机值守是唯一跑在 Windows 上的生产入口：控制台默认 cp936，
+    # 日志里的中文/符号（✅ ⚠ 🧹）会 UnicodeEncodeError 打断整轮（本机实测）。
+    for _s in (sys.stdout, sys.stderr):
+        if hasattr(_s, "reconfigure"):
+            _s.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(_locked_main())

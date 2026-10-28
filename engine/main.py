@@ -2502,4 +2502,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # Windows 本地跑管线时 stdout 是 cp936：日志里的 emoji/生僻符号会
+    # UnicodeEncodeError 直接中断（CI 是 UTF-8，不受影响）。
+    for _s in (sys.stdout, sys.stderr):
+        if hasattr(_s, "reconfigure"):
+            _s.reconfigure(encoding="utf-8", errors="replace")
     main()
