@@ -54,9 +54,9 @@ def test_capture_appends_odds_and_details(tmp_path, monkeypatch):
     assert s["fixtures"] == 2 and s["odds_appends"] == 2 and s["one_time"] == 2  # 2场×predictions
     # 赔率追加成 JSONL
     odds_file = tmp_path / "state" / "sportmonks" / f"{day}_900001_odds.jsonl"
-    assert len(odds_file.read_text().strip().splitlines()) == 1
+    assert len(odds_file.read_text(encoding="utf-8").strip().splitlines()) == 1
     # 空阵容（[]）不算完成，predictions 完成记 manifest
-    mf = json.loads((tmp_path / "state" / "sportmonks" / f"{day}_manifest.json").read_text())
+    mf = json.loads((tmp_path / "state" / "sportmonks" / f"{day}_manifest.json").read_text(encoding="utf-8"))
     assert mf["900001"]["one_time"]["predictions"] is True
     assert "lineups" not in mf["900001"]["one_time"]
 
@@ -84,7 +84,7 @@ def test_capture_marks_unavailable_once(tmp_path, monkeypatch):
     day = "2026-10-12"
     s = cap.capture_day(fc, day)
     assert s["unavailable"] >= 1
-    mf = json.loads((tmp_path / "state" / "sportmonks" / f"{day}_manifest.json").read_text())
+    mf = json.loads((tmp_path / "state" / "sportmonks" / f"{day}_manifest.json").read_text(encoding="utf-8"))
     assert mf["900001"]["odds_status"] == "odds_not_entitled"
 
 

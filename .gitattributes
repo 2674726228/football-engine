@@ -1,9 +1,15 @@
-# 换行规范（2026-10-23）
+# 换行规范（2026-10-23，2026-10-28 补 yml）
 #
 # 背景：开发机 core.autocrlf=true，JS 文件被检出成 CRLF。而 tests/ 里用
 # `/^#!.*\n/` 剥离 shebang 的助手在 CRLF 下失效（JS 的 `.` 不匹配 \r），
 # 导致 26 个用例在 Windows 上全挂。测试侧已改成 `\r?\n` 兼容两种换行，
 # 这里再从版本库层面钉住：JS 一律 LF，禁止 Windows 检出时转换。
 #
-# 只钉 *.js：其他类型批量设 eol 会触发大面积重检出，收益不足以抵消风险。
+# 2026-10-28：工作流 YAML 也必须钉成 LF。tests/test_challenge_state_commitback.py 与
+# tests/test_ci_workflow_resilience.py 会把 workflow 里的 run 脚本抠出来交给真 bash 执行；
+# 检出成 CRLF 时每行末尾多一个 \r，命令名被污染 → 5 个用例在 Windows 上全挂
+# （CI 是 Linux 检出，所以一直是绿的，掩盖了问题）。
 *.js text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+

@@ -37,7 +37,7 @@ def test_load_token_priority(monkeypatch, tmp_path):
     assert sm.load_token() == "env-tok"
     monkeypatch.delenv("SPORTMONKS_TOKEN")
     fake = tmp_path / "tok"
-    fake.write_text("file-tok")
+    fake.write_text("file-tok", encoding="utf-8")
     monkeypatch.setattr(sm, "TOKEN_FILE", fake)
     assert sm.load_token() == "file-tok"
 

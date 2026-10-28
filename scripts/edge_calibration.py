@@ -111,7 +111,7 @@ def main():
         "n_settled": len(rows), "n_positive_edge": len(edge_rows),
         "edge_buckets": edge_out, "prob_buckets": prob_out,
     }
-    OUT.write_text(json.dumps(report, ensure_ascii=False, indent=2))
+    OUT.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n✓ 已写入 {OUT.relative_to(ROOT)}")
     return 0
 

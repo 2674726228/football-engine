@@ -13,7 +13,7 @@ def main():
     close = defaultdict(dict)
     seen = set()
     for fn in sorted(glob.glob('data/state/njstats_archive/*_odds*.json')):
-        for r in json.load(open(fn))['data']:
+        for r in json.load(open(fn, encoding="utf-8"))['data']:
             key = (r.get('matchTimeStr', '')[:10], r.get('homeName'), r.get('awayName'))
             if key in seen or not key[0]:
                 continue
@@ -26,7 +26,7 @@ def main():
                     continue
                 if min(trio) > 1.0:
                     close[key][oi['cName']] = trio
-    rows = [json.loads(l) for l in open('data/state/review_ledger.jsonl')]
+    rows = [json.loads(l) for l in open('data/state/review_ledger.jsonl', encoding="utf-8")]
     dates = sorted({k[0] for k in close})
     bets = [r for r in rows if r.get('best_selection') is not None and r.get('date') in dates]
     sel_fields = ("home_odds", "draw_odds", "away_odds")
@@ -35,7 +35,7 @@ def main():
         date = b['date']
         if date not in cache:
             try:
-                d = json.load(open(f'data/daily/{date}/predictions.json'))
+                d = json.load(open(f'data/daily/{date}/predictions.json', encoding="utf-8"))
                 preds = d.get('predictions', d) if isinstance(d, dict) else d
                 cache[date] = {p.get('match_id'): p for p in preds}
             except Exception:

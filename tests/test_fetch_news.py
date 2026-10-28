@@ -88,5 +88,5 @@ def test_fetch_failure_does_not_overwrite(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(fn, "fetch_html", boom)
 
     assert fn.main(["--date", "2026-10-22"]) == 1
-    assert json.loads((d / "news.json").read_text())["items"] == ["old"]
+    assert json.loads((d / "news.json").read_text(encoding="utf-8"))["items"] == ["old"]
     assert "抓取失败" in capsys.readouterr().out

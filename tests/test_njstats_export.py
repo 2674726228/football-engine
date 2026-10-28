@@ -45,9 +45,9 @@ def test_coverage_finds_gaps(tmp_path, monkeypatch):
     monkeypatch.setattr(ne, "ARCHIVE", tmp_path)
     # 造一个只有 2 页的端点 + 一个满 6 页的端点
     for p in (1, 2):
-        (tmp_path / f"2026-10-12_prob_draw{'' if p == 1 else f'_p{p}'}.json").write_text("{}")
+        (tmp_path / f"2026-10-12_prob_draw{'' if p == 1 else f'_p{p}'}.json").write_text("{}", encoding="utf-8")
     for p in range(1, 7):
-        (tmp_path / f"2026-10-12_prob_over{'' if p == 1 else f'_p{p}'}.json").write_text("{}")
+        (tmp_path / f"2026-10-12_prob_over{'' if p == 1 else f'_p{p}'}.json").write_text("{}", encoding="utf-8")
 
     cov = ne.coverage()
     gaps = {(g["date"], g["endpoint"]): g for g in cov["prob_gaps"]}
@@ -61,7 +61,7 @@ def test_coverage_finds_gaps(tmp_path, monkeypatch):
 def test_coverage_detects_endpoint_entirely_missing(tmp_path, monkeypatch):
     """整个端点一条没采（0 页）也必须报——0 页比缺 4 页更危险。"""
     monkeypatch.setattr(ne, "ARCHIVE", tmp_path)
-    (tmp_path / "2026-10-12_prob_draw.json").write_text("{}")
+    (tmp_path / "2026-10-12_prob_draw.json").write_text("{}", encoding="utf-8")
     cov = ne.coverage()
     gaps = {(g["date"], g["endpoint"]): g for g in cov["prob_gaps"]}
     assert gaps[("2026-10-12", "btts")]["have_pages"] == 0
@@ -73,7 +73,7 @@ def test_coverage_counts_snapshots(tmp_path, monkeypatch):
     monkeypatch.setattr(ne, "ARCHIVE", tmp_path)
     for p in range(1, 4):
         name = "2026-10-12_snapshot_match.json" if p == 1 else f"2026-10-12_snapshot_match_p{p}.json"
-        (tmp_path / name).write_text("{}")
+        (tmp_path / name).write_text("{}", encoding="utf-8")
     cov = ne.coverage()
     assert cov["snapshot_files"] == 3
 
@@ -90,7 +90,7 @@ def test_page_naming_convention(tmp_path, monkeypatch):
         f"2026-10-12_prob_draw_p{p}.json" for p in range(2, 7)
     ]
     for n in names:
-        (tmp_path / n).write_text("{}")
+        (tmp_path / n).write_text("{}", encoding="utf-8")
     cov = ne.coverage()
     assert not [g for g in cov["prob_gaps"] if g["endpoint"] == "draw"], \
         "用正确命名造的满页被算成缺口——页数口径不一致"
@@ -135,7 +135,8 @@ def test_readme_handles_no_gaps():
 def test_cli_verify_runs():
     """--verify 必须能跑通（它是到期前的例行体检命令）。"""
     r = subprocess.run([sys.executable, str(SCRIPT), "--verify"],
-                       capture_output=True, text=True, timeout=60)
+                       capture_output=True, text=True, timeout=60,
+                       encoding="utf-8", errors="replace")
     assert r.returncode == 0, f"--verify 失败: {r.stderr}"
     assert "归档文件" in r.stdout
 
@@ -144,7 +145,7 @@ def test_manifest_shape(tmp_path, monkeypatch):
     """MANIFEST 必须含到期提醒与来源路径（数据包要能自证出处）。"""
     monkeypatch.setattr(ne, "ARCHIVE", tmp_path)
     monkeypatch.setattr(ne, "FEATURES", tmp_path / "feat")
-    (tmp_path / "2026-10-12_prob_draw.json").write_text("{}")
+    (tmp_path / "2026-10-12_prob_draw.json").write_text("{}", encoding="utf-8")
     out = tmp_path / "exported"
     # 子进程重新 import 模块，父进程的 monkeypatch 对它无效，必须走环境变量
     # （NJSTATS_ARCHIVE_DIR / NJSTATS_FEATURES_DIR）。否则子进程会用真实的
@@ -153,6 +154,7 @@ def test_manifest_shape(tmp_path, monkeypatch):
     r = subprocess.run(
         [sys.executable, str(SCRIPT), "--out", str(out)],
         capture_output=True, text=True, timeout=120,
+        encoding="utf-8", errors="replace",
         env={**__import__("os").environ,
              "PYTHONPATH": str(ROOT),
              "NJSTATS_ARCHIVE_DIR": str(tmp_path),

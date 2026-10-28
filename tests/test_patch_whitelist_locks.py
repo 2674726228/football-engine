@@ -61,7 +61,7 @@ class TestC1PathWhitelist(unittest.TestCase):
         import subprocess
         tracked = subprocess.run(
             ["git", "ls-files"], cwd=str(ROOT), capture_output=True,
-            text=True, check=True).stdout.split()
+            text=True, check=True, encoding="utf-8", errors="replace").stdout.split()
         tracked = {t.replace("\\", "/") for t in tracked}
         for entry in FORBIDDEN:
             if entry.endswith("/"):

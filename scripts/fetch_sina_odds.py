@@ -302,7 +302,7 @@ def main():
         output_dir.mkdir(parents=True, exist_ok=True)
 
         output_file = output_dir / "odds_sina.json"
-        output_file.write_text(json.dumps(all_odds, ensure_ascii=False, indent=2))
+        output_file.write_text(json.dumps(all_odds, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"  ✓ {date_str}: {len(all_odds)} matches with odds → {output_file}")
 
         # 时间序列累积（2026-08-05 盘口系统修复）：每次抓取把当前快照追加到

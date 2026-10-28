@@ -39,7 +39,7 @@ def main() -> int:
             if tok:
                 cookies = {c["name"]: c["value"] for c in ctx.cookies([BASE]) if c["domain"].endswith("njstats.cn")}
                 if "SESSION" in cookies:
-                    OUT.write_text(json.dumps({"SESSION": cookies["SESSION"], "seeded_at": time.strftime("%F %T")}))
+                    OUT.write_text(json.dumps({"SESSION": cookies["SESSION"], "seeded_at": time.strftime("%F %T")}), encoding="utf-8")
                     OUT.chmod(0o600)
                     print("✅ SESSION cookie 已保存 →", OUT)
                     ctx.close()

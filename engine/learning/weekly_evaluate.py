@@ -34,7 +34,7 @@ def main() -> int:
     if not log_path.exists():
         result["message"] = "无优化器日志（融合学习尚未启动）"
         (state_dir / "weekly_evaluate.json").write_text(
-            json.dumps(result, ensure_ascii=False, indent=2)
+            json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         print("  ⚠ 无优化器日志")
         return 0
@@ -54,7 +54,7 @@ def main() -> int:
     if not decisions:
         result["message"] = "日志为空"
         (state_dir / "weekly_evaluate.json").write_text(
-            json.dumps(result, ensure_ascii=False, indent=2)
+            json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         print("  ⚠ 日志为空")
         return 0
@@ -120,7 +120,7 @@ def main() -> int:
     )
 
     out = state_dir / "weekly_evaluate.json"
-    out.write_text(json.dumps(result, ensure_ascii=False, indent=2))
+    out.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  ✓ 决策数: {len(decisions)} | 动作分布: {actions}")
     print(f"  ✓ 权重演化: model {initial.get('model')}→{champion.get('model')} | "
           f"market {initial.get('market')}→{champion.get('market')} | "

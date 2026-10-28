@@ -121,7 +121,7 @@ def save_results(date_str: str, results: list[dict], output_dir: Path | None = N
     existing = []
     if output_file.exists():
         try:
-            existing = json.loads(output_file.read_text())
+            existing = json.loads(output_file.read_text(encoding="utf-8"))
         except Exception:
             pass
     
@@ -148,7 +148,7 @@ def save_results(date_str: str, results: list[dict], output_dir: Path | None = N
                 old["match_no"] = r.get("match_no")
             updated += 1
     
-    output_file.write_text(json.dumps(existing, ensure_ascii=False, indent=2))
+    output_file.write_text(json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  ✓ {date_str}: {len(results)} 新浪 (+{added} 新增, {updated} 比分修正) = {len(existing)} 场 → {output_file}")
     return output_file
 

@@ -80,7 +80,7 @@ def test_e10_admits_low_odds_and_tags_record(tmp_path, monkeypatch):
                                       "min_sporttery_odds": 0.0})
     assert ch.main() == 0
     assert submitted == ["LOW1"]
-    rec = json.loads(state.read_text())["records"][0]
+    rec = json.loads(state.read_text(encoding="utf-8"))["records"][0]
     assert rec["exp"] == "E10", "低赔注必须能被 E8 裁决排除"
     assert "@1.42" in rec["pick"], "pick 里未记录下单时的体彩价"
     assert rec["site_odds"] == pytest.approx(1.62)
@@ -118,7 +118,7 @@ def test_broken_e10_key_keeps_e8_gate(tmp_path, monkeypatch):
                                       "min_sporttery_odds": "不是数"})
     assert ch.main() == 0
     assert submitted == ["E8__"], "E8 候选应仍按 ev_site 口径成交"
-    assert json.loads(state.read_text())["records"][0]["gate"] == "ev_site"
+    assert json.loads(state.read_text(encoding="utf-8"))["records"][0]["gate"] == "ev_site"
 
 
 def test_e10_respects_ev_upper_bound(tmp_path, monkeypatch):

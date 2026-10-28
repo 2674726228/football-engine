@@ -278,7 +278,7 @@ def main():
     }
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps(output, ensure_ascii=False, indent=2))
+    OUTPUT.write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  ✓ {len(matches)} matches ({enriched} with Pinnacle odds) → {OUTPUT}")
 
 

@@ -86,7 +86,7 @@ def _make_fixture(tmp_path: Path, day: str, match_id: str, match_no: str,
             "confidence_tier": tier,
         }]), encoding="utf-8")
     (tmp_path / "state" / "odds_series").mkdir(parents=True, exist_ok=True)
-    with open(tmp_path / "state" / "odds_series" / f"{day}_{file_id}.jsonl", "w") as f:
+    with open(tmp_path / "state" / "odds_series" / f"{day}_{file_id}.jsonl", "w", encoding="utf-8") as f:
         for s in close_seq:
             f.write(json.dumps({**s, "match_no": match_no}) + "\n")
 

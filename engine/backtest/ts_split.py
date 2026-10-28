@@ -360,4 +360,4 @@ class TimeSeriesSplitter:
                 for f in report.folds
             ],
         }
-        output_path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+        output_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")

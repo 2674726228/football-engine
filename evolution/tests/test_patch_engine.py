@@ -103,14 +103,14 @@ class TestGitWriter(unittest.TestCase):
         # 用一个临时 git 仓库测 commit（不碰真实仓库）
         tmp = Path(tempfile.mkdtemp())
         subprocess.run(["git", "init", "-q"], cwd=str(tmp))
-        (tmp / "f.txt").write_text("v0\n")
+        (tmp / "f.txt").write_text("v0\n", encoding="utf-8")
         subprocess.run(["git", "add", "-A"], cwd=str(tmp))
         subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t",
                         "commit", "-q", "-m", "base"], cwd=str(tmp))
         # make_worktree 需要 repo 有 archive 能力（git repo）
         wt = GW.make_worktree(tmp, "HEAD")
         try:
-            (wt / "f.txt").write_text("v1\n")
+            (wt / "f.txt").write_text("v1\n", encoding="utf-8")
             info = GW.commit_branch(wt, "evo/test", "test", ["f.txt"])
             self.assertEqual(info["branch"], "evo/test")
             self.assertEqual(info["files"], ["f.txt"])

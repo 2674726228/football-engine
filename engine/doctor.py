@@ -85,12 +85,12 @@ class DoctorReport:
 # ---------------------------------------------------------------- git 工具
 
 def _git(args: list[str], cwd: Path = REPO) -> tuple[int, str]:
-    r = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True, timeout=120)
+    r = subprocess.run(["git"] + args, cwd=cwd, capture_output=True, text=True, timeout=120, encoding="utf-8", errors="replace")
     return r.returncode, (r.stdout + r.stderr).strip()
 
 
 def _run(args: list[str], timeout: int = 300) -> tuple[int, str]:
-    r = subprocess.run(args, cwd=REPO, capture_output=True, text=True, timeout=timeout)
+    r = subprocess.run(args, cwd=REPO, capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace")
     return r.returncode, (r.stdout + r.stderr).strip()
 
 

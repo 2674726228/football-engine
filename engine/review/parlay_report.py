@@ -119,7 +119,7 @@ def build_parlay_report(
     else:
         report["verdict"] = "串关 ROI 为负：不建议玩串关（两场都中太难），专注单关价值区"
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2))
+    out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return report
 
 

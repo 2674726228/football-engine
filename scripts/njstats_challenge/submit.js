@@ -404,25 +404,40 @@ function isYouth(name) {
   return /(^|[^a-z])u[-_ ]?\d{2}([^a-z]|$)|under[-_ ]?\d{2}|U\d{2}$/i.test(String(name || ''));
 }
 
+/** 可用的 Python 解释器候选（2026-10-28：Windows 没有 python3，只剩 python）。 */
+function pythonCandidates() {
+  const list = [];
+  for (const k of ['PYTHON', 'PYTHON3']) {
+    if (process.env[k]) list.push(process.env[k]);
+  }
+  list.push('python3', 'python');
+  return [...new Set(list)];
+}
+
 /** 从 engine.team_aliases 拿归一化结果（批量，一次子进程）。 */
 function normalizeTeamNames(names) {
   const { execFileSync } = require('child_process');
-  try {
-    const script = `
+  const script = `
 import json, sys
+sys.stdin.reconfigure(encoding="utf-8")   # 入参也是 UTF-8（Node 按 utf8 写入管道）
+sys.stdout.reconfigure(encoding="utf-8")   # Windows 管道默认 cp936，中文会写成 GBK
 sys.path.insert(0, ${JSON.stringify(ROOT)})
 from engine.team_aliases import normalize_team, loose_normalize
 names = json.loads(sys.stdin.read())
 print(json.dumps([[normalize_team(n), loose_normalize(n)] for n in names], ensure_ascii=False))
 `;
-    const out = execFileSync('python3', ['-c', script], {
-      input: JSON.stringify(names), encoding: 'utf-8', timeout: 30000,
-    });
-    return JSON.parse(out);
-  } catch {
-    // Python 不可用：退回内置归一化（会漏掉译名变体，但不崩）
-    return names.map(n => [normName(n), normName(n)]);
+  for (const py of pythonCandidates()) {
+    try {
+      const out = execFileSync(py, ['-c', script], {
+        input: JSON.stringify(names), encoding: 'utf-8', timeout: 30000,
+      });
+      return JSON.parse(out);
+    } catch {
+      // 该解释器不可用或执行失败，试下一个
+    }
   }
+  // Python 全不可用：退回内置归一化（会漏掉译名变体，但不崩）
+  return names.map(n => [normName(n), normName(n)]);
 }
 
 /**

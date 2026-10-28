@@ -118,7 +118,7 @@ def push_secret(jwt: str) -> None:
     except ImportError:
         print("[auto-login] 无 pynacl，跳过推 secret"); return
     cred = subprocess.run(["git", "credential", "fill"], check=False, input="protocol=https\nhost=github.com\n\n",
-                          capture_output=True, text=True, cwd=REPO).stdout
+                          capture_output=True, text=True, cwd=REPO, encoding="utf-8", errors="replace").stdout
     tok = next((l.split("=", 1)[1] for l in cred.splitlines() if l.startswith("password=")), "")
     if not tok:
         print("[auto-login] 无 GitHub token，跳过推 secret"); return
@@ -139,7 +139,7 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     if not ACCT_FILE.exists():
         print(f"[auto-login] 缺凭据文件 {ACCT_FILE}"); return 2
-    acct, pw = ACCT_FILE.read_text().split("\n")[:2]
+    acct, pw = ACCT_FILE.read_text(encoding="utf-8").split("\n")[:2]
     try:
         import ddddocr
         ocr = ddddocr.DdddOcr(show_ad=False)
@@ -148,7 +148,7 @@ def main(argv=None) -> int:
     tok = login_once(acct, pw, ocr, a.tries)
     if not tok:
         print("[auto-login] 全部尝试失败"); return 1
-    JWT_FILE.write_text(tok)
+    JWT_FILE.write_text(tok, encoding="utf-8")
     os.chmod(JWT_FILE, 0o600)
     exp = json.loads(base64.urlsafe_b64decode(tok.split(".")[1] + "==")).get("exp")
     print(f"[auto-login] JWT 已落盘 exp={exp}")

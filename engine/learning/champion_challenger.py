@@ -48,7 +48,7 @@ class ChampionChallenger:
 
     def _load(self) -> dict:
         if self.registry_path.exists():
-            return json.loads(self.registry_path.read_text())
+            return json.loads(self.registry_path.read_text(encoding="utf-8"))
         return {
             "champion": None,
             "challenger": None,
@@ -58,7 +58,7 @@ class ChampionChallenger:
 
     def save(self):
         self.registry_path.parent.mkdir(parents=True, exist_ok=True)
-        self.registry_path.write_text(json.dumps(self.registry, indent=2))
+        self.registry_path.write_text(json.dumps(self.registry, indent=2), encoding="utf-8")
 
     def register_challenger(self, model_name: str, config: dict):
         """注册挑战者"""

@@ -25,6 +25,10 @@ on:
       - '.github/CODEOWNERS'
       - 'tests/**'
       - 'config/**'
+      # 2026-10-28：push 侧早就包含 scripts/ 与 requirements，PR 侧漏了——
+      # 结果是改 scripts/ 或升级依赖的 PR 根本不跑测试，合并后的 push 才红。
+      - 'scripts/**'
+      - 'requirements*.txt'
 
 permissions:
   contents: read
@@ -40,8 +44,24 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 2026-10-28：加 windows-latest。本机（Windows）跑门禁时曾有 24 个用例红，
+    # 全部是平台差异（默认 GBK 编码、CRLF 检出、WSL bash 垫片），而 ubuntu CI
+    # 一直绿——没人往 Windows 看，问题就一直在。双平台跑才能把这类缺陷挡住。
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    env:
+      # 2026-10-28：windows-latest 的 locale 是 cp1252，生产代码会 print 中文
+      # 全角括号（U+FF08）。必须在解释器启动前把默认编码钉成 UTF-8 ——
+      # pytest capture 会替换 sys.stdout，conftest 里再 reconfigure 来不及。
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
     steps:
       - uses: actions/checkout@v4
 
@@ -69,3 +89,8 @@ jobs:
 
       - name: Run pytest
         run: python -m pytest tests/ -v
+
+      - name: Repo size guard
+        # 2026-10-23（评审 P2#20）：防止大体量数据（parsed.jsonl 26MB 这类）
+        # 再次静默入 git。历史遗留文件在白名单里豁免。
+        run: python scripts/check_repo_size.py

@@ -71,7 +71,7 @@ def log(msg: str) -> None:
 
 
 def sh(*args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(args, cwd=ROOT, capture_output=True, text=True, check=False)
+    return subprocess.run(args, cwd=ROOT, capture_output=True, text=True, check=False, encoding="utf-8", errors="replace")
 
 
 def commit_push(paths: list[str], msg: str) -> bool:
@@ -126,7 +126,7 @@ def autoheal_session() -> bool:
         return False
     p = subprocess.run([str(ROOT / ".venv" / "bin" / "python3"),
                         "scripts/njstats_refresh_session.py"],
-                       cwd=ROOT, capture_output=True, text=True, check=False, timeout=180)
+                       cwd=ROOT, capture_output=True, text=True, check=False, timeout=180, encoding="utf-8", errors="replace")
     ok = p.returncode == 0
     log(f"续期脚本 rc={p.returncode} {(p.stdout or p.stderr).strip().splitlines()[-1] if (p.stdout or p.stderr).strip() else ''}")
     return ok
@@ -136,7 +136,7 @@ def mint() -> str | None:
     if not SESS.exists():
         log("无 session 文件，需播种登录")
         return None
-    cookie = json.loads(SESS.read_text()).get("SESSION", "")
+    cookie = json.loads(SESS.read_text(encoding="utf-8")).get("SESSION", "")
     if not cookie:
         log("session 文件缺 SESSION")
         return None
@@ -153,7 +153,7 @@ def mint() -> str | None:
         if not autoheal_session():
             log("无头续期失败，需人工登录（跑 njstats_seed_login.py）")
             return None
-        cookie = json.loads(SESS.read_text()).get("SESSION", "")
+        cookie = json.loads(SESS.read_text(encoding="utf-8")).get("SESSION", "")
         r = requests.get(f"{BASE}/api/user/current",
                          headers={"Cookie": f"SESSION={cookie}", "User-Agent": UA,
                                   "Accept": "application/json", "Referer": BASE + "/prediction/mine"},
@@ -173,12 +173,12 @@ def push_secret(jwt: str) -> None:
     except ImportError:
         log("无 pynacl，跳过推 secret"); return
     p = subprocess.run(["git", "credential", "fill"], input="protocol=https\nhost=github.com\n\n",
-                       capture_output=True, text=True, cwd=ROOT, check=False)
+                       capture_output=True, text=True, cwd=ROOT, check=False, encoding="utf-8", errors="replace")
     tok = next((l.split("=", 1)[1] for l in p.stdout.splitlines() if l.startswith("password=")), "")
     # launchd 环境可能碰不到 keychain：文件 token 优先
     ftok = HOME / ".football-engine" / "github_token"
     if ftok.exists():
-        tok = ftok.read_text().strip() or tok
+        tok = ftok.read_text(encoding="utf-8").strip() or tok
     if not tok:
         log("无 GitHub token，跳过推 secret"); return
     h = {"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json"}
@@ -204,7 +204,7 @@ def fix_conflicts() -> None:
     for f in u:
         if f.endswith(".json"):
             try:
-                json.loads((ROOT / f).read_text())
+                json.loads((ROOT / f).read_text(encoding="utf-8"))
             except Exception:
                 bad.append(f)
     if bad:
@@ -225,8 +225,8 @@ def main() -> int:
     if not tok:
         log("本轮：mint 失败，需人工登录（跑 njstats_seed_login.py）")
         return 20
-    old = JWT_FILE.read_text().strip() if JWT_FILE.exists() else ""
-    JWT_FILE.write_text(tok)
+    old = JWT_FILE.read_text(encoding="utf-8").strip() if JWT_FILE.exists() else ""
+    JWT_FILE.write_text(tok, encoding="utf-8")
     os.chmod(JWT_FILE, 0o600)
     if tok != old:
         push_secret(tok)
@@ -235,7 +235,7 @@ def main() -> int:
         log("mint(无变化)")
     env = dict(os.environ, NJSTATS_JWT=tok)
     p = subprocess.run([str(ROOT / ".venv" / "bin" / "python3"), "scripts/challenge_hourly.py"],
-                       cwd=ROOT, capture_output=True, text=True, env=env, check=False)
+                       cwd=ROOT, capture_output=True, text=True, env=env, check=False, encoding="utf-8", errors="replace")
     tail = (p.stdout or p.stderr).strip().splitlines()
     log("1x2: " + (tail[-1] if tail else "无输出"))
     # 本轮到底投了几注——看门狗要不要补跑 CI 取决于这个
@@ -272,7 +272,7 @@ def main() -> int:
 def _gh_token() -> str:
     ftok = HOME / ".football-engine" / "github_token"
     try:
-        return ftok.read_text().strip()
+        return ftok.read_text(encoding="utf-8").strip()
     except OSError:
         return ""
 
@@ -352,14 +352,14 @@ def _maybe_dispatch_daily_ci() -> bool:
     marker = HOME / ".football-engine" / ".daily_watchdog_last"
     now = time.time()
     try:
-        if marker.exists() and now - float(marker.read_text().strip()) < DAILY_COOLDOWN_H * 3600:
+        if marker.exists() and now - float(marker.read_text(encoding="utf-8").strip()) < DAILY_COOLDOWN_H * 3600:
             return False
     except (OSError, ValueError):
         pass
     if _dispatch_daily_ci():
         log(f"CI 看门狗: Daily Forecast 上次 {last_date}（{age_h:.1f}h 前），已补触发一轮")
         try:
-            marker.write_text(str(int(now)))
+            marker.write_text(str(int(now)), encoding="utf-8")
         except OSError:
             pass
         return True
@@ -389,14 +389,14 @@ def _maybe_dispatch_ci(local_submitted: int) -> None:
     marker = HOME / ".football-engine" / ".ci_watchdog_last"
     now = time.time()
     try:
-        if marker.exists() and now - float(marker.read_text().strip()) < 3600:
+        if marker.exists() and now - float(marker.read_text(encoding="utf-8").strip()) < 3600:
             return
     except (OSError, ValueError):
         pass
     if _dispatch_ci_challenge():
         log(f"CI 看门狗: Challenge 已 {age:.1f}h 未跑，已补触发一轮")
         try:
-            marker.write_text(str(int(now)))
+            marker.write_text(str(int(now)), encoding="utf-8")
         except OSError:
             pass
 
@@ -470,18 +470,18 @@ def _maybe_community_snapshot() -> None:
     marker = ROOT / "data" / "state" / ".community_snapshot_done"
     today = time.strftime("%Y-%m-%d")
     try:
-        if marker.exists() and marker.read_text().strip() == today:
+        if marker.exists() and marker.read_text(encoding="utf-8").strip() == today:
             return
     except OSError:
         pass
     p = subprocess.run([str(ROOT / ".venv" / "bin" / "python3"),
                         "scripts/njstats_community_snapshot.py"],
-                       cwd=ROOT, capture_output=True, text=True, check=False, timeout=300)
+                       cwd=ROOT, capture_output=True, text=True, check=False, timeout=300, encoding="utf-8", errors="replace")
     out = (p.stdout or p.stderr).strip().splitlines()
     log("community: " + (out[-1] if out else f"无输出 rc={p.returncode}"))
     if p.returncode == 0:
         try:
-            marker.write_text(today)
+            marker.write_text(today, encoding="utf-8")
         except OSError:
             pass
 
@@ -507,13 +507,13 @@ def _maybe_djyy_snapshot() -> None:
     if age_h < DJYY_MAX_AGE_H:
         return
     try:
-        if time.time() - float(DJYY_MARKER.read_text()) < DJYY_ATTEMPT_GAP_H * 3600:
+        if time.time() - float(DJYY_MARKER.read_text(encoding="utf-8")) < DJYY_ATTEMPT_GAP_H * 3600:
             return
     except (OSError, ValueError):
         pass
     try:
         DJYY_MARKER.parent.mkdir(parents=True, exist_ok=True)
-        DJYY_MARKER.write_text(str(time.time()))
+        DJYY_MARKER.write_text(str(time.time()), encoding="utf-8")
     except OSError:
         pass
     env = dict(os.environ)
@@ -526,7 +526,7 @@ def _maybe_djyy_snapshot() -> None:
         p = subprocess.run([str(ROOT / ".venv" / "bin" / "python3"),
                             "scripts/fetch_djyy_ssr.py"],
                            cwd=ROOT, capture_output=True, text=True, env=env,
-                           check=False, timeout=600)
+                           check=False, timeout=600, encoding="utf-8", errors="replace")
     except subprocess.TimeoutExpired:
         log("djyy: 抓取超时（>600s），保留旧快照")
         return
@@ -602,4 +602,9 @@ def _locked_main() -> int:
 
 
 if __name__ == "__main__":
+    # 本机值守是唯一跑在 Windows 上的生产入口：控制台默认 cp936，
+    # 日志里的中文/符号（✅ ⚠ 🧹）会 UnicodeEncodeError 打断整轮（本机实测）。
+    for _s in (sys.stdout, sys.stderr):
+        if hasattr(_s, "reconfigure"):
+            _s.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(_locked_main())

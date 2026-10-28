@@ -1,5 +1,10 @@
 from __future__ import annotations
 """计划锁定 - 防止已锁定的决策被重写"""
+import json
+import os
+import time
+from pathlib import Path
+
 try:  # POSIX 专用
     import fcntl
 except ImportError:  # Windows 没有 fcntl
@@ -8,10 +13,19 @@ except ImportError:  # Windows 没有 fcntl
     # JSON 锁（lock/verify_lock）不依赖 fcntl，应保持可用；
     # 只有 acquire_file_lock 这个 flock 封装需要降级。
     fcntl = None  # type: ignore[assignment]
-import json
-import os
-import time
-from pathlib import Path
+
+
+def compute_plan_hash(betting_plan: dict) -> str:
+    """计划指纹：覆盖**全部实际出票内容**（单关 + 三票 + 串关 + 总额）。
+
+    2026-10-23 修复（评审 P0#2）：原调用点只哈希 `plan.singles`，而真正
+    落盘的注单还包含串关/三票/总暴露 —— 锁住的"承诺"与实际产物不是同一个
+    对象。现在对最终 betting_plan 结构整体取 SHA-256。
+    """
+    import hashlib
+
+    payload = json.dumps(betting_plan, sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 class PlanLock:
@@ -36,7 +50,7 @@ class PlanLock:
         lock_path = self._lock_path(date_str)
 
         if lock_path.exists():
-            existing = json.loads(lock_path.read_text())
+            existing = json.loads(lock_path.read_text(encoding="utf-8"))
             if existing.get("plan_hash") == plan_hash:
                 return existing  # 已锁定且一致
             raise ValueError(f"计划已锁定且内容不同，拒绝覆盖: {date_str}")
@@ -52,7 +66,7 @@ class PlanLock:
 
         # 原子写入
         tmp_path = lock_path.with_suffix(".tmp")
-        tmp_path.write_text(json.dumps(lock_data, indent=2))
+        tmp_path.write_text(json.dumps(lock_data, indent=2), encoding="utf-8")
         os.replace(str(tmp_path), str(lock_path))
 
         return lock_data
@@ -66,7 +80,7 @@ class PlanLock:
         lock_path = self._lock_path(date_str)
         if not lock_path.exists():
             return None
-        return json.loads(lock_path.read_text())
+        return json.loads(lock_path.read_text(encoding="utf-8"))
 
     def verify_lock(self, date_str: str, plan_hash: str, bundle_hash: str) -> tuple[bool, str]:
         """验证锁是否有效"""
@@ -87,7 +101,7 @@ class PlanLock:
             )
         lock_file_path = self.lock_dir / f".flock_{date_str}"
         lock_file_path.touch(exist_ok=True)
-        self._lock_fd = open(lock_file_path, "w")
+        self._lock_fd = open(lock_file_path, "w", encoding="utf-8")
 
         start = time.time()
         while True:

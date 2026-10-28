@@ -207,7 +207,7 @@ class LeagueParamsManager:
         """加载持久化状态（旧文件缺新字段时用先验补齐，含判平反馈字段）"""
         if self.state_path.exists():
             try:
-                raw = json.loads(self.state_path.read_text())
+                raw = json.loads(self.state_path.read_text(encoding="utf-8"))
                 for league, data in raw.items():
                     # 旧版本字段缺失 → 用账本先验补齐（2026-08-05 新增字段）
                     if "xg_calibration" not in data or "draw_baseline" not in data:
@@ -324,7 +324,7 @@ class LeagueParamsManager:
                 "avg_overround": param.avg_overround,
                 "last_updated": param.last_updated,
             }
-        self.state_path.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+        self.state_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
     def get_params(self, league: str) -> LeagueParam:
         """获取联赛参数（无则用先验/默认初始化）"""

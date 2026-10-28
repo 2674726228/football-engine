@@ -72,7 +72,7 @@ def _std(xs):
 
 def load_records():
     recs = []
-    for line in LEDGER.read_text().splitlines():
+    for line in LEDGER.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line:
             continue
@@ -230,7 +230,7 @@ def main():
     ref = {}
     if ABLATION.exists():
         try:
-            ref = json.loads(ABLATION.read_text()).get("reference", {})
+            ref = json.loads(ABLATION.read_text(encoding="utf-8")).get("reference", {})
         except Exception:
             pass
 
@@ -319,7 +319,7 @@ def main():
             print(f"  ⚠ {ew['note']}")
 
     print("\n" + "=" * 70)
-    OUT.write_text(json.dumps(report, ensure_ascii=False, indent=2))
+    OUT.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"✓ 已写入 {OUT.relative_to(ROOT)} (schema v{SCHEMA_VERSION})")
 
 

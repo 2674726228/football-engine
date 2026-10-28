@@ -20,6 +20,7 @@ Daily Forecast 在 2026-10-12 02:24 的 schedule run 挂了。表面看只是"�
 
 CI 里没有 PyYAML，所以工作流定义用文本方式读取，脚本片段再喂给真 git 执行。
 """
+import os
 import re
 import shutil
 import subprocess
@@ -31,10 +32,31 @@ ROOT = Path(__file__).resolve().parent.parent
 WF = ROOT / ".github" / "workflows"
 
 
+def _bash() -> str | None:
+    """返回能处理 Windows 路径的 bash（Git Bash）；没有就返回 None。
+
+    2026-10-28：Windows 上裸 `bash` 会命中 System32 的 WSL 垫片，Windows 路径
+    被翻成 /mnt/c/…，裸库 remote 记下的 URL 之后再也找不到。
+    """
+    if os.name != "nt":
+        return "bash"
+    candidates = []
+    git = shutil.which("git")
+    if git:
+        candidates.append(str(Path(git).resolve().parent.parent / "bin" / "bash.exe"))
+    for base in (os.environ.get("ProgramFiles"), os.environ.get("ProgramFiles(x86)")):
+        if base:
+            candidates.append(str(Path(base) / "Git" / "bin" / "bash.exe"))
+    return next((c for c in candidates if Path(c).exists()), None)
+
+
+BASH = _bash()
+
+
 def sh(cmd: str, cwd: Path) -> subprocess.CompletedProcess:
-    return subprocess.run(["bash", "-c", cmd], cwd=str(cwd),
+    return subprocess.run([BASH, "-c", cmd], cwd=str(cwd),
                           capture_output=True, text=True, timeout=180,
-                          errors="replace")
+                          encoding="utf-8", errors="replace")
 
 
 def make_env() -> tuple[Path, Path, Path]:
@@ -56,23 +78,24 @@ def make_env() -> tuple[Path, Path, Path]:
     sh("git config user.email t@t && git config user.name t", a)
     (a / "data" / "state").mkdir(parents=True)
     (a / "web").mkdir()
-    (a / "data" / "state" / "pred.json").write_text('{"v":"base"}')
-    (a / "web" / "index.html").write_text("<html>base</html>")
+    (a / "data" / "state" / "pred.json").write_text('{"v":"base"}', encoding="utf-8")
+    (a / "web" / "index.html").write_text("<html>base</html>", encoding="utf-8")
     sh("git add -A && git commit -qm base && git push -q origin HEAD:main", a)
 
     # 写入方 B 先推，污染生成物
     sh("git clone -q remote.git b", tmp)
     b = tmp / "b"
     sh("git config user.email t@t && git config user.name t", b)
-    (b / "data" / "state" / "pred.json").write_text('{"v":"B-pushed-first"}')
-    (b / "web" / "index.html").write_text("<html>B</html>")
+    (b / "data" / "state" / "pred.json").write_text('{"v":"B-pushed-first"}', encoding="utf-8")
+    (b / "web" / "index.html").write_text("<html>B</html>", encoding="utf-8")
     sh("git add -A && git commit -qm 'auto update B' && git push -q origin HEAD:main", b)
     return tmp, a, b
 
 
 def extract_commit_block() -> str:
     """从 daily-forecast.yml 里抠出 Commit data 的 run 脚本。"""
-    text = (WF / "daily-forecast.yml").read_text(encoding="utf-8")
+    # 2026-10-28：统一换行，理由同 test_challenge_state_commitback.py。
+    text = (WF / "daily-forecast.yml").read_text(encoding="utf-8").replace("\r\n", "\n")
     m = re.search(r"- name: Commit data\n\s+run: \|\n((?:\s{10,}.*\n|\s*\n)+)", text)
     assert m, "找不到 Commit data 步骤"
     lines = []
@@ -84,6 +107,7 @@ def extract_commit_block() -> str:
     return "\n".join(lines)
 
 
+@unittest.skipUnless(BASH, "需要 Git Bash / POSIX bash")
 class TestDailyForecastCommit(unittest.TestCase):
 
     def setUp(self):
@@ -103,8 +127,8 @@ class TestDailyForecastCommit(unittest.TestCase):
         """
         a = self.a
         # A 现在生成当日数据（相对 B 的内容不同 → rebase 必然冲突）
-        (a / "data" / "state" / "pred.json").write_text('{"v":"A-generated-now"}')
-        (a / "web" / "index.html").write_text("<html>A</html>")
+        (a / "data" / "state" / "pred.json").write_text('{"v":"A-generated-now"}', encoding="utf-8")
+        (a / "web" / "index.html").write_text("<html>A</html>", encoding="utf-8")
 
         script = extract_commit_block().replace(
             "git config user.name \"github-actions[bot]\"",
@@ -119,10 +143,10 @@ class TestDailyForecastCommit(unittest.TestCase):
         # 远端最终应是本次生成的版本
         sh("git clone -q remote.git check", self.tmp)
         chk = self.tmp / "check"
-        self.assertEqual((chk / "data" / "state" / "pred.json").read_text(),
+        self.assertEqual((chk / "data" / "state" / "pred.json").read_text(encoding="utf-8"),
                          '{"v":"A-generated-now"}',
                          "冲突解决方向错了：rebase 期间 --theirs 才是本次生成的版本")
-        self.assertEqual((chk / "web" / "index.html").read_text(), "<html>A</html>")
+        self.assertEqual((chk / "web" / "index.html").read_text(encoding="utf-8"), "<html>A</html>")
 
         # 历史线性，无冲突标记残留
         log = sh("git log --oneline", chk).stdout
@@ -147,8 +171,8 @@ class TestDailyForecastCommit(unittest.TestCase):
         构造法：把 remote 指到一个不可写的裸仓库，push 必然失败。
         """
         a = self.a
-        (a / "data" / "state" / "pred.json").write_text('{"v":"A"}')
-        (a / "web" / "index.html").write_text("<html>A</html>")
+        (a / "data" / "state" / "pred.json").write_text('{"v":"A"}', encoding="utf-8")
+        (a / "web" / "index.html").write_text("<html>A</html>", encoding="utf-8")
         sh("git remote set-url origin /nonexistent/repo.git", a)
         script = extract_commit_block()
         r = sh(script, a)

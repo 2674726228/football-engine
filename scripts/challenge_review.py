@@ -204,14 +204,14 @@ def main():
     # （`if ... : pass`），实际不过滤任何东西——已移除该假开关，避免误导。
     recs = st.get('records', [])
     ledger = {}
-    for line in open(f'{ROOT}/data/state/review_ledger.jsonl'):
+    for line in open(f'{ROOT}/data/state/review_ledger.jsonl', encoding="utf-8"):
         r = json.loads(line)
         ledger[r['match_id']] = r
     # 结算 join：record 用队名；账本行带预测文件可反查 match_id
     pred_rows = []
     for d in sorted(set(r['date'] for r in ledger.values())):
         try:
-            p = json.load(open(f'{ROOT}/data/daily/{d}/predictions.json'))
+            p = json.load(open(f'{ROOT}/data/daily/{d}/predictions.json', encoding="utf-8"))
             p = p.get('predictions', p) if isinstance(p, dict) else p
             for x in p:
                 pred_rows.append((d, x))
@@ -291,7 +291,7 @@ def main():
         d_ = sum(bf)/len(bf) - sum(bm)/len(bm)
         print(f"\n挑战池 Brier：模型 {sum(bf)/len(bf):.4f} vs 市场 {sum(bm)/len(bm):.4f} → Δ={d_:+.4f}（负=模型更准）")
     json.dump({'week': st['week'], 'settled': settled},
-              open(f'{ROOT}/data/state/challenge_review.json', 'w'), ensure_ascii=False, indent=1)
+              open(f'{ROOT}/data/state/challenge_review.json', 'w', encoding="utf-8"), ensure_ascii=False, indent=1)
     print("→ data/state/challenge_review.json")
 
     # ---------- 策略层建议（只调挑战门槛/市场偏好，永不回写模型参数） ----------

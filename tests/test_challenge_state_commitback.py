@@ -13,7 +13,9 @@ duty 看门狗补触发 CI 的时机恰好是本机合盖睡着的那几轮，�
 用真 git 跑，不做文本断言：文本里确实有 `git push`，看着一切正常。
 """
 import importlib.util
+import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -24,15 +26,40 @@ WF = ROOT / ".github" / "workflows" / "challenge.yml"
 STATE = "data/state/challenge_state.json"
 
 
+def _bash() -> str | None:
+    """返回能处理 Windows 路径的 bash（Git Bash）；没有就返回 None。
+
+    2026-10-28：Windows 的 CreateProcess 先命中 System32 里的 WSL 垫片，
+    `bash -c` 进 WSL 后 Windows 路径被翻成 /mnt/c/…，本地裸库 remote 记下的
+    URL 之后再也找不到（克隆出来的 origin 是 /mnt/c/... → 所有 git 操作失败）。
+    """
+    if os.name != "nt":
+        return "bash"
+    candidates = []
+    git = shutil.which("git")
+    if git:
+        candidates.append(str(Path(git).resolve().parent.parent / "bin" / "bash.exe"))
+    for base in (os.environ.get("ProgramFiles"), os.environ.get("ProgramFiles(x86)")):
+        if base:
+            candidates.append(str(Path(base) / "Git" / "bin" / "bash.exe"))
+    return next((c for c in candidates if Path(c).exists()), None)
+
+
+BASH = _bash()
+pytestmark = pytest.mark.skipif(BASH is None, reason="需要 Git Bash / POSIX bash")
+
+
 def sh(cmd: str, cwd: Path) -> subprocess.CompletedProcess:
-    return subprocess.run(["bash", "-c", cmd], cwd=str(cwd),
+    return subprocess.run([BASH, "-c", cmd], cwd=str(cwd),
                           capture_output=True, text=True, timeout=180,
-                          errors="replace")
+                          encoding="utf-8", errors="replace")
 
 
 def commit_back_block() -> str:
     """抠出「状态回仓」的 run 脚本，剔除只在 GitHub 上才成立的 remote 改写行。"""
-    text = WF.read_text(encoding="utf-8")
+    # 2026-10-28：统一换行。Windows（core.autocrlf=true）检出为 CRLF 时，
+    # 抠出来的脚本每行末尾带 \r，交给 bash 后命令名被污染 → 真 git 一步都不执行。
+    text = WF.read_text(encoding="utf-8").replace("\r\n", "\n")
     m = re.search(r"- name: 状态回仓\n(?:\s*#.*\n)*\s+run: \|\n((?:\s{10,}.*\n|\s*\n)+)", text)
     assert m, "找不到 状态回仓 步骤"
     lines = []

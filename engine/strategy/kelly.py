@@ -40,7 +40,7 @@ class KellyStrategy:
 
     def __init__(self, config_path: Path | None = None):
         if config_path and config_path.exists():
-            cfg = json.loads(config_path.read_text())
+            cfg = json.loads(config_path.read_text(encoding="utf-8"))
         else:
             cfg = {}
 

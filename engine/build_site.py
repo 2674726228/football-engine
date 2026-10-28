@@ -165,7 +165,7 @@ def build_site():
         "available_dates": all_dates,
         "healthy": True,
     }
-    (web_dir / "report-status.json").write_text(json.dumps(status, indent=2))
+    (web_dir / "report-status.json").write_text(json.dumps(status, indent=2), encoding="utf-8")
     # EV 价值区报告（全量复盘分层 ROI，供页面与 Kelly 参考）
     try:
         from engine.review.ev_report import build_report
@@ -2529,7 +2529,7 @@ def _load_league_matrix(path):
     import json
     try:
         if path.exists():
-            return json.loads(path.read_text())
+            return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         pass
     return {"leagues": []}
@@ -4151,7 +4151,10 @@ def _evo_dashboard(evo=None):
         verdict = tr.get("verdict", "WARMING_UP")
         v2 = tr.get("v2_clean") or {}
         base = tr.get("baseline_pre_upgrade") or {}
-        v_map = {"IMPROVED": ("进化生效", "var(--green)"), "REGRESSED": ("效果退化", "var(--red)"),
+        # 2026-10-28：IMPROVED 只说明"换链没搞坏"（Q1 对旧链），不等于有 edge。
+        # 原标签"进化生效"在页面上被读成"系统能赢市场"，与同一张卡里的
+        # "vs 市场 与市场持平"自相矛盾；改成"修复生效"并点明比对对象。
+        v_map = {"IMPROVED": ("修复生效", "var(--green)"), "REGRESSED": ("效果退化", "var(--red)"),
                  "NEUTRAL": ("效果中性", "var(--amber)"), "WARMING_UP": ("样本预热中", "var(--dim)"),
                  "WAITING_DATA": ("等待数据", "var(--dim)")}
         label, color = v_map.get(verdict, (verdict, "var(--dim)"))
@@ -4181,7 +4184,7 @@ def _evo_dashboard(evo=None):
             _detail += (f"<br><span style='color:var(--dim)'>有效权重 "
                         f"model {e['model']*100:.1f}% / market {e['market']*100:.1f}%"
                         f"{' / djyy ' + format(e['djyy']*100, '.1f') + '%' if e.get('djyy') else ' / djyy 0%'}</span>")
-        cards.append('<div class="evo-card"><div class="evo-title">升级效果</div>'
+        cards.append('<div class="evo-card"><div class="evo-title">升级效果（Q1·vs 旧链，不代表有 edge）</div>'
                      f'<div class="evo-verdict" style="color:{color}">{label}</div>'
                      f'<div class="evo-detail">{_detail or "chain=v2 样本随结算累积"}</div></div>')
 

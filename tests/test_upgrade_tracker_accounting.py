@@ -108,7 +108,7 @@ def test_effective_weights_renormalize_when_djyy_dead(tmp_path, monkeypatch):
     model 0.05/0.80 = 6.25%, market 0.75/0.80 = 93.75%
     """
     fw = tmp_path / "fusion_weights.json"
-    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.2}}))
+    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.2}}), encoding="utf-8")
     monkeypatch.setattr(ut, "FUSION_W", fw)
     monkeypatch.setattr(ut, "PRED_CFG", tmp_path / "nonexistent.json")
 
@@ -125,7 +125,7 @@ def test_effective_weights_renormalize_when_djyy_dead(tmp_path, monkeypatch):
 def test_effective_weights_djyy_live_keeps_three_way(tmp_path, monkeypatch):
     """DJYY 正常供数时，三路权重原样生效。"""
     fw = tmp_path / "fusion_weights.json"
-    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.2}}))
+    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.2}}), encoding="utf-8")
     monkeypatch.setattr(ut, "FUSION_W", fw)
     monkeypatch.setattr(ut, "PRED_CFG", tmp_path / "nonexistent.json")
 
@@ -180,7 +180,7 @@ def test_djyy_threshold_is_not_merely_positive():
 def test_effective_weights_when_djyy_dead(tmp_path, monkeypatch):
     """djyy 未接线时，有效权重必须是归一化后的 6.25% / 93.75%。"""
     fw = tmp_path / "fw.json"
-    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.2}}))
+    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.2}}), encoding="utf-8")
     monkeypatch.setattr(ut, "FUSION_W", fw)
     # 4/558 命中 —— 与真实账本一致
     dead = [{"djyy_prob": None} for _ in range(554)] + \
@@ -195,7 +195,7 @@ def test_effective_weights_when_djyy_dead(tmp_path, monkeypatch):
 def test_effective_weights_when_djyy_healthy(tmp_path, monkeypatch):
     """djyy 真存活时三路权重原样生效。"""
     fw = tmp_path / "fw.json"
-    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.2}}))
+    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.2}}), encoding="utf-8")
     monkeypatch.setattr(ut, "FUSION_W", fw)
     live = [{"djyy_prob": {"home": .4, "draw": .3, "away": .3}} for _ in range(100)]
     out = ut.effective_weights(live)
@@ -207,7 +207,7 @@ def test_effective_weights_boundary(tmp_path, monkeypatch):
     """恰好在阈值上算存活，低于则算未接线。"""
     fw = tmp_path / "fw.json"
     # 必须给 djyy 一个非零名义权重，否则死活都算 0，测不出阈值
-    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.20}}))
+    fw.write_text(json.dumps({"champion": {"model": 0.05, "market": 0.75, "djyy": 0.20}}), encoding="utf-8")
     monkeypatch.setattr(ut, "FUSION_W", fw)
     at = [{"djyy_prob": {"h": .3}} for _ in range(50)] + \
          [{"djyy_prob": None} for _ in range(50)]     # 恰好 0.5

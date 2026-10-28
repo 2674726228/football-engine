@@ -85,7 +85,7 @@ def test_repo_internal_target_is_rejected(tmp_path):
     """显式指定仓库内目录时必须拒绝（不能让人误配）。"""
     r = subprocess.run(
         [sys.executable, str(SCRIPT), "--to", str(ROOT / "tmp-backup"), "--check"],
-        capture_output=True, text=True, timeout=60)
+        capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
     # 无归档时提前返回 0；有归档时应因"仓库内"返回 1
     if ns.ARCHIVE.exists() and list(ns.ARCHIVE.glob("*.json")):
         assert r.returncode == 1, "仓库内备份目录未被拒绝"
@@ -111,7 +111,7 @@ def test_cli_runs_end_to_end(tmp_path):
     out = tmp_path / "backup"
     r = subprocess.run(
         [sys.executable, str(SCRIPT), "--to", str(out)],
-        capture_output=True, text=True, timeout=180)
+        capture_output=True, text=True, timeout=180, encoding="utf-8", errors="replace")
     assert r.returncode == 0, r.stderr
     assert list((out / "archive").glob("*.json")), "没有备份文件"
     assert (out / "LAST_SYNC.txt").exists(), "缺少同步标记"
